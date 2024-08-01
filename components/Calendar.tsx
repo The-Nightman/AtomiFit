@@ -2,12 +2,12 @@ import { useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   Pressable,
   TouchableOpacity,
 } from "react-native";
 import { Entypo } from "@expo/vector-icons";
+import { ScrollView } from "react-native-gesture-handler";
 
 const Calendar = () => {
   // Store selected year in state, Current year default
