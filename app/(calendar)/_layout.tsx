@@ -160,6 +160,7 @@ const CalendarLayout = () => {
           <Stack
             screenOptions={{
               headerShown: false,
+              contentStyle: { backgroundColor: "#0F0F0F" },
             }}
           >
             <Stack.Screen name="index" options={{ gestureEnabled: true }} />
