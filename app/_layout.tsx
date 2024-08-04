@@ -6,6 +6,7 @@ const RootLayoutNav = () => {
     <Stack
       screenOptions={{
         headerShown: false,
+        contentStyle: { backgroundColor: "#0F0F0F" },
       }}
     >
       <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
