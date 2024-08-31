@@ -1,140 +1,102 @@
-import { memo, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TouchableOpacity,
-} from "react-native";
+import { memo, useMemo, useState } from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
+import * as Localization from "expo-localization";
 
 /**
  * Calendar component that displays a list of months with child weeks in grid of days for a selected year.
  */
-const Calendar = () => {
+const Calendar = memo(() => {
+  const userLocale: string = Localization.useLocales()[0].languageTag; // Get the user's locale from their device language settings
+  const startOfWeek = 1; // 1 = Monday, 7 = Sunday, this will be moved to user settings in the future
   // Store selected year in state, Current year default
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear()
   );
-  // Store selected day in state, format of `month-day` (0-based index) and default to a pseudo-null value 0-0
+  // Store selected day in state, format of `month.name-day` (0-based index) and default to a pseudo-null value 0-0
   const [selectedDay, setSelectedDay] = useState<string>(`0-0`);
-  // Explicit Array of month names, may be converted to map or programatically generated array later for localization
-  const months: string[] = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
 
   /**
-   * Returns an array of days in the specified month and year.
-   * The array includes leading nulls for empty slots in the calendar before the first day of the month.
+   * Generates an array of month names based on the user's locale.
+   * Dependencies run whenever the user's locale changes.
    *
-   * @param {number} month - The month (0-11) for which to get the days.
-   * @param {number} year - The year selected.
-   * @returns {Array<(null|number)>} An array of days in the specified month and year.
+   * @param {string} userLocale - The locale of the user.
+   * @returns {string[]} An array of localized month names.
    */
-  const getDaysInMonth = (month: number, year: number): (null | number)[] => {
-    // Generate an array of nulls to calculate empty slots in the calendar before the first day of the month
-    const firstDay = new Date(year, month, 1).getDay();
-    const startOfWeek = 1; // 1 = Monday, -5 = Sunday
-    const emptySlots = (firstDay - startOfWeek + 7) % 7;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    // Fill initial slots with leading nulls for empty days
-    const days: (null | number)[] = Array(emptySlots).fill(null);
-    // Fill the days of the month while the month is the same
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
+  const localizedMonths: string[] = useMemo(() => {
+    const formatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(userLocale, {
+      month: "long",
+    });
+    // Generate an array of localized month names
+    return Array.from({ length: 12 }, (_, i) =>
+      formatter.format(new Date(Date.UTC(2024, i, 1)))
+    );
+  }, [userLocale]);
+
+  /**
+   * Generates an array of short weekday names based on the user's locale.
+   * Dependencies run whenever the user's locale or selected week start changes.
+   *
+   * @param {string} userLocale - The locale of the user.
+   * @returns {string[]} An array of localized short weekday names.
+   */
+  const localizedDays: string[] = useMemo(() => {
+    const formatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(userLocale, {
+      weekday: "short",
+    });
+    // Generate an array of localized short weekday names
+    return Array.from({ length: 7 }, (_, i) =>
+      // i + startOfWeek will order the weekdays by the users selection, default is Monday (1)
+      formatter.format(new Date(Date.UTC(2024, 0, i + startOfWeek)))
+    );
+  }, [userLocale, startOfWeek]);
+
+  /**
+   * Generates an array of days in a given month.
+   *
+   * @param {number} month - The month number (0-11).
+   * @returns {(number | null)[]} An array of days in the month, including leading and trailing nulls.
+   */
+  const generateDaysInMonth = (month: number): (number | null)[] => {
+    // Pull the number of the last day of the previous month to get a count of days
+    const daysInMonth = new Date(selectedYear, month + 1, 0).getDate();
+    const adjustedFirstDay =
+      (new Date(selectedYear, month, 1).getDay() - startOfWeek + 7) % 7; // Adjust to start on the selected startOfWeek
+    const totalDays = daysInMonth + adjustedFirstDay; // Total number of days in that month including leading nulls to be but not trailing
+
+    const rows = Math.ceil(totalDays / 7); // Number of rows to display that month
+    const days = [];
+    for (let i = 0; i < rows * 7; i++) {
+      days.push(
+        // If i is within the range of the month, return the day, else return null including leading and trailing null
+        i >= adjustedFirstDay && i < adjustedFirstDay + daysInMonth
+          ? i - adjustedFirstDay + 1
+          : null
+      );
     }
     return days;
   };
 
   /**
-   * Renders the days of the month in a grid format.
+   * Generates an array of months with their corresponding days.
+   * Users the localizedMonths function to query localized month names, superior optimization to localizing in the map.
    *
-   * @param {number} month - The month (0-11) for which to render the days.
-   * @returns {React.JSX.Element} The days of the month in a grid format.
+   * @returns {Object[]} An array of objects representing each month, containing the month name and an array of days.
+   * @property {string} name - The localized name of the month.
+   * @property {(number | null)[]} days - An array of days in the month, including leading and trailing nulls.
    */
-  const renderMonth = (month: number, year: number): React.JSX.Element => {
-    const days: (null | number)[] = getDaysInMonth(month, year);
-    // Initialise an array of weeks to render the days in a grid format
-    // Array is a 2D array of weeks, each containing 7 days
-    const arrWeeks: (null | number)[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      // Slice a chunk of 7 days from the point i onwards
-      const chunk: (null | number)[] = days.slice(i, i + 7);
-      while (chunk.length < 7) {
-        // Fill the chunk with nulls until its length is 7
-        chunk.push(null);
-      }
-      arrWeeks.push(chunk);
-    }
-    // Render the days in a grid format
-    return (
-      <View style={styles.monthWeeksContainer}>
-        <View style={styles.daysContainer}>
-          <Text style={styles.weekDays}>MON</Text>
-          <Text style={styles.weekDays}>TUE</Text>
-          <Text style={styles.weekDays}>WED</Text>
-          <Text style={styles.weekDays}>THU</Text>
-          <Text style={styles.weekDays}>FRI</Text>
-          <Text style={styles.weekDays}>SAT</Text>
-          <Text style={styles.weekDays}>SUN</Text>
-        </View>
-        {/* map the weeks */}
-        {arrWeeks.map((week, index) => (
-          <View key={`${month}-${index}`} style={styles.daysContainer}>
-            {/* map the days in that week */}
-            {week.map((day, index) => {
-              if (day !== null) {
-                return (
-                  <TouchableOpacity
-                    key={`${month}-${day}-${index}`}
-                    onPress={() => day && handleDayPress(day, month)}
-                    style={
-                      selectedDay === `${month}-${day}`
-                        ? styles.selectedDayButton
-                        : styles.dayButton
-                    }
-                  >
-                    <Text style={styles.dayText}>{day}</Text>
-                  </TouchableOpacity>
-                );
-              } else {
-                return <View key={`${month}-${day}-${index}`} style={styles.dayBlank} />;
-              }
-            })}
-          </View>
-        ))}
-      </View>
-    );
-  };
-
-  /**
-   * Handles the press event for a specific day in the calendar.
-   * Not yet fully implemented.
-   *
-   * @param {number} day - The day of the month.
-   * @param {number} month - The month (0-based index).
-   */
-  const handleDayPress = (day: number, month: number) => {
-    setSelectedDay(`${month}-${day}`);
-  };
+  const months: { name: string; days: (number | null)[] }[] = useMemo(() => {
+    return Array.from({ length: 12 }, (_, month) => ({
+      // instead of performing this in function just use the localizedMonths result, witchcraft optimization
+      name: localizedMonths[month], // average render down to 0.3ms, lets fucking go
+      days: generateDaysInMonth(month),
+    }));
+  }, [selectedYear, userLocale]);
 
   return (
     <>
-      <View
-        style={styles.yearScrollContainer}
-      >
+      <View style={styles.yearScrollContainer}>
         <Pressable onPress={() => setSelectedYear((prevYear) => prevYear - 1)}>
           {({ pressed }) => (
             <Entypo
@@ -156,20 +118,75 @@ const Calendar = () => {
         </Pressable>
       </View>
       <ScrollView>
-        {months.map((monthName, index) => {
-          return (
-            <View key={monthName} style={styles.monthContainer}>
-              <Text
-                style={styles.monthName}
-              >{`${monthName} ${selectedYear}`}</Text>
-              {renderMonth(index, selectedYear)}
+        {months.map((month, _) => (
+          <View key={`${month.name}`} style={styles.monthContainer}>
+            <Text style={styles.monthName}>{month.name}</Text>
+            <View style={styles.monthWeeksContainer}>
+              <View style={styles.daysContainer}>
+                {localizedDays.map((dayName, _) => (
+                  <Text
+                    key={`${month.name}-${dayName}`}
+                    style={styles.weekDays}
+                  >
+                    {dayName.toLocaleUpperCase()}
+                  </Text>
+                ))}
+              </View>
+              {month.days
+                // Chunk the days into weeks, far more efficient than the previous method of chunking while generating
+                .reduce<(number | null)[][]>((weeks, day, i) => {
+                  // Calculate the week index based on the day index, this stops us from having
+                  // to calculate every 7 items as if we were chunking with a for loop
+                  const weekIndex = Math.floor(i / 7);
+                  // Initialize the week if it doesn't exist
+                  if (!weeks[weekIndex]) {
+                    weeks[weekIndex] = [];
+                  }
+                  weeks[weekIndex].push(day); // Push the day into the week chunk before we go again
+                  return weeks;
+                }, [])
+                // Map the week chunks into JSX
+                .map((week, weekIndex) => (
+                  <View
+                    key={`${month.name}-${weekIndex}`}
+                    style={styles.daysContainer}
+                  >
+                    {week.map((day, dayIndex) => {
+                      if (day !== null) {
+                        return (
+                          <Pressable
+                            key={`${month.name}-${day}-${dayIndex}`}
+                            onPress={() =>
+                              day && setSelectedDay(`${month.name}-${day}`)
+                            }
+                            style={
+                              selectedDay === `${month.name}-${day}`
+                                ? styles.selectedDayButton
+                                : styles.dayButton
+                            }
+                          >
+                            <Text style={styles.dayText}>{day}</Text>
+                          </Pressable>
+                        );
+                      } else {
+                        // Empty tiles for null days to preserve layout
+                        return (
+                          <View
+                            key={`${month}-${day}-${dayIndex}`}
+                            style={styles.dayBlank}
+                          />
+                        );
+                      }
+                    })}
+                  </View>
+                ))}
             </View>
-          );
-        })}
+          </View>
+        ))}
       </ScrollView>
     </>
   );
-};
+});
 
 const styles = StyleSheet.create({
   yearScrollContainer: {
