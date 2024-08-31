@@ -32,7 +32,8 @@
     "react-native-svg": "15.2.0",
     "react-native-web": "~0.19.10",
     "react-native-gesture-handler": "~2.16.1",
-    "lottie-react-native": "6.7.0"
+    "lottie-react-native": "6.7.0",
+    "expo-localization": "~15.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
