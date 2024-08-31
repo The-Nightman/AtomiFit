@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
-import UtilityStyles from "@/constants/UtilityStyles";
 
 /**
  * Calendar component that displays a list of months with child weeks in grid of days for a selected year.
