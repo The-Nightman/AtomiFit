@@ -1,59 +1,47 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { useEffect, useState } from "react";
+import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
+import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import * as SplashScreen from "expo-splash-screen";
+import LottieSplashScreen from "@/components/Splash/LottieSplashScreen";
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
+const RootLayoutNav = () => {
+  const [animComplete, setAnimComplete] = useState<boolean>(false);
+  // Preload fonts and vector icons from @expo/vector-icons here for a seamless user experience
+  const [loaded, error]: [boolean, Error | null] = useFonts({
+    ...Entypo.font,
+    ...MaterialIcons.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+  // Prevent the splash screen from auto-hiding so we can manually control it while the app is loading
+  SplashScreen.preventAutoHideAsync();
+
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
+  // We want to hide the expo splash screen when the assets are loaded so we can play the
+  // Lottie animation splash screen as a smooth transition from the static splash
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
+  // Make sure both the assets are loaded and the Lottie animation is complete before passing this cp
+  if (!loaded || !animComplete) {
+    return <LottieSplashScreen setComplete={setAnimComplete} />;
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#0F0F0F" },
+      }}
+    >
+      <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
+      <Stack.Screen name="about" options={{ gestureEnabled: true }} />
+    </Stack>
   );
-}
+};
+
+export default RootLayoutNav;
