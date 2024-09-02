@@ -1,0 +1,782 @@
+[
+    {
+        "name": "Ab-Wheel Rollout",
+        "category_id": 1,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Cable Crunch",
+        "category_id": 1,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Crunch",
+        "category_id": 1,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Crunch Machine",
+        "category_id": 1,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Decline Crunch",
+        "category_id": 1,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Dragon Flag",
+        "category_id": 1,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Hanging Knee Raise",
+        "category_id": 1,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Hanging Leg Raise",
+        "category_id": 1,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Plank",
+        "category_id": 1,
+        "notes": "",
+        "type": "Weight And Time"
+    },
+    {
+        "name": "Side Plank",
+        "category_id": 1,
+        "notes": "",
+        "type": "Weight And Time"
+    },
+    {
+        "name": "Assisted Chin-Up",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Assisted Pull-Up",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Shrug",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Block Pull",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Chest Supported Dumbbell Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Chin-Up",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Close Grip Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Deadlift",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Shrug",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Good Morning",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Hammer Strength Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Helms Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Incline Dumbbell Shrug",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Lat Pulldown",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Lat Pullover",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Low Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Machine Shrug",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Machine Wide Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Neutral Grip Chin-Up",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Pause Deadlift",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Pendlay Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Pull-Up",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Rack Pull",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Back Extension Machine",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Cable Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "T-Bar Row",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Trap Bar Shrug",
+        "category_id": 2,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Bicep Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Bicep Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Hammer Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Concentration Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Bicep Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Hammer Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Preacher Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "EZ-Bar Bicep Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "EZ-Bar Preacher Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Incline Dumbbell Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Machine Bicep Curl",
+        "category_id": 3,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cycling",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Eliptical",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Indoor Rowing Machine",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Running (Outdoor)",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Running (Indoor/Treadmill)",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Indoor Cycling",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Swimming",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Walking",
+        "category_id": 4,
+        "notes": "",
+        "type": "Distance And Time"
+    },
+    {
+        "name": "Cable Crossover",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Fly",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Chest Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Decline Barbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Decline Hammer Strength Chest Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Flat Back Barbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Flat Dumbbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Flat Dumbbell Fly",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Incline Barbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Incline Close Grip Barbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Incline Dumbbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Incline Dumbbell Fly",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Incline Hammer Strength Chest Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Pause Flat Back Barbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Pause Barbell Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Machine Fly",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Smith Machine Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Smith Machine Decline Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Smith Machine Incline Bench Press",
+        "category_id": 5,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Back Squat",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Front Squat",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Glute Bridge",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Barbell Hip Thrust",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Bulgarian Split Squat",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Pull-Through",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Donkey Calf Raise",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Glute-Ham Raise",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Hip Abductor Machine",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Hip Adductor Machine",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Leg Extension Machine",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Leg Press",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Lying Leg Curl Machine",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Nordic Ham Curl",
+        "category_id": 6,
+        "notes": "",
+        "type": "Reps"
+    },
+    {
+        "name": "Romanian Deadlift",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Calf Raise Machine",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Standing Calf Raise Machine",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Stiff-Legged Deadlift",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Sumo Box Squat",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Sumo Deadlift",
+        "category_id": 6,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Arnold Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Banded Pull-Aparts",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Behind The Neck Barbell Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Face Pull",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Lateral Raise",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Front Dumbbell Raise",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Hammer Strength Shoulder Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Lateral Dumbbell Raise",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Lateral Machine Raise",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Log Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Overhead Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Push Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Rear Delt Dumbbell Fly",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Rear Delt Machine Fly",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Dumbbell Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Machine Overhead Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Overhead Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Smith Machine Overhead Press",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Upright Row",
+        "category_id": 7,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Cable Overhead Triceps Extension",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Close Grip Barbell Bench Press",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Dumbbell Overhead Triceps Extension",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "EZ-Bar Skullcrusher",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "JM Press",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Parallel Bar Triceps Dip",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Pin Press",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Ring Dip",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Rope Push Down",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Seated Machine Triceps Extension",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Smith Machine Close Grip Bench Press",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Straight Bar Pushdown",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "Triceps Dips",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    },
+    {
+        "name": "V-Bar Push Down",
+        "category_id": 8,
+        "notes": "",
+        "type": "Weight And Reps"
+    }
+]

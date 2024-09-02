@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Abs",
+    "colour": "#00B2A2"
+  },
+  {
+    "id": 2,
+    "name": "Back",
+    "colour": "#2071FF"
+  },
+  {
+    "id": 3,
+    "name": "Biceps",
+    "colour": "#FFA500"
+  },
+  {
+    "id": 4,
+    "name": "Cardio",
+    "colour": "#FF0000"
+  },
+  {
+    "id": 5,
+    "name": "Chest",
+    "colour": "#FF69B4"
+  },
+  {
+    "id": 6,
+    "name": "Legs",
+    "colour": "#FFD700"
+  },
+  {
+    "id": 7,
+    "name": "Shoulders",
+    "colour": "#00FF00"
+  },
+  {
+    "id": 8,
+    "name": "Triceps",
+    "colour": "#FF4500"
+  }
+]
