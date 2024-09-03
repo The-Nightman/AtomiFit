@@ -15,6 +15,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
     "@react-navigation/native": "^6.0.2",
+    "babel-plugin-inline-import": "^3.0.0",
     "drizzle-orm": "^0.33.0",
     "expo": "~51.0.24",
     "expo-font": "~12.0.7",
