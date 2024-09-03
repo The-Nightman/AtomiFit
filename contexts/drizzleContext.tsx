@@ -6,6 +6,7 @@ import migrations from "../database/drizzle/migrations";
 import * as schema from "../database/schema";
 import categoriesData from "../data/categoriesData.json";
 import exercisesData from "../data/exercisesData.json";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 interface DrizzleProviderProps {
   children: React.ReactNode;
@@ -47,6 +48,12 @@ export const seedDatabase = async (): Promise<void> => {
  */
 export const DrizzleProvider = ({ children }: DrizzleProviderProps) => {
   const { success, error } = useMigrations(db, migrations);
+
+  // Use Drizzle Studio in development mode
+  // Cannot Lazy Load Drizzle Studio due to this causing a timeout and never ending loading screen
+  if (__DEV__) {
+    useDrizzleStudio(openDatabaseSync("atomifit.db"));
+  }
 
   useEffect(() => {
     const setup = async () => {
