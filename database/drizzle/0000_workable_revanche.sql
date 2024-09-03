@@ -1,10 +1,10 @@
-CREATE TABLE `categories` (
+CREATE TABLE IF NOT EXISTS `categories` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`colour` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `exercises` (
+CREATE TABLE IF NOT EXISTS `exercises` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`notes` text NOT NULL,
@@ -13,5 +13,5 @@ CREATE TABLE `exercises` (
 	FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `nameIdx` ON `categories` (`name`);--> statement-breakpoint
-CREATE UNIQUE INDEX `exerciseNameIdx` ON `exercises` (`name`);
+CREATE UNIQUE INDEX IF NOT EXISTS `nameIdx` ON `categories` (`name`);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `exerciseNameIdx` ON `exercises` (`name`);
