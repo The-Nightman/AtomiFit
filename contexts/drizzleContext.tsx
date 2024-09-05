@@ -3,10 +3,8 @@ import { openDatabaseSync, SQLiteDatabase } from "expo-sqlite";
 import { drizzle, ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../database/drizzle/migrations";
-import * as schema from "../database/schema";
-import categoriesData from "../data/categoriesData.json";
-import exercisesData from "../data/exercisesData.json";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import { seedDatabase } from "@/database/seedDatabase";
 
 interface DrizzleProviderProps {
   children: React.ReactNode;
@@ -25,23 +23,6 @@ const db: ExpoSQLiteDatabase<Record<string, never>> = drizzle(atomifitDB);
 export const DrizzleContext = createContext<DrizzleContextProps>({ db });
 
 /**
- * Seeds the database with categories and exercises if they don't exist.
- * @returns {Promise<void>} A promise that resolves when the database is seeded.
- */
-export const seedDatabase = async (): Promise<void> => {
-  const categories = db.select().from(schema.categories).all();
-  const exercises = db.select().from(schema.exercises).all();
-
-  if (categories.length === 0) {
-    await db.insert(schema.categories).values(categoriesData);
-  }
-
-  if (exercises.length === 0) {
-    await db.insert(schema.exercises).values(exercisesData);
-  }
-};
-
-/**
  * DrizzleProvider component.
  *
  * @param {React.ReactNode} children - The children components.
@@ -57,7 +38,7 @@ export const DrizzleProvider = ({ children }: DrizzleProviderProps) => {
 
   useEffect(() => {
     const setup = async () => {
-      await seedDatabase();
+      await seedDatabase(db);
     };
     if (error) {
       throw error;
