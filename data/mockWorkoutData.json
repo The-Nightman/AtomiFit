@@ -1,0 +1,93 @@
+[
+  {
+    "date": "2024-09-04",
+    "exercise_id": 75,
+    "weight": 20.0,
+    "reps": 6,
+    "notes": "First set of bench press"
+  },
+  {
+    "date": "2024-09-04",
+    "exercise_id": 75,
+    "weight": 60.0,
+    "reps": 4,
+    "notes": "2nd set of bench press"
+  },
+  {
+    "date": "2024-09-04",
+    "exercise_id": 75,
+    "weight": 100.0,
+    "reps": 6,
+    "notes": "3rd set of bench press"
+  },
+  {
+    "date": "2024-09-04",
+    "exercise_id": 88,
+    "weight": 40.0,
+    "reps": 10,
+    "notes": "1st set leg ext"
+  },
+  {
+    "date": "2024-09-04",
+    "exercise_id": 88,
+    "weight": 40.0,
+    "reps": 10,
+    "notes": "2nd set leg ext"
+  },
+  {
+    "date": "2024-09-04",
+    "exercise_id": 88,
+    "weight": 40.0,
+    "reps": 10,
+    "notes": "3rd set leg ext"
+  },
+  {
+    "date": "2024-09-05",
+    "exercise_id": 55,
+    "distance": 1200,
+    "time": 600,
+    "notes": "running"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 40,
+    "weight": 12,
+    "reps": 10,
+    "notes": "1st set barbell curl"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 40,
+    "weight": 12,
+    "reps": 10,
+    "notes": "2nd set barbell curl"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 40,
+    "weight": 12,
+    "reps": 10,
+    "notes": "3rd set barbell curl"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 104,
+    "weight": 12,
+    "reps": 10,
+    "notes": "1st set hammer strength press"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 104,
+    "weight": 12,
+    "reps": 10,
+    "notes": "2nd set hammer strength press"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 104,
+    "weight": 12,
+    "reps": 10,
+    "notes": "3rd set hammer strength press"
+  }
+]
