@@ -1,21 +1,17 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useContext, useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
 import * as Localization from "expo-localization";
+import { DrizzleContext } from "@/contexts/drizzleContext";
+import * as schema from "@/database/schema";
+import { eq, sql } from "drizzle-orm";
 
 /**
  * Calendar component that displays a list of months with child weeks in grid of days for a selected year.
  */
 const Calendar = memo(() => {
   const userLocale: string = Localization.useLocales()[0].languageTag; // Get the user's locale from their device language settings
-  const startOfWeek = 1; // 1 = Monday, 7 = Sunday, this will be moved to user settings in the future
-  // Store selected year in state, Current year default
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
-  );
-  // Store selected day in state, format of `month.name-day` (0-based index) and default to a pseudo-null value 0-0
-  const [selectedDay, setSelectedDay] = useState<string>(`0-0`);
 
   /**
    * Generates an array of month names based on the user's locale.
@@ -33,6 +29,67 @@ const Calendar = memo(() => {
       formatter.format(new Date(Date.UTC(2024, i, 1)))
     );
   }, [userLocale]);
+
+  const startOfWeek = 1; // 1 = Monday, 7 = Sunday, this will be moved to user settings in the future
+
+  // Store selected year in state, Current year default
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  // Store selected day in state, format of `month.name-day` (0-based index) and default to current month and day
+  const [selectedDay, setSelectedDay] = useState<string>(() => {
+    const date = new Date();
+    return `${localizedMonths[date.getMonth()]}-${date.getDate()}`;
+  });
+  // Database query data
+  const [data, setData] = useState<{ date: string; categories: string[] }[]>(
+    []
+  );
+  const { db } = useContext(DrizzleContext);
+
+  useEffect(() => {
+    // Query the database for the categories of exercises performed
+    // SELECT date, ['category1', 'category2', ...] AS categories FROM ...
+    // date is formatted as 'YYYY-MM-DD' and categories is a stringified array of category colours
+    // FROM sets_data JOIN exercises on id JOIN categories on id GROUP BY date
+    const queryData: { date: string; categories: string }[] = db
+      .select({
+        date: sql`STRFTIME('%Y-%m-%d', date) AS date`,
+        categories: sql`'[' || GROUP_CONCAT(formatted_data.formatted_category, ',') || ']' AS categories`,
+      })
+      .from(
+        db
+          .select({
+            date: sql`STRFTIME('%Y-%m-%d', date) AS date`,
+            formatted_category: sql`'"' || categories.colour || '"' AS formatted_category`,
+          })
+          .from(schema.setsData)
+          .leftJoin(
+            schema.exercises,
+            eq(schema.setsData.exercise_id, schema.exercises.id)
+          )
+          .leftJoin(
+            schema.categories,
+            eq(schema.exercises.category_id, schema.categories.id)
+          )
+          .groupBy(
+            sql`STRFTIME('%Y-%m-%d', sets_data.date)`,
+            schema.categories.name
+          )
+          .as("formatted_data")
+      )
+      .groupBy(sql`strftime('%Y-%m-%d', date)`)
+      .all() as { date: string; categories: string }[];
+
+    setData(
+      // Map over the data and parse the stringified psuedo-array back into an array
+      // This is a more performant solution to navigating SQLite shortcomings
+      queryData.map((item) => ({
+        ...item,
+        categories: JSON.parse(item.categories),
+      }))
+    );
+  }, []);
 
   /**
    * Generates an array of short weekday names based on the user's locale.
@@ -118,7 +175,7 @@ const Calendar = memo(() => {
         </Pressable>
       </View>
       <ScrollView>
-        {months.map((month, _) => (
+        {months.map((month, monthIndex) => (
           <View key={`${month.name}`} style={styles.monthContainer}>
             <Text style={styles.monthName}>{month.name}</Text>
             <View style={styles.monthWeeksContainer}>
@@ -159,13 +216,57 @@ const Calendar = memo(() => {
                             onPress={() =>
                               day && setSelectedDay(`${month.name}-${day}`)
                             }
-                            style={
-                              selectedDay === `${month.name}-${day}`
-                                ? styles.selectedDayButton
-                                : styles.dayButton
-                            }
+                            style={[
+                              selectedDay === `${month.name}-${day}` && {
+                                backgroundColor: "#60DD49",
+                              },
+                              styles.dayButton,
+                            ]}
                           >
                             <Text style={styles.dayText}>{day}</Text>
+                            {data
+                              // Filter the data to only show the categories for the selected day
+                              .filter(
+                                (item) =>
+                                  item.date ===
+                                  `${selectedYear}-${String(
+                                    monthIndex + 1
+                                  ).padStart(2, "0")}-${String(day).padStart(
+                                    2,
+                                    "0"
+                                  )}`
+                              )
+                              // Filter will return an array of one item so we can just map over it
+                              .map((item) => {
+                                // Create a container for the category indicators
+                                return (
+                                  <View
+                                    key={`${month.name}-${day}-${dayIndex}-categories`}
+                                    style={[
+                                      styles.dayIndicatorContainer,
+                                      // If the day is selected, move the indicator to the bottom
+                                      selectedDay === `${month.name}-${day}`
+                                        ? { top: "104%" }
+                                        : { top: "70%" },
+                                    ]}
+                                  >
+                                    {
+                                      // Map over the categories and create a coloured indicator for each
+                                      item.categories.map((category) => {
+                                        return (
+                                          <View
+                                            key={`${month.name}-${day}-${dayIndex}-${category}`}
+                                            style={[
+                                              styles.dayIndicator,
+                                              { backgroundColor: category },
+                                            ]}
+                                          />
+                                        );
+                                      })
+                                    }
+                                  </View>
+                                );
+                              })}
                           </Pressable>
                         );
                       } else {
@@ -236,16 +337,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
-    borderRadius: 20,
-    marginVertical: 4,
-  },
-  selectedDayButton: {
-    width: 36,
-    height: 36,
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-    backgroundColor: "#60DD49",
+    // set the background color based on the selected day
+    // {[styles.dayButton, selectedDay is true && {backgroundColor: "#60DD49"}]}
     borderRadius: 20,
     marginVertical: 4,
   },
@@ -259,6 +352,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
+  dayIndicatorContainer: {
+    flexDirection: "row",
+    position: "absolute",
+    // set the top position based on the selected day
+    // {[styles.dayIndicatorContainer, selectedDay is true ? {top: "104%"} : {top: "70%"}]}
+    gap: 2,
+    justifyContent: "space-evenly",
+    maxWidth: 34,
+    flexWrap: "wrap",
+  },
+  dayIndicator: {
+    width: 6,
+    height: 6,
+    // set the background color based on the category colour from map
+    // {[styles.dayIndicator, {backgroundColor: category}]}
+    borderRadius: 3,
+  },
 });
 
-export default memo(Calendar);
+export default Calendar;
