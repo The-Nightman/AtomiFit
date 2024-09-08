@@ -139,9 +139,9 @@ const Calendar = memo(() => {
    * Generates an array of months with their corresponding days.
    * Users the localizedMonths function to query localized month names, superior optimization to localizing in the map.
    *
-   * @returns {Object[]} An array of objects representing each month, containing the month name and an array of days.
    * @property {string} name - The localized name of the month.
    * @property {(number | null)[]} days - An array of days in the month, including leading and trailing nulls.
+   * @returns {{ name: string; days: (number | null)[] }[]} An array of objects representing each month, containing the localized month name and an array of days.
    */
   const months: { name: string; days: (number | null)[] }[] = useMemo(() => {
     return Array.from({ length: 12 }, (_, month) => ({
