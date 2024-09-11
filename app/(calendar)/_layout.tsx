@@ -26,7 +26,16 @@ import { Entypo, MaterialIcons } from "@expo/vector-icons";
 
 const { width: SIDEBAR_WIDTH } = Dimensions.get("window");
 
-const CalendarLayout = () => {
+/**
+ * CalendarLayout component.
+ *
+ * This component represents the layout for the calendar view and list view.
+ * It includes a sidebar menu that can be panned open or closed.
+ * The layout also includes a stack of screens for navigation.
+ *
+ * @returns {JSX.Element} The rendered CalendarLayout component.
+ */
+const CalendarLayout = (): JSX.Element => {
   const path = usePathname();
   const insets = useSafeAreaInsets();
   const [svgDimensions, setSvgDimensions] = useState<number>(0);
@@ -94,7 +103,6 @@ const CalendarLayout = () => {
                 <AtomiFitShortSVG color={"#0F0F0F"} />
               </Pressable>
             </View>
-            <Text style={{ color: "white" }}>Calendar</Text>
           </View>
           {/* Sidebar Menu */}
           <Animated.View style={[styles.sideMenuContainer, animatedStyle]}>
@@ -126,16 +134,16 @@ const CalendarLayout = () => {
                     </Text>
                   </Pressable>
                 </Link>
-                <Link href="/" asChild replace>
+                <Link href="/listView" asChild replace>
                   <Pressable style={styles.sideButton}>
                     <MaterialIcons
                       name="format-list-bulleted"
                       size={28}
-                      color={path === "/list" ? "#60DD49" : "white"}
+                      color={path === "/listView" ? "#60DD49" : "white"}
                     />
                     <Text
                       style={
-                        path === "/list"
+                        path === "/listView"
                           ? styles.sideButtonTextActive
                           : styles.sideButtonText
                       }
@@ -163,7 +171,11 @@ const CalendarLayout = () => {
               contentStyle: { backgroundColor: "#0F0F0F" },
             }}
           >
-            <Stack.Screen name="index" options={{ gestureEnabled: true }} />
+            <Stack.Screen
+              name="index"
+              options={{ gestureEnabled: true }}
+            />
+            <Stack.Screen name="listView" options={{ gestureEnabled: true }} />
           </Stack>
         </View>
       </GestureDetector>
