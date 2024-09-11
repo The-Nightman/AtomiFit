@@ -8,7 +8,13 @@ import * as schema from "@/database/schema";
 import { eq, sql } from "drizzle-orm";
 
 /**
- * Calendar component that displays a list of months with child weeks in grid of days for a selected year.
+ * Calendar component.
+ *
+ * This component displays a calendar with localized month names, weekdays, and days of the month.
+ * It allows the user to select a year and a specific day.
+ * The component also queries a database for exercise categories performed on selected days.
+ *
+ * @returns {JSX.Element} The rendered Calendar component.
  */
 const Calendar = memo(() => {
   const userLocale: string = Localization.useLocales()[0].languageTag; // Get the user's locale from their device language settings
