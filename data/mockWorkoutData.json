@@ -1,5 +1,201 @@
 [
   {
+    "date": "2024-08-21",
+    "exercise_id": 12,
+    "weight": 50.0,
+    "reps": 8,
+    "notes": "First set of squats"
+  },
+  {
+    "date": "2024-08-21",
+    "exercise_id": 12,
+    "weight": 70.0,
+    "reps": 6,
+    "notes": "Second set of squats"
+  },
+  {
+    "date": "2024-08-22",
+    "exercise_id": 34,
+    "weight": 30.0,
+    "reps": 12,
+    "notes": "First set of bicep curls"
+  },
+  {
+    "date": "2024-08-22",
+    "exercise_id": 34,
+    "weight": 35.0,
+    "reps": 10,
+    "notes": "Second set of bicep curls"
+  },
+  {
+    "date": "2024-08-23",
+    "exercise_id": 56,
+    "weight": 20.0,
+    "reps": 15,
+    "notes": "First set of tricep extensions"
+  },
+  {
+    "date": "2024-08-23",
+    "exercise_id": 56,
+    "weight": 25.0,
+    "reps": 12,
+    "notes": "Second set of tricep extensions"
+  },
+  {
+    "date": "2024-08-24",
+    "exercise_id": 78,
+    "weight": 60.0,
+    "reps": 10,
+    "notes": "First set of deadlifts"
+  },
+  {
+    "date": "2024-08-24",
+    "exercise_id": 78,
+    "weight": 80.0,
+    "reps": 8,
+    "notes": "Second set of deadlifts"
+  },
+  {
+    "date": "2024-08-25",
+    "exercise_id": 90,
+    "weight": 40.0,
+    "reps": 12,
+    "notes": "First set of shoulder press"
+  },
+  {
+    "date": "2024-08-25",
+    "exercise_id": 90,
+    "weight": 45.0,
+    "reps": 10,
+    "notes": "Second set of shoulder press"
+  },
+  {
+    "date": "2024-08-26",
+    "exercise_id": 23,
+    "weight": 25.0,
+    "reps": 15,
+    "notes": "First set of lunges"
+  },
+  {
+    "date": "2024-08-26",
+    "exercise_id": 23,
+    "weight": 30.0,
+    "reps": 12,
+    "notes": "Second set of lunges"
+  },
+  {
+    "date": "2024-08-27",
+    "exercise_id": 45,
+    "weight": 35.0,
+    "reps": 10,
+    "notes": "First set of rows"
+  },
+  {
+    "date": "2024-08-27",
+    "exercise_id": 45,
+    "weight": 40.0,
+    "reps": 8,
+    "notes": "Second set of rows"
+  },
+  {
+    "date": "2024-08-28",
+    "exercise_id": 67,
+    "weight": 50.0,
+    "reps": 12,
+    "notes": "First set of bench press"
+  },
+  {
+    "date": "2024-08-28",
+    "exercise_id": 67,
+    "weight": 55.0,
+    "reps": 10,
+    "notes": "Second set of bench press"
+  },
+  {
+    "date": "2024-08-29",
+    "exercise_id": 89,
+    "weight": 20.0,
+    "reps": 15,
+    "notes": "First set of leg curls"
+  },
+  {
+    "date": "2024-08-29",
+    "exercise_id": 89,
+    "weight": 25.0,
+    "reps": 12,
+    "notes": "Second set of leg curls"
+  },
+  {
+    "date": "2024-08-30",
+    "exercise_id": 11,
+    "weight": 30.0,
+    "reps": 10,
+    "notes": "First set of calf raises"
+  },
+  {
+    "date": "2024-08-30",
+    "exercise_id": 11,
+    "weight": 35.0,
+    "reps": 8,
+    "notes": "Second set of calf raises"
+  },
+  {
+    "date": "2024-08-31",
+    "exercise_id": 22,
+    "weight": 40.0,
+    "reps": 12,
+    "notes": "First set of lat pulldowns"
+  },
+  {
+    "date": "2024-08-31",
+    "exercise_id": 22,
+    "weight": 45.0,
+    "reps": 10,
+    "notes": "Second set of lat pulldowns"
+  },
+  {
+    "date": "2024-09-01",
+    "exercise_id": 33,
+    "weight": 50.0,
+    "reps": 8,
+    "notes": "First set of chest flys"
+  },
+  {
+    "date": "2024-09-01",
+    "exercise_id": 33,
+    "weight": 55.0,
+    "reps": 6,
+    "notes": "Second set of chest flys"
+  },
+  {
+    "date": "2024-09-02",
+    "exercise_id": 44,
+    "weight": 60.0,
+    "reps": 10,
+    "notes": "First set of pull-ups"
+  },
+  {
+    "date": "2024-09-02",
+    "exercise_id": 44,
+    "weight": 65.0,
+    "reps": 8,
+    "notes": "Second set of pull-ups"
+  },
+  {
+    "date": "2024-09-03",
+    "exercise_id": 55,
+    "weight": 70.0,
+    "reps": 12,
+    "notes": "First set of dips"
+  },
+  {
+    "date": "2024-09-03",
+    "exercise_id": 55,
+    "weight": 75.0,
+    "reps": 10,
+    "notes": "Second set of dips"
+  },
+  {
     "date": "2024-09-04",
     "exercise_id": 75,
     "weight": 20.0,
@@ -89,5 +285,30 @@
     "weight": 12,
     "reps": 10,
     "notes": "3rd set hammer strength press"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 1,
+    "reps": 10,
+    "notes": "1st set ab wheel"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 1,
+    "reps": 10,
+    "notes": "2nd set ab wheel"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 1,
+    "reps": 10,
+    "notes": "3rd set ab wheel"
+  },
+  {
+    "date": "2024-09-06",
+    "exercise_id": 41,
+    "weight": 12,
+    "reps": 10,
+    "notes": "cable bi curl"
   }
 ]
