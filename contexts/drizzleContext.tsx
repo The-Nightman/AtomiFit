@@ -14,7 +14,7 @@ interface DrizzleContextProps {
   db: ExpoSQLiteDatabase<Record<string, never>>;
 }
 
-const atomifitDB: SQLiteDatabase = openDatabaseSync("atomifit.db");
+const atomifitDB: SQLiteDatabase = openDatabaseSync(__DEV__ ? "test.db" : "atomifit.db");
 const db: ExpoSQLiteDatabase<Record<string, never>> = drizzle(atomifitDB);
 
 /**
@@ -33,7 +33,7 @@ export const DrizzleProvider = ({ children }: DrizzleProviderProps) => {
   // Use Drizzle Studio in development mode
   // Cannot Lazy Load Drizzle Studio due to this causing a timeout and never ending loading screen
   if (__DEV__) {
-    useDrizzleStudio(openDatabaseSync("atomifit.db"));
+    useDrizzleStudio(openDatabaseSync("test.db"));
   }
 
   useEffect(() => {
