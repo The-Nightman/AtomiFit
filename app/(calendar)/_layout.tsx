@@ -11,7 +11,6 @@ import {
 import {
   Gesture,
   GestureDetector,
-  GestureHandlerRootView,
   PanGesture,
 } from "react-native-gesture-handler";
 import Animated, {
@@ -85,101 +84,97 @@ const CalendarLayout = (): JSX.Element => {
   }));
 
   return (
-    <GestureHandlerRootView>
-      <GestureDetector gesture={panGesture}>
-        <View style={UtilityStyles.flex1}>
-          <View style={styles.headerContainer}>
-            <View>
-              <Pressable
-                style={styles.headerMenuButton}
-                onPress={() =>
-                  (translateX.value = withSpring(0, {
-                    velocity: 0.1,
-                    damping: 20,
-                  }))
-                }
-              >
-                <Entypo name="menu" size={45} color="black" />
-                <AtomiFitShortSVG color={"#0F0F0F"} />
-              </Pressable>
-            </View>
-          </View>
-          {/* Sidebar Menu */}
-          <Animated.View style={[styles.sideMenuContainer, animatedStyle]}>
-            <View
-              style={[styles.sideMenuBar, { paddingTop: insets.top }]}
-              onLayout={handleLayout}
-            >
-              <AtomiFitShortSVG
-                color={"#60DD49"}
-                height={svgDimensions}
-                width={svgDimensions}
-              />
-              <View>
-                <Link href="/" asChild replace>
-                  <Pressable style={styles.sideButton}>
-                    <MaterialIcons
-                      name="calendar-month"
-                      size={28}
-                      color={path === "/" ? "#60DD49" : "white"}
-                    />
-                    <Text
-                      style={
-                        path === "/"
-                          ? styles.sideButtonTextActive
-                          : styles.sideButtonText
-                      }
-                    >
-                      Calendar View
-                    </Text>
-                  </Pressable>
-                </Link>
-                <Link href="/listView" asChild replace>
-                  <Pressable style={styles.sideButton}>
-                    <MaterialIcons
-                      name="format-list-bulleted"
-                      size={28}
-                      color={path === "/listView" ? "#60DD49" : "white"}
-                    />
-                    <Text
-                      style={
-                        path === "/listView"
-                          ? styles.sideButtonTextActive
-                          : styles.sideButtonText
-                      }
-                    >
-                      List View
-                    </Text>
-                  </Pressable>
-                </Link>
-              </View>
-            </View>
+    <GestureDetector gesture={panGesture}>
+      <View style={UtilityStyles.flex1}>
+        <View style={styles.headerContainer}>
+          <View>
             <Pressable
-              style={styles.sideMenuClosePressable}
+              style={styles.headerMenuButton}
               onPress={() =>
-                (translateX.value = withSpring(-SIDEBAR_WIDTH, {
+                (translateX.value = withSpring(0, {
                   velocity: 0.1,
                   damping: 20,
                 }))
               }
-            />
-          </Animated.View>
-          {/* Stack */}
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "#0F0F0F" },
-            }}
-          >
-            <Stack.Screen
-              name="index"
-              options={{ gestureEnabled: true }}
-            />
-            <Stack.Screen name="listView" options={{ gestureEnabled: true }} />
-          </Stack>
+            >
+              <Entypo name="menu" size={45} color="black" />
+              <AtomiFitShortSVG color={"#0F0F0F"} />
+            </Pressable>
+          </View>
         </View>
-      </GestureDetector>
-    </GestureHandlerRootView>
+        {/* Sidebar Menu */}
+        <Animated.View style={[styles.sideMenuContainer, animatedStyle]}>
+          <View
+            style={[styles.sideMenuBar, { paddingTop: insets.top }]}
+            onLayout={handleLayout}
+          >
+            <AtomiFitShortSVG
+              color={"#60DD49"}
+              height={svgDimensions}
+              width={svgDimensions}
+            />
+            <View>
+              <Link href="/calendar" asChild replace>
+                <Pressable style={styles.sideButton}>
+                  <MaterialIcons
+                    name="calendar-month"
+                    size={28}
+                    color={path === "/calendar" ? "#60DD49" : "white"}
+                  />
+                  <Text
+                    style={
+                      path === "/calendar"
+                        ? styles.sideButtonTextActive
+                        : styles.sideButtonText
+                    }
+                  >
+                    Calendar View
+                  </Text>
+                </Pressable>
+              </Link>
+              <Link href="/listView" asChild replace>
+                <Pressable style={styles.sideButton}>
+                  <MaterialIcons
+                    name="format-list-bulleted"
+                    size={28}
+                    color={path === "/listView" ? "#60DD49" : "white"}
+                  />
+                  <Text
+                    style={
+                      path === "/listView"
+                        ? styles.sideButtonTextActive
+                        : styles.sideButtonText
+                    }
+                  >
+                    List View
+                  </Text>
+                </Pressable>
+              </Link>
+            </View>
+          </View>
+          <Pressable
+            style={styles.sideMenuClosePressable}
+            onPress={() =>
+              (translateX.value = withSpring(-SIDEBAR_WIDTH, {
+                velocity: 0.1,
+                damping: 20,
+              }))
+            }
+          />
+        </Animated.View>
+        {/* Stack */}
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: "#0F0F0F" },
+          }}
+          initialRouteName="calendar"
+        >
+          <Stack.Screen name="calendar" options={{ gestureEnabled: true }} />
+          <Stack.Screen name="listView" options={{ gestureEnabled: true }} />
+        </Stack>
+      </View>
+    </GestureDetector>
   );
 };
 
