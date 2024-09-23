@@ -1,10 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import { Entypo, MaterialIcons, AntDesign } from "@expo/vector-icons";
 import * as SplashScreen from "expo-splash-screen";
 import LottieSplashScreen from "@/components/Splash/LottieSplashScreen";
 import { DrizzleProvider, DrizzleContext } from "@/contexts/drizzleContext";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const RootLayoutNav = () => {
   const { db } = useContext(DrizzleContext);
@@ -13,6 +14,7 @@ const RootLayoutNav = () => {
   const [loaded, error]: [boolean, Error | null] = useFonts({
     ...Entypo.font,
     ...MaterialIcons.font,
+    ...AntDesign.font,
   });
 
   // Prevent the splash screen from auto-hiding so we can manually control it while the app is loading
@@ -35,15 +37,17 @@ const RootLayoutNav = () => {
 
   return (
     <DrizzleProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: "#0F0F0F" },
-        }}
-      >
-        <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
-        <Stack.Screen name="about" options={{ gestureEnabled: true }} />
-      </Stack>
+      <GestureHandlerRootView>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: "#0F0F0F" },
+          }}
+        >
+          <Stack.Screen name="index" options={{ gestureEnabled: true }} />
+          <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
+        </Stack>
+      </GestureHandlerRootView>
     </DrizzleProvider>
   );
 };
