@@ -4,7 +4,16 @@ import UtilityStyles from "@/constants/UtilityStyles";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const exercisesSearchLayout = () => {
+/**
+ * ExercisesSearchLayout component.
+ * 
+ * This renders the layout for browsing exercises in both the categories screen and [category] dynamic route.
+ * It includes a header with a close/back button, a title, and an add button.
+ * The layout uses Stack navigator to navigate between categories and exercises by [category].
+ *
+ * @returns {JSX.Element} The rendered component.
+ */
+const ExercisesSearchLayout = (): JSX.Element => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -27,12 +36,13 @@ const exercisesSearchLayout = () => {
         }}
       >
         <Stack.Screen name="categories" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="[category]" options={{ gestureEnabled: true }} />
       </Stack>
     </View>
   );
 };
 
-export default exercisesSearchLayout;
+export default ExercisesSearchLayout;
 
 const styles = StyleSheet.create({
   headerContainer: {
