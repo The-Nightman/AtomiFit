@@ -1,7 +1,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
-import React from "react";
 
 interface SearchBarProps {
   search: string;
@@ -11,7 +10,7 @@ interface SearchBarProps {
 /**
  * SearchBar component renders a search input field with a search icon and a clear button.
  *
- * @param {Object} props - The properties object.
+ * @param {SearchBarProps} props - The properties object.
  * @param {string} props.search - The current search text.
  * @param {React.Dispatch<React.SetStateAction<string>>} props.setSearch - Function to update the search text.
  *
