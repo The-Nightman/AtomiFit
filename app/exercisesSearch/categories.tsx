@@ -10,6 +10,8 @@ import { Category } from "@/types/categories";
 import { like } from "drizzle-orm";
 import { Exercise } from "@/types/exercise";
 import ExerciseListItem from "@/components/ExerciseListItem";
+import { router } from "expo-router";
+import UtilityStyles from "@/constants/UtilityStyles";
 
 /**
  * Categories component that displays a list of exercise categories.
@@ -51,7 +53,7 @@ const categories = (): JSX.Element => {
   }, [search]);
 
   return (
-    <View>
+    <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
       <ScrollView>
         {searchResults.length // If search results exist, display them, otherwise display categories
@@ -61,6 +63,14 @@ const categories = (): JSX.Element => {
           : categories.map((category: Category) => (
               <Pressable
                 key={category.id}
+                onPress={() =>
+                  router.push({
+                    // Type errors here pre expo-router ~3.5.23 because only half of a given route was typed
+                    // Fixed by updating from 3.5.20, THATS 3 MINOR VERSIONS
+                    pathname: "/exercisesSearch/[category]",
+                    params: { category: category.id! },
+                  })
+                }
                 style={({ pressed }) => [
                   styles.categoryListItem,
                   pressed && { backgroundColor: "#595555" },
