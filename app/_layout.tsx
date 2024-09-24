@@ -46,6 +46,7 @@ const RootLayoutNav = () => {
         >
           <Stack.Screen name="index" options={{ gestureEnabled: true }} />
           <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
+          <Stack.Screen name="exercisesSearch" options={{ gestureEnabled: true, presentation:"modal" }} />
         </Stack>
       </GestureHandlerRootView>
     </DrizzleProvider>
