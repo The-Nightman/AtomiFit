@@ -42,7 +42,7 @@ const categories = (): JSX.Element => {
       return;
     }
 
-    // Query database for exercises LIKE search term, better UX than matching from start of name
+    // Query database for exercises LIKE search term, use %search% to match any part of the name for better UX
     const results: Exercise[] = db
       .select()
       .from(schema.exercises)
