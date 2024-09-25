@@ -58,7 +58,7 @@ const categories = (): JSX.Element => {
       <ScrollView>
         {searchResults.length // If search results exist, display them, otherwise display categories
           ? searchResults.map((exercise: Exercise) => (
-              <ExerciseListItem key={exercise.id} exercise={exercise} />
+              <ExerciseListItem key={exercise.id} exercise={exercise} search={search} />
             ))
           : categories.map((category: Category) => (
               <Pressable
@@ -121,5 +121,5 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     borderWidth: 1.5,
   },
-  categoryText: { flex: 1, color: "white", fontSize: 22 },
+  categoryText: { flex: 1, color: "white", fontSize: 20 },
 });

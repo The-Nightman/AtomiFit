@@ -68,7 +68,7 @@ const CategoryExercises = (): JSX.Element => {
       <SearchBar search={search} setSearch={setSearch} />
       <ScrollView>
         {exercises.map((exercise) => (
-          <ExerciseListItem key={exercise.id} exercise={exercise} />
+          <ExerciseListItem key={exercise.id} exercise={exercise} search={search} />
         ))}
       </ScrollView>
     </View>
