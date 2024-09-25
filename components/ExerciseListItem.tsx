@@ -28,7 +28,10 @@ const ExerciseListItem = ({
    * @returns {JSX.Element} A JSX element containing the text with highlighted substrings.
    */
   const getHighlightedText = (text: string, highlight: string): JSX.Element => {
-    const parts = text.split(new RegExp(`(${highlight})`, "gi"));
+    // Escape special characters in the highlight string to prevent regex errors
+    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Split the text into parts based on the highlight string
+    const parts = text.split(new RegExp(`(${escapedHighlight})`, "gi"));
     return (
       <Text style={styles.exerciseText}>
         {parts.map((part, index) =>
