@@ -16,7 +16,7 @@ const index = () => {
         {/* Container for pressable elements */}
         <View style={styles.headerButtonsContainer}>
           {/* Calendar button */}
-          <Link href="/(calendar)" asChild>
+          <Link href="/calendar" asChild>
             <Pressable style={styles.headerCalendarButton}>
               {({ pressed }) => (
                 <MaterialIcons
@@ -28,8 +28,8 @@ const index = () => {
             </Pressable>
           </Link>
           {/* Exercises button */}
+          <Link href="/exercisesSearch" asChild>
           <Pressable
-            onPress={() => console.log("exercises")}
             style={styles.headerExercisesButton}
           >
             {({ pressed }) => (
@@ -40,6 +40,7 @@ const index = () => {
               />
             )}
           </Pressable>
+          </Link>
           {/* Settings/More button */}
           <Pressable
             onPress={() => console.log("settings")}
