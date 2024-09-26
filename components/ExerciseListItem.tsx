@@ -1,5 +1,6 @@
 import { Exercise } from "@/types/exercise";
 import { Entypo } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Text, Pressable, StyleSheet } from "react-native";
 
 interface ExerciseListItemProps {
@@ -49,6 +50,12 @@ const ExerciseListItem = ({
 
   return (
     <Pressable
+      onPress={() =>
+        router.push({
+          pathname: "/exercise/[exerciseId]",
+          params: { exerciseId: exercise.id },
+        })
+      }
       style={({ pressed }) => [
         styles.exerciseListItem,
         pressed && { backgroundColor: "#595555" },
