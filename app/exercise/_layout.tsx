@@ -6,6 +6,7 @@ import { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import * as schema from "@/database/schema";
 import { eq } from "drizzle-orm";
+import UtilityStyles from "@/constants/UtilityStyles";
 
 /**
  * ExerciseLayout component.
@@ -33,7 +34,7 @@ const ExerciseLayout = (): JSX.Element => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={UtilityStyles.flex1}>
       <View style={[styles.headerContainer]}>
         <View style={styles.headerIcon}>
           <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
@@ -42,16 +43,28 @@ const ExerciseLayout = (): JSX.Element => {
       <Text style={styles.exerciseName}>{exerciseName.toUpperCase()}</Text>
       <MaterialTopTabs
         screenOptions={{
-          tabBarLabelStyle: { fontSize: 17, color: "white" },
+          tabBarLabelStyle: { color: "white" },
           tabBarStyle: { backgroundColor: "#0F0F0F" },
           tabBarIndicatorStyle: { backgroundColor: "#60DD49" },
         }}
         sceneContainerStyle={{ backgroundColor: "#0F0F0F" }}
       >
-        <MaterialTopTabs.Screen name="track" />
-        <MaterialTopTabs.Screen name="history" />
-        <MaterialTopTabs.Screen name="graph" />
-        <MaterialTopTabs.Screen name="info" />
+        <MaterialTopTabs.Screen
+          name="track/[exerciseId]"
+          options={{ tabBarLabel: "Track" }}
+        />
+        <MaterialTopTabs.Screen // This screen is not yet implemented
+          name="history/history"
+          options={{ tabBarLabel: "History" }}
+        />
+        <MaterialTopTabs.Screen // This screen is not yet implemented
+          name="graph/graph"
+          options={{ tabBarLabel: "Graph" }}
+        />
+        <MaterialTopTabs.Screen // This screen is not yet implemented
+          name="info/info"
+          options={{ tabBarLabel: "Info" }}
+        />
       </MaterialTopTabs>
     </View>
   );
@@ -73,7 +86,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 28,
     fontWeight: "bold",
-    marginTop: 12,
-    marginHorizontal: 12,
+    marginTop: 8,
+    marginHorizontal: 6,
   },
 });
