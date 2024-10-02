@@ -18,19 +18,32 @@ import UtilityStyles from "@/constants/UtilityStyles";
  * @returns {JSX.Element} The rendered component.
  */
 const ExerciseLayout = (): JSX.Element => {
-  const [exerciseName, setExerciseName] = useState<string>("");
+  const [exerciseInfo, setExerciseInfo] = useState<{
+    name: string;
+    type: string;
+  }>({
+    name: "",
+    type: "",
+  });
   const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
   const { db } = useContext(DrizzleContext);
 
   // Fetch the exercise name from the database using the provided exerciseId.
   useEffect(() => {
-    const data = db
-      .select({ name: schema.exercises.name })
+    const data:
+      | {
+          name: string;
+          type: string;
+        }
+      | undefined = db
+      .select({ name: schema.exercises.name, type: schema.exercises.type })
       .from(schema.exercises)
       .where(eq(schema.exercises.id, Number(exerciseId)))
-      .get()!.name;
+      .get();
 
-    setExerciseName(data);
+    if (data) {
+      setExerciseInfo(data);
+    }
   }, []);
 
   return (
@@ -40,7 +53,7 @@ const ExerciseLayout = (): JSX.Element => {
           <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
         </View>
       </View>
-      <Text style={styles.exerciseName}>{exerciseName.toUpperCase()}</Text>
+      <Text style={styles.exerciseName}>{exerciseInfo.name.toUpperCase()}</Text>
       <MaterialTopTabs
         screenOptions={{
           tabBarLabelStyle: { color: "white" },
@@ -50,19 +63,20 @@ const ExerciseLayout = (): JSX.Element => {
         sceneContainerStyle={{ backgroundColor: "#0F0F0F" }}
       >
         <MaterialTopTabs.Screen
-          name="track/[exerciseId]"
+          name="track"
           options={{ tabBarLabel: "Track" }}
+          initialParams={{ exerciseId, exerciseType: "Weight And Reps" }}
         />
         <MaterialTopTabs.Screen // This screen is not yet implemented
-          name="history/history"
+          name="history"
           options={{ tabBarLabel: "History" }}
         />
         <MaterialTopTabs.Screen // This screen is not yet implemented
-          name="graph/graph"
+          name="graph"
           options={{ tabBarLabel: "Graph" }}
         />
         <MaterialTopTabs.Screen // This screen is not yet implemented
-          name="info/info"
+          name="info"
           options={{ tabBarLabel: "Info" }}
         />
       </MaterialTopTabs>

@@ -38,7 +38,10 @@ const Track = (): JSX.Element => {
     pos: { x: 0, y: 0 },
     currentSelectedId: null,
   });
-  const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
+  const { exerciseId, exerciseType } = useLocalSearchParams<{
+    exerciseId: string;
+    exerciseType: string;
+  }>();
   const { db } = useContext(DrizzleContext);
   const containerRef = useRef<View>(null);
   const overlayWidth = useSharedValue<number>(0);
