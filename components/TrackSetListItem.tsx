@@ -214,8 +214,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: 36,
     justifyContent: "space-between",
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingHorizontal: 8,
     gap: 16,
   },
   setNumber: {
