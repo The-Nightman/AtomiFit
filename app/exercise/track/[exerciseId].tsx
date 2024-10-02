@@ -377,7 +377,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     height: "100%",
-    borderRadius: 10,
   },
   menuPressable: {
     flexDirection: "row",
