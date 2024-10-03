@@ -238,17 +238,22 @@ const Track = (): JSX.Element => {
           hitSlop={{ top: 200, bottom: 2000 }}
           style={styles.scrollViewInner}
           onTouchEnd={() => {
-            setMenuVisible({
-              state: false,
-              pos: { x: 0, y: 0 },
-              currentSelectedId: null,
-            });
-            overlayWidth.value = withTiming(0);
+            // If the menu is not open we dont want to run unnecessary state events
+            // for performance reasons, overwise this could get expensive quickly
+            if (menuVisible.state) {
+              setMenuVisible({
+                state: false,
+                pos: { x: 0, y: 0 },
+                currentSelectedId: null,
+              });
+              overlayWidth.value = withTiming(0);
+            }
           }}
           ref={containerRef}
         >
           {/* Column titles */}
-          <View style={styles.columnTitlesContainer}>
+          {/* For now these are commented out pending decisions around UI feedback */}
+          {/* <View style={styles.columnTitlesContainer}>
             <Text
               style={styles.columnTitleText}
               onLayout={(e) => setSetColumnWidth(e.nativeEvent.layout.width)}
@@ -264,7 +269,7 @@ const Track = (): JSX.Element => {
               </View>
               <View style={styles.w24} />
             </View>
-          </View>
+          </View> */}
           {/* Mapped sets */}
           {sets.map((set, i) => (
             <TrackSetListItem
