@@ -11,6 +11,7 @@ interface ExerciseListItemProps {
 /**
  * Component representing a single item in an exercise list on the browse screens.
  *
+ * @component
  * @param {ExerciseListItemProps} props - The properties for the component.
  * @param {Exercise} props.exercise - The exercise object containing details to display.
  *
@@ -73,7 +74,7 @@ export default ExerciseListItem;
 
 const styles = StyleSheet.create({
   exerciseListItem: {
-    height: 44,
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

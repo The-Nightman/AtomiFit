@@ -105,7 +105,7 @@ export default categories;
 
 const styles = StyleSheet.create({
   categoryListItem: {
-    height: 44,
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
