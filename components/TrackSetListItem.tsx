@@ -183,6 +183,7 @@ const TrackSetListItem = ({
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
+            suffix={" Kg"}
           />
           <SelectTextInput
             inputType="decimal"
@@ -193,6 +194,7 @@ const TrackSetListItem = ({
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
+            suffix={" Reps"}
           />
         </View>
         {/* Open menu button, menu has to be in parent */}
