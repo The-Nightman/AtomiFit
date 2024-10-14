@@ -251,25 +251,6 @@ const Track = (): JSX.Element => {
           }}
           ref={containerRef}
         >
-          {/* Column titles */}
-          {/* For now these are commented out pending decisions around UI feedback */}
-          {/* <View style={styles.columnTitlesContainer}>
-            <Text
-              style={styles.columnTitleText}
-              onLayout={(e) => setSetColumnWidth(e.nativeEvent.layout.width)}
-            >
-              SET
-            </Text>
-            <View style={styles.w24} />
-            <Text style={[{ width: 32 }, styles.columnTitleText]}>PR</Text>
-            <View style={styles.inputColumnTitleContainer}>
-              <View style={styles.inputColumnInnerTitleContainer}>
-                <Text style={styles.inputColumnTitleText}>WEIGHT - KG</Text>
-                <Text style={styles.inputColumnTitleText}>REPS</Text>
-              </View>
-              <View style={styles.w24} />
-            </View>
-          </View> */}
           {/* Mapped sets */}
           {sets.map((set, i) => (
             <TrackSetListItem
