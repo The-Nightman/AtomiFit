@@ -64,7 +64,7 @@ const SelectTextInput = memo(
     suffix,
   }: SelectTextInputProps): JSX.Element => {
     const [state, setState] = useState<{ val: string; focused: boolean }>({
-      val: value,
+      val: "",
       focused: false,
     });
     const textInputRef = useRef<TextInput>(null);
