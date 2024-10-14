@@ -18,7 +18,6 @@ import TimeInput from "./inputs/exerciseRecords/TimeInput";
 interface TrackSetListItemProps {
   set: Set;
   setNumber: number;
-  setColumnWidth: number;
   menuVisible: any;
   setMenuVisible: (
     id: number,
@@ -35,7 +34,6 @@ interface TrackSetListItemProps {
  * @param {TrackSetListItemProps} props - The properties passed to the component.
  * @param {Set} props.set - The set data to be displayed and managed.
  * @param {number} props.setNumber - The number of the set in the sequence i.e. index + 1.
- * @param {number} props.setColumnWidth - The width of the set number column.
  * @param {boolean} props.menuVisible - The visibility state of the options menu.
  * @param {function(number, boolean, { x: number; y: number }): void} props.setMenuVisible - Function to set the visibility state of the options menu.
  * @param {React.RefObject<View>} props.containerRef - Reference to the container view for layout measurements.
@@ -47,7 +45,6 @@ interface TrackSetListItemProps {
  * <TrackSetListItem
  *   set={set}
  *   setNumber={1}
- *   setColumnWidth={50}
  *   menuVisible={menuVisible}
  *   setMenuVisible={setMenuVisible}
  *   containerRef={containerRef}
@@ -57,7 +54,6 @@ interface TrackSetListItemProps {
 const TrackSetListItem = ({
   set,
   setNumber,
-  setColumnWidth,
   menuVisible,
   setMenuVisible,
   containerRef,
@@ -425,7 +421,7 @@ const TrackSetListItem = ({
       ref={ListItemRef}
       style={styles.setListItemContainer}
     >
-      <Text style={[{ width: setColumnWidth }, styles.setNumber]}>
+      <Text style={styles.setNumber}>
         {setNumber + 1}
       </Text>
       <Pressable
