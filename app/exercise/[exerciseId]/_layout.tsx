@@ -25,26 +25,31 @@ const ExerciseLayout = (): JSX.Element => {
     name: "",
     type: "",
   });
+  const [loading, setLoading] = useState(true);
   const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
   const { db } = useContext(DrizzleContext);
 
   // Fetch the exercise name from the database using the provided exerciseId.
   useEffect(() => {
-    const data:
-      | {
-          name: string;
-          type: string;
-        }
-      | undefined = db
-      .select({ name: schema.exercises.name, type: schema.exercises.type })
-      .from(schema.exercises)
-      .where(eq(schema.exercises.id, Number(exerciseId)))
-      .get();
+    const fetchData = async () => {
+      const data:
+        | {
+            name: string;
+            type: string;
+          }[]
+        | undefined = await db
+        .select({ name: schema.exercises.name, type: schema.exercises.type })
+        .from(schema.exercises)
+        .where(eq(schema.exercises.id, Number(exerciseId)));
 
-    if (data) {
-      setExerciseInfo(data);
-    }
-  }, []);
+      if (data[0]) {
+        setExerciseInfo(data[0]);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [exerciseId, db]);
 
   return (
     <View style={UtilityStyles.flex1}>
@@ -54,32 +59,34 @@ const ExerciseLayout = (): JSX.Element => {
         </View>
       </View>
       <Text style={styles.exerciseName}>{exerciseInfo.name.toUpperCase()}</Text>
-      <MaterialTopTabs
-        screenOptions={{
-          tabBarLabelStyle: { color: "white" },
-          tabBarStyle: { backgroundColor: "#0F0F0F" },
-          tabBarIndicatorStyle: { backgroundColor: "#60DD49" },
-        }}
-        sceneContainerStyle={{ backgroundColor: "#0F0F0F" }}
-      >
-        <MaterialTopTabs.Screen
-          name="track"
-          options={{ tabBarLabel: "Track" }}
-          initialParams={{ exerciseId, exerciseType: "Weight And Reps" }}
-        />
-        <MaterialTopTabs.Screen // This screen is not yet implemented
-          name="history"
-          options={{ tabBarLabel: "History" }}
-        />
-        <MaterialTopTabs.Screen // This screen is not yet implemented
-          name="graph"
-          options={{ tabBarLabel: "Graph" }}
-        />
-        <MaterialTopTabs.Screen // This screen is not yet implemented
-          name="info"
-          options={{ tabBarLabel: "Info" }}
-        />
-      </MaterialTopTabs>
+      {!loading && (
+        <MaterialTopTabs
+          screenOptions={{
+            tabBarLabelStyle: { color: "white" },
+            tabBarStyle: { backgroundColor: "#0F0F0F" },
+            tabBarIndicatorStyle: { backgroundColor: "#60DD49" },
+          }}
+          sceneContainerStyle={{ backgroundColor: "#0F0F0F" }}
+        >
+          <MaterialTopTabs.Screen
+            name="track"
+            options={{ tabBarLabel: "Track" }}
+            initialParams={{ exerciseId, exerciseType: exerciseInfo.type }}
+          />
+          <MaterialTopTabs.Screen // This screen is not yet implemented
+            name="history"
+            options={{ tabBarLabel: "History" }}
+          />
+          <MaterialTopTabs.Screen // This screen is not yet implemented
+            name="graph"
+            options={{ tabBarLabel: "Graph" }}
+          />
+          <MaterialTopTabs.Screen // This screen is not yet implemented
+            name="info"
+            options={{ tabBarLabel: "Info" }}
+          />
+        </MaterialTopTabs>
+      )}
     </View>
   );
 };
