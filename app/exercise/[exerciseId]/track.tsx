@@ -28,7 +28,6 @@ import Animated, {
  */
 const Track = (): JSX.Element => {
   const [sets, setSets] = useState<Set[]>([]);
-  const [setColumnWidth, setSetColumnWidth] = useState<number>(0);
   const [menuVisible, setMenuVisible] = useState<{
     state: boolean;
     pos: { x: number; y: number };
@@ -108,13 +107,35 @@ const Track = (): JSX.Element => {
     ) {
       // If there are no sets, create a blank set
       // Currently only supports weight and reps as not yet fully implemented
+      const setTemplates: {
+        [key: string]: {
+          weight: number | null;
+          reps: number | null;
+          distance: number | null;
+          time: number | null;
+        };
+      } = {
+        "Weight And Reps": { weight: 0, reps: 0, distance: null, time: null },
+        "Distance And Time": { weight: null, reps: null, distance: 0, time: 0 },
+        "Weight And Distance": {
+          weight: 0,
+          reps: null,
+          distance: 0,
+          time: null,
+        },
+        "Weight And Time": { weight: 0, reps: null, distance: null, time: 0 },
+        "Reps And Distance": { weight: null, reps: 0, distance: 0, time: null },
+        "Reps And Time": { weight: null, reps: 0, distance: null, time: 0 },
+        Weight: { weight: 0, reps: null, distance: null, time: null },
+        Reps: { weight: null, reps: 0, distance: null, time: null },
+        Distance: { weight: null, reps: null, distance: 0, time: null },
+        Time: { weight: null, reps: null, distance: null, time: 0 },
+      };
+
       const newSet: Set = {
         exercise_id: Number(exerciseId),
         date: getToday(),
-        weight: 0,
-        reps: 0,
-        distance: null,
-        time: null,
+        ...setTemplates[exerciseType],
         notes: "",
       };
 
@@ -257,7 +278,6 @@ const Track = (): JSX.Element => {
               key={set.id || `newset-${i}`}
               set={set}
               setNumber={i}
-              setColumnWidth={setColumnWidth}
               menuVisible={menuVisible}
               setMenuVisible={handleMenuVisible}
               containerRef={containerRef}
