@@ -41,7 +41,7 @@ interface TimeState {
  * The time value is saved in seconds for calcuations elsewhere and displayed in HH:MM:SS format.
  * The component uses a controlled component approach to manage the time value.
  * When the save button is pressed, the new time value is saved to the database by a TimeInput specific
- * handling fucntion in the parent and the modal is closed. When the close button is pressed,
+ * handling fucntion in the parent and the modal is closed. When the cancel button or backdrop is pressed,
  * the value is reset and the modal is closed.
  *
  * @component
@@ -83,7 +83,7 @@ const TimeInput = ({
 }: TimeInputProps): JSX.Element => {
   const [modalState, setModalState] = useState<boolean>(false);
   const [state, setState] = useState<TimeState>({
-    raw: value,
+    raw: 0,
     focus: false,
     inputHours: "",
     inputMinutes: "",
@@ -236,6 +236,7 @@ const TimeInput = ({
    *
    * This function saves the current time from the state and then closes the modal.
    *
+   * @async
    * @returns {Promise<void>} A promise that resolves when the save operation is complete.
    */
   const handleSave = async (): Promise<void> => {
@@ -245,11 +246,11 @@ const TimeInput = ({
 
   /**
    * Handles the cancel action for the time input modal.
-   * 
+   *
    * This function processes the `value` prop into its respective hours, minutes,
    * and seconds, then updates the component state with these values effectively resetting it.
    * It also closes the modal by setting the modal state to false.
-   * 
+   *
    * @returns {void}
    */
   const handleCancel = (): void => {
@@ -269,7 +270,7 @@ const TimeInput = ({
         minutes || seconds ? seconds.toString().padStart(2, "0") : "",
     });
     setModalState(false);
-  }
+  };
 
   return (
     <>
@@ -284,79 +285,82 @@ const TimeInput = ({
         animationType="fade"
         transparent={true}
         statusBarTranslucent={true}
-        onRequestClose={() => setModalState(false)}
+        onRequestClose={() => handleCancel()}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setModalState(false)}
-        >
+        <Pressable style={styles.modalBackdrop} onPress={() => handleCancel()}>
           {/* Modal body, pressable is needed to negate parent as pointerEvents is not working as required or stated */}
           <Pressable style={styles.modalBody}>
-            {/* Input container */}
-            <View
-              style={[
-                styles.inputContainer,
-                handleContainerFocusStyle() && {
-                  backgroundColor: inputContainerFocusColour,
-                },
-              ]}
-            >
-              <TextInput
-                keyboardType="numeric"
-                value={state.inputHours}
-                onChangeText={(text) => handleChange(text, "hr")}
-                onFocus={() => handleFocus(hoursInputRef)}
-                onBlur={() => handleBlur()}
+            <View style={styles.modalSubContainer}>
+              <Text style={styles.inputTitle}>TIME</Text>
+              {/* Input container */}
+              <View
                 style={[
-                  inputStyle,
-                  hoursInputRef.current?.isFocused() && focusStyle,
+                  styles.inputContainer,
+                  handleContainerFocusStyle() && {
+                    backgroundColor: inputContainerFocusColour,
+                  },
                 ]}
-                selectionColor={selectionColor}
-                placeholder="HH"
-                placeholderTextColor={"gray"}
-                maxLength={2}
-                ref={hoursInputRef}
-              />
-              <Text style={inputStyle}> : </Text>
-              <TextInput
-                keyboardType="numeric"
-                value={state.inputMinutes}
-                onChangeText={(text) => handleChange(text, "m")}
-                onFocus={() => handleFocus(minutesInputRef)}
-                onBlur={() => handleBlur()}
-                style={[
-                  inputStyle,
-                  minutesInputRef.current?.isFocused() && focusStyle,
-                ]}
-                selectionColor={selectionColor}
-                placeholder="MM"
-                placeholderTextColor={"gray"}
-                maxLength={2}
-                ref={minutesInputRef}
-              />
-              <Text style={inputStyle}> : </Text>
-              <TextInput
-                keyboardType="numeric"
-                value={state.inputSeconds}
-                onChangeText={(text) => handleChange(text, "s")}
-                onFocus={() => handleFocus(secondsInputRef)}
-                onBlur={() => handleBlur()}
-                style={[
-                  inputStyle,
-                  secondsInputRef.current?.isFocused() && focusStyle,
-                ]}
-                selectionColor={selectionColor}
-                placeholder="SS"
-                placeholderTextColor={"gray"}
-                maxLength={2}
-                ref={secondsInputRef}
-              />
+              >
+                <TextInput
+                  keyboardType="numeric"
+                  value={state.inputHours}
+                  onChangeText={(text) => handleChange(text, "hr")}
+                  onFocus={() => handleFocus(hoursInputRef)}
+                  onBlur={() => handleBlur()}
+                  style={[
+                    inputStyle,
+                    hoursInputRef.current?.isFocused() && focusStyle,
+                  ]}
+                  selectionColor={selectionColor}
+                  placeholder="HH"
+                  placeholderTextColor={"gray"}
+                  maxLength={2}
+                  ref={hoursInputRef}
+                />
+                <Text style={inputStyle}> : </Text>
+                <TextInput
+                  keyboardType="numeric"
+                  value={state.inputMinutes}
+                  onChangeText={(text) => handleChange(text, "m")}
+                  onFocus={() => handleFocus(minutesInputRef)}
+                  onBlur={() => handleBlur()}
+                  style={[
+                    inputStyle,
+                    minutesInputRef.current?.isFocused() && focusStyle,
+                  ]}
+                  selectionColor={selectionColor}
+                  placeholder="MM"
+                  placeholderTextColor={"gray"}
+                  maxLength={2}
+                  ref={minutesInputRef}
+                />
+                <Text style={inputStyle}> : </Text>
+                <TextInput
+                  keyboardType="numeric"
+                  value={state.inputSeconds}
+                  onChangeText={(text) => handleChange(text, "s")}
+                  onFocus={() => handleFocus(secondsInputRef)}
+                  onBlur={() => handleBlur()}
+                  style={[
+                    inputStyle,
+                    secondsInputRef.current?.isFocused() && focusStyle,
+                  ]}
+                  selectionColor={selectionColor}
+                  placeholder="SS"
+                  placeholderTextColor={"gray"}
+                  maxLength={2}
+                  ref={secondsInputRef}
+                />
+              </View>
             </View>
             <View style={styles.modalButtonContainer}>
               <Pressable style={styles.saveButton} onPress={() => handleSave()}>
                 <Text style={styles.buttonText}>SAVE</Text>
               </Pressable>
-              <Pressable style={styles.cancelButton} onPress={() => handleCancel()}>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => handleCancel()}
+              >
                 <Text style={styles.buttonText}>CANCEL</Text>
               </Pressable>
             </View>
@@ -378,13 +382,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalBody: {
+    width: "80%",
+    minHeight: "30%",
+    maxHeight: "70%",
     backgroundColor: "#292929",
     borderRadius: 10,
-    width: "80%",
-    height: "30%",
+    gap: 32,
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
+  },
+  modalSubContainer: { width: "100%" },
+  inputTitle: {
+    color: "white",
+    fontSize: 17,
+    fontWeight: "600",
+    marginBottom: 4,
   },
   inputFocusStyles: { color: "black" },
   inputContainer: {
