@@ -7,10 +7,13 @@ import {
 import { Set } from "@/types/sets";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useContext, useRef, useState } from "react";
-import SelectTextInput from "./inputs/SelectTextInput";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { eq } from "drizzle-orm";
+import WeightInput from "./inputs/exerciseRecords/WeightInput";
+import RepsInput from "./inputs/exerciseRecords/RepsInput";
+import DistanceInput from "./inputs/exerciseRecords/DistanceInput";
+import TimeInput from "./inputs/exerciseRecords/TimeInput";
 
 interface TrackSetListItemProps {
   set: Set;
@@ -98,6 +101,69 @@ const TrackSetListItem = ({
     };
 
   /**
+   * Asynchronously handles saving the time value from the child modal component.
+   *
+   * This function updates the `setData` state with the new time value and
+   * persists the change to the database. If the `id` of the updated state
+   * is a number, it updates the corresponding record in the database and
+   * updates the state with the updated row.
+   *
+   * @remarks
+   * This function is seperate to the `saveSet` function as it is called from a child component
+   * to elevate the value as it is not automatically set to the parent state due to being a modal.
+   *
+   * @async
+   * @param {number} val - The new time value to be saved.
+   *
+   * @returns {Promise<void>} A promise that resolves when the save operation is complete.
+   */
+  const handleTimeSave = async (val: number): Promise<void> => {
+    const updatedState = { ...setData, time: val };
+    if (typeof updatedState.id === "number") {
+      // Database returns are always arrays, so we need to destructure the first element
+      const [updatedSet]: Set[] = await db
+        .update(schema.setsData)
+        .set(updatedState)
+        .where(eq(schema.setsData.id, updatedState.id))
+        .returning();
+      setSetData(updatedSet);
+    }
+  };
+
+  /**
+   * Handles the saving of distance data for a set.
+   *
+   * This function updates the state with the new distance value and, if the set has a valid ID,
+   * updates the corresponding record in the database. The updated set data is then stored in the state.
+   *
+   * @remarks
+   * This function is seperate to the `saveSet` function as it is called from a child component
+   * to elevate the value as it is not automatically set to the parent state due to being a modal.
+   *
+   * @async
+   * @param {Object} distanceObj - An object containing the distance value and its unit.
+   * @param {number} distanceObj.distance - The distance value to be saved.
+   * @param {"Km" | "M" | "Mi" | "Ft"} distanceObj.unit - The unit of the distance, which can be "Km", "M", "Mi", or "Ft".
+   *
+   * @returns {Promise<void>} A promise that resolves to void.
+   */
+  const handleDistanceSave = async (distanceObj: {
+    distance: number;
+    unit: "Km" | "M" | "Mi" | "Ft";
+  }): Promise<void> => {
+    const updatedState = { ...setData, distance: distanceObj.distance };
+    if (typeof updatedState.id === "number") {
+      // Database returns are always arrays, so we need to destructure the first element
+      const [updatedSet]: Set[] = await db
+        .update(schema.setsData)
+        .set(updatedState)
+        .where(eq(schema.setsData.id, updatedState.id))
+        .returning();
+      setSetData(updatedSet);
+    }
+  };
+
+  /**
    * Asynchronously saves the set data to the database.
    *
    * This function checks if the `setData.id` is a number.
@@ -145,6 +211,214 @@ const TrackSetListItem = ({
     );
   };
 
+  /**
+   * Sets the set display variant based on the keys of the set object.
+   *
+   * @param {Set} set - The set object.
+   * @returns {React.JSX.Element} The display variant input components.
+   */
+  const setDisplayVariant = (set: Set): React.JSX.Element => {
+    // Dictionary of display variants based on the keys of the set object
+    const displayVariants: Record<string, () => React.JSX.Element> = {
+      weight_reps: () => (
+        <>
+          <WeightInput
+            value={setData.weight!.toString()}
+            onChangeFunc={handleWeightChange()}
+            onBlurFunc={() => saveSet()}
+            style={styles.inputStyles}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={" Kg"}
+          />
+          <RepsInput
+            value={setData.reps!.toString()}
+            onChangeFunc={handleRepsChange()}
+            onBlurFunc={() => saveSet()}
+            style={styles.inputStyles}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={" Reps"}
+          />
+        </>
+      ),
+      distance_time: () => (
+        <>
+          <DistanceInput
+            value={setData.distance!.toString()}
+            validation={/^\d*\.?\d{0,2}$/}
+            saveDistance={handleDistanceSave}
+            inputStyle={styles.distanceInputStyle}
+            initialButtonStyle={styles.timeInputInitialButtonStyle}
+            initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={"Km"}
+          />
+          <TimeInput
+            value={setData.time!}
+            saveTime={handleTimeSave}
+            initialButtonStyle={styles.timeInputInitialButtonStyle}
+            initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+            inputStyle={styles.timeInputTextInputStyle}
+            focusStyle={styles.inputFocusStyles}
+            inputContainerFocusColour={"#60DD49"}
+            selectionColor={"white"}
+          />
+        </>
+      ),
+      weight_distance: () => (
+        <>
+          <WeightInput
+            value={setData.weight!.toString()}
+            onChangeFunc={handleWeightChange()}
+            onBlurFunc={() => saveSet()}
+            style={styles.inputStyles}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={" Kg"}
+          />
+          <DistanceInput
+            value={setData.distance!.toString()}
+            validation={/^\d*\.?\d{0,2}$/}
+            saveDistance={handleDistanceSave}
+            inputStyle={styles.distanceInputStyle}
+            initialButtonStyle={styles.timeInputInitialButtonStyle}
+            initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={"Km"}
+          />
+        </>
+      ),
+      weight_time: () => (
+        <>
+          <WeightInput
+            value={setData.weight!.toString()}
+            onChangeFunc={handleWeightChange()}
+            onBlurFunc={() => saveSet()}
+            style={styles.inputStyles}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={" Kg"}
+          />
+          <TimeInput
+            value={setData.time!}
+            saveTime={handleTimeSave}
+            initialButtonStyle={styles.timeInputInitialButtonStyle}
+            initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+            inputStyle={styles.timeInputTextInputStyle}
+            focusStyle={styles.inputFocusStyles}
+            inputContainerFocusColour={"#60DD49"}
+            selectionColor={"white"}
+          />
+        </>
+      ),
+      reps_distance: () => (
+        <>
+          <RepsInput
+            value={setData.reps!.toString()}
+            onChangeFunc={handleRepsChange()}
+            onBlurFunc={() => saveSet()}
+            style={styles.inputStyles}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={" Reps"}
+          />
+          <DistanceInput
+            value={setData.distance!.toString()}
+            validation={/^\d*\.?\d{0,2}$/}
+            saveDistance={handleDistanceSave}
+            inputStyle={styles.distanceInputStyle}
+            initialButtonStyle={styles.timeInputInitialButtonStyle}
+            initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={"Km"}
+          />
+        </>
+      ),
+      reps_time: () => (
+        <>
+          <RepsInput
+            value={setData.reps!.toString()}
+            onChangeFunc={handleRepsChange()}
+            onBlurFunc={() => saveSet()}
+            style={styles.inputStyles}
+            focusStyle={styles.inputFocusStyles}
+            selectionColor={"white"}
+            suffix={" Reps"}
+          />
+          <TimeInput
+            value={setData.time!}
+            saveTime={handleTimeSave}
+            initialButtonStyle={styles.timeInputInitialButtonStyle}
+            initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+            inputStyle={styles.timeInputTextInputStyle}
+            focusStyle={styles.inputFocusStyles}
+            inputContainerFocusColour={"#60DD49"}
+            selectionColor={"white"}
+          />
+        </>
+      ),
+      weight: () => (
+        <WeightInput
+          value={setData.weight!.toString()}
+          onChangeFunc={handleWeightChange()}
+          onBlurFunc={() => saveSet()}
+          style={styles.inputStyles}
+          focusStyle={styles.inputFocusStyles}
+          selectionColor={"white"}
+          suffix={" Kg"}
+        />
+      ),
+      reps: () => (
+        <RepsInput
+          value={setData.reps!.toString()}
+          onChangeFunc={handleRepsChange()}
+          onBlurFunc={() => saveSet()}
+          style={styles.inputStyles}
+          focusStyle={styles.inputFocusStyles}
+          selectionColor={"white"}
+          suffix={" Reps"}
+        />
+      ),
+      distance: () => (
+        <DistanceInput
+          value={setData.distance!.toString()}
+          validation={/^\d*\.?\d{0,2}$/}
+          saveDistance={handleDistanceSave}
+          inputStyle={styles.distanceInputStyle}
+          initialButtonStyle={styles.timeInputInitialButtonStyle}
+          initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+          focusStyle={styles.inputFocusStyles}
+          selectionColor={"white"}
+          suffix={"Km"}
+        />
+      ),
+      time: () => (
+        <TimeInput
+          value={setData.time!}
+          saveTime={handleTimeSave}
+          initialButtonStyle={styles.timeInputInitialButtonStyle}
+          initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
+          inputStyle={styles.timeInputTextInputStyle}
+          focusStyle={styles.inputFocusStyles}
+          inputContainerFocusColour={"#60DD49"}
+          selectionColor={"white"}
+        />
+      ),
+    };
+    // Define the keys to be checked in the set object
+    const keys = ["weight", "reps", "distance", "time"];
+    // Filter out nulls and return a string of the keys joined
+    const displayKeys: string = keys
+      .filter((key: string) => set[key as keyof Set] !== null)
+      .join("_");
+    // Return the display variant based on the result of the keys
+    return displayVariants[displayKeys]();
+  };
+
   return (
     <View
       collapsable={false}
@@ -172,31 +446,7 @@ const TrackSetListItem = ({
         <MaterialCommunityIcons name="trophy" size={24} color="#60DD49" />
       </Pressable>
       <View style={styles.setListItemSubContainer}>
-        <View style={styles.inputsContainer}>
-          <SelectTextInput
-            inputType="decimal"
-            value={setData.weight!.toString()}
-            validation={/^\d*\.?\d{0,2}$/} // Int or float validation
-            //! must allow floats without leading digits or else MAJOR inconvenience to user so extra validation is needed
-            onChangeFunc={handleWeightChange()}
-            onBlurFunc={() => saveSet()}
-            style={styles.inputStyles}
-            focusStyle={styles.inputFocusStyles}
-            selectionColor={"white"}
-            suffix={" Kg"}
-          />
-          <SelectTextInput
-            inputType="decimal"
-            value={setData.reps!.toString()}
-            validation={/^\d*$/}
-            onChangeFunc={handleRepsChange()}
-            onBlurFunc={() => saveSet()}
-            style={styles.inputStyles}
-            focusStyle={styles.inputFocusStyles}
-            selectionColor={"white"}
-            suffix={" Reps"}
-          />
-        </View>
+        <View style={styles.inputsContainer}>{setDisplayVariant(set)}</View>
         {/* Open menu button, menu has to be in parent */}
         <Pressable
           onPress={() => handleMenuOpen()}
@@ -248,4 +498,32 @@ const styles = StyleSheet.create({
   },
   inputFocusStyles: { color: "black", backgroundColor: "#60DD49" },
   justifyCenter: { justifyContent: "center" },
+  timeInputInitialButtonStyle: {
+    flex: 1,
+    backgroundColor: "#3F3C3C",
+    borderRadius: 10,
+    justifyContent: "center",
+  },
+  timeInputInitialButtonTextStyle: {
+    color: "white",
+    fontSize: 17,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  timeInputTextInputStyle: {
+    flex: 1,
+    color: "white",
+    fontSize: 35,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  distanceInputStyle: {
+    backgroundColor: "#3F3C3C",
+    borderRadius: 10,
+    padding: 12,
+    color: "white",
+    fontSize: 35,
+    fontWeight: "500",
+    textAlign: "center",
+  },
 });
