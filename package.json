@@ -40,7 +40,8 @@
     "react-native-svg": "15.2.0",
     "react-native-tab-view": "^3.5.2",
     "react-native-web": "~0.19.10",
-    "react-native-pager-view": "6.3.0"
+    "react-native-pager-view": "6.3.0",
+    "@react-native-picker/picker": "2.7.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
