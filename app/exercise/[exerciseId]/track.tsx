@@ -6,7 +6,6 @@ import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
 import { and, eq, max } from "drizzle-orm";
-import { getToday } from "@/utils/getToday";
 import { Set } from "@/types/sets";
 import TrackSetListItem from "@/components/TrackSetListItem";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
@@ -37,9 +36,10 @@ const Track = (): JSX.Element => {
     pos: { x: 0, y: 0 },
     currentSelectedId: null,
   });
-  const { exerciseId, exerciseType } = useLocalSearchParams<{
+  const { exerciseId, exerciseType, date } = useLocalSearchParams<{
     exerciseId: string;
     exerciseType: string;
+    date: string;
   }>();
   const { db } = useContext(DrizzleContext);
   const containerRef = useRef<View>(null);
@@ -55,7 +55,7 @@ const Track = (): JSX.Element => {
         and(
           // Cast exerciseId to number due to string nature of URL params
           eq(schema.setsData.exercise_id, Number(exerciseId)),
-          eq(schema.setsData.date, getToday())
+          eq(schema.setsData.date, date)
         )
       )
       .all();
@@ -106,7 +106,6 @@ const Track = (): JSX.Element => {
       !/^\d{4}-\d{2}-\d{2}$/.test(mostRecentDateQuery.recentDate)
     ) {
       // If there are no sets, create a blank set
-      // Currently only supports weight and reps as not yet fully implemented
       const setTemplates: {
         [key: string]: {
           weight: number | null;
@@ -134,7 +133,7 @@ const Track = (): JSX.Element => {
 
       const newSet: Set = {
         exercise_id: Number(exerciseId),
-        date: getToday(),
+        date: date,
         ...setTemplates[exerciseType],
         notes: "",
       };
@@ -169,9 +168,9 @@ const Track = (): JSX.Element => {
     // Return early if the query fails for some reason, at this point it should be gauranteed
     if (!firstSetQuery) return;
 
-    // Copy the previous set, blank the notes, delete the id and set the date to today
+    // Copy the previous set, blank the notes, delete the id and set the date to the current selected date
     delete firstSetQuery.id;
-    firstSetQuery.date = getToday();
+    firstSetQuery.date = date;
     firstSetQuery.notes = "";
 
     // Insert the new set and return the id

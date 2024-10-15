@@ -6,6 +6,7 @@ import { Text, Pressable, StyleSheet } from "react-native";
 interface ExerciseListItemProps {
   exercise: Exercise;
   search: string;
+  date: string;
 }
 
 /**
@@ -14,12 +15,15 @@ interface ExerciseListItemProps {
  * @component
  * @param {ExerciseListItemProps} props - The properties for the component.
  * @param {Exercise} props.exercise - The exercise object containing details to display.
+ * @param {string} props.search - The search term to highlight in the exercise name.
+ * @param {string} props.date - The date to pass to the exercise screen.
  *
  * @returns {JSX.Element} A pressable list item displaying the exercise name and an options icon.
  */
 const ExerciseListItem = ({
   exercise,
   search,
+  date,
 }: ExerciseListItemProps): JSX.Element => {
   /**
    * Highlights occurrences of a specified substring within a given string.
@@ -54,7 +58,7 @@ const ExerciseListItem = ({
       onPress={() =>
         router.push({
           pathname: "/exercise/[exerciseId]",
-          params: { exerciseId: exercise.id },
+          params: { exerciseId: exercise.id, date: date },
         })
       }
       style={({ pressed }) => [

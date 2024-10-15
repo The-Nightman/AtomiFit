@@ -10,7 +10,7 @@ import { Category } from "@/types/categories";
 import { like } from "drizzle-orm";
 import { Exercise } from "@/types/exercise";
 import ExerciseListItem from "@/components/ExerciseListItem";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
 
 /**
@@ -27,6 +27,7 @@ const categories = (): JSX.Element => {
   const [search, setSearch] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Exercise[]>([]);
   const { db } = useContext(DrizzleContext);
+  const { date } = useLocalSearchParams<{ date: string }>();
 
   // Fetch categories from the database on mount
   useEffect(() => {
@@ -58,7 +59,12 @@ const categories = (): JSX.Element => {
       <ScrollView>
         {searchResults.length // If search results exist, display them, otherwise display categories
           ? searchResults.map((exercise: Exercise) => (
-              <ExerciseListItem key={exercise.id} exercise={exercise} search={search} />
+              <ExerciseListItem
+                key={exercise.id}
+                exercise={exercise}
+                search={search}
+                date={date}
+              />
             ))
           : categories.map((category: Category) => (
               <Pressable
@@ -68,7 +74,7 @@ const categories = (): JSX.Element => {
                     // Type errors here pre expo-router ~3.5.23 because only half of a given route was typed
                     // Fixed by updating from 3.5.20, THATS 3 MINOR VERSIONS
                     pathname: "/exercisesSearch/[category]",
-                    params: { category: category.id! },
+                    params: { category: category.id!, date: date },
                   })
                 }
                 style={({ pressed }) => [

@@ -26,7 +26,10 @@ const ExerciseLayout = (): JSX.Element => {
     type: "",
   });
   const [loading, setLoading] = useState(true);
-  const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
+  const { exerciseId, date } = useLocalSearchParams<{
+    exerciseId: string;
+    date: string;
+  }>();
   const { db } = useContext(DrizzleContext);
 
   // Fetch the exercise name from the database using the provided exerciseId.
@@ -71,7 +74,11 @@ const ExerciseLayout = (): JSX.Element => {
           <MaterialTopTabs.Screen
             name="track"
             options={{ tabBarLabel: "Track" }}
-            initialParams={{ exerciseId, exerciseType: exerciseInfo.type }}
+            initialParams={{
+              exerciseId,
+              exerciseType: exerciseInfo.type,
+              date: date,
+            }}
           />
           <MaterialTopTabs.Screen // This screen is not yet implemented
             name="history"

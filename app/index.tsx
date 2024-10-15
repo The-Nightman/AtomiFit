@@ -3,9 +3,13 @@ import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
 import UtilityStyles from "@/constants/UtilityStyles";
 import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
 import DumbbellIconSVG from "@/components/Svg/DumbbellSVG";
-import { Link } from "expo-router";
+import { router } from "expo-router";
+import { getToday } from "@/utils/getToday";
+import { useState } from "react";
 
 const index = () => {
+  const [date, setDate] = useState(getToday());
+
   return (
     <View style={UtilityStyles.flex1}>
       {/* Header, contains interactive elements and is specific to this screen */}
@@ -16,21 +20,32 @@ const index = () => {
         {/* Container for pressable elements */}
         <View style={styles.headerButtonsContainer}>
           {/* Calendar button */}
-          <Link href="/calendar" asChild>
-            <Pressable style={styles.headerCalendarButton}>
-              {({ pressed }) => (
-                <MaterialIcons
-                  name="calendar-month"
-                  size={32}
-                  color={pressed ? "#2D6823" : "#60DD49"}
-                />
-              )}
-            </Pressable>
-          </Link>
+          <Pressable
+            style={styles.headerCalendarButton}
+            onPress={() =>
+              router.push({
+                pathname: "/calendar",
+              })
+            }
+          >
+            {({ pressed }) => (
+              <MaterialIcons
+                name="calendar-month"
+                size={32}
+                color={pressed ? "#2D6823" : "#60DD49"}
+              />
+            )}
+          </Pressable>
           {/* Exercises button */}
-          <Link href="/exercisesSearch" asChild>
           <Pressable
             style={styles.headerExercisesButton}
+            onPress={() =>
+              router.push({
+                // /exercisesSearch/categories avoids trapping the query param in the layout
+                pathname: "/exercisesSearch/categories",
+                params: { date: date },
+              })
+            }
           >
             {({ pressed }) => (
               <DumbbellIconSVG
@@ -40,7 +55,6 @@ const index = () => {
               />
             )}
           </Pressable>
-          </Link>
           {/* Settings/More button */}
           <Pressable
             onPress={() => console.log("settings")}
@@ -60,7 +74,13 @@ const index = () => {
       <View style={styles.placeholderContainer}>
         <Text style={styles.placeholderText}>Workout Empty</Text>
         <Pressable
-          onPress={() => console.log("start new workout")}
+          onPress={() =>
+            router.push({
+              // /exercisesSearch/categories avoids trapping the query param in the layout
+              pathname: "/exercisesSearch/categories",
+              params: { date: date },
+            })
+          }
           style={styles.startNewWorkoutContainer}
         >
           {({ pressed }) => (

@@ -12,12 +12,12 @@ import UtilityStyles from "@/constants/UtilityStyles";
 
 /**
  * Dynamic route [category] component that displays a list of exercises for a given category.
- * 
+ *
  * This component fetches exercises from a database based on the category ID provided in the route.
  * It also provides search functionality to filter exercises within the category.
  * Each exercise is displayed in a list with a name and an options button.
  * Search functionality is also provided to query exercises within the category.
- * 
+ *
  * @returns {JSX.Element} The rendered component.
  */
 const CategoryExercises = (): JSX.Element => {
@@ -25,7 +25,10 @@ const CategoryExercises = (): JSX.Element => {
   // This should reduce re-renders and improve net performance despite it being a small component.
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [search, setSearch] = useState<string>("");
-  const { category } = useLocalSearchParams<{ category: string }>();
+  const { category, date } = useLocalSearchParams<{
+    category: string;
+    date: string;
+  }>();
   const { db } = useContext(DrizzleContext);
 
   // Fetch exercises from the database based on the category ID provided in the route
@@ -57,7 +60,12 @@ const CategoryExercises = (): JSX.Element => {
     const results: Exercise[] = db
       .select()
       .from(schema.exercises)
-      .where(and(like(schema.exercises.name, `%${search}%`), eq(schema.exercises.category_id, Number(category))))
+      .where(
+        and(
+          like(schema.exercises.name, `%${search}%`),
+          eq(schema.exercises.category_id, Number(category))
+        )
+      )
       .all();
 
     setExercises(results);
@@ -68,7 +76,12 @@ const CategoryExercises = (): JSX.Element => {
       <SearchBar search={search} setSearch={setSearch} />
       <ScrollView>
         {exercises.map((exercise) => (
-          <ExerciseListItem key={exercise.id} exercise={exercise} search={search} />
+          <ExerciseListItem
+            key={exercise.id}
+            exercise={exercise}
+            search={search}
+            date={date}
+          />
         ))}
       </ScrollView>
     </View>
