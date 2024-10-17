@@ -5,10 +5,48 @@ import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
 import DumbbellIconSVG from "@/components/Svg/DumbbellSVG";
 import { router } from "expo-router";
 import { getToday } from "@/utils/getToday";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { DrizzleContext } from "@/contexts/drizzleContext";
+import * as schema from "@/database/schema";
+import { eq } from "drizzle-orm";
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import { Set } from "@/types/sets";
+import WorkoutListItem from "@/components/WorkoutListItem";
+
+interface QueryData {
+  exerciseId: number | null;
+  exerciseName: string | null;
+  setsData: Set;
+}
+
+interface TransformedExerciseData {
+  exerciseId: number;
+  exerciseName: string;
+  sets: Set[];
+}
 
 const index = () => {
   const [date, setDate] = useState(getToday());
+  const { db } = useContext(DrizzleContext);
+
+  const { data }: { data: QueryData[] } = useLiveQuery(
+    db
+      .select({
+        exerciseId: schema.exercises.id,
+        exerciseName: schema.exercises.name,
+        setsData: schema.setsData,
+      })
+      .from(schema.setsData)
+      .leftJoin(
+        schema.exercises,
+        eq(schema.setsData.exercise_id, schema.exercises.id)
+      )
+      .where(eq(schema.setsData.date, date)),
+    [date] // re-run query when date changes
+    //! IMPORTANT: Drizzle docs were updated on Oct 7th 2024 16:01 UTC, the docs are still
+    //! plagued with errors and missing information, live query dependencies among them.
+    //! simply put use LiveQuery as you would a useEffect
+  );
 
   return (
     <View style={UtilityStyles.flex1}>
@@ -71,37 +109,71 @@ const index = () => {
         </View>
       </View>
       {/* Placeholder */}
-      <View style={styles.placeholderContainer}>
-        <Text style={styles.placeholderText}>Workout Empty</Text>
-        <Pressable
-          onPress={() =>
-            router.push({
-              // /exercisesSearch/categories avoids trapping the query param in the layout
-              pathname: "/exercisesSearch/categories",
-              params: { date: date },
-            })
-          }
-          style={styles.startNewWorkoutContainer}
-        >
-          {({ pressed }) => (
-            <>
-              <AntDesign
-                name="plus"
-                size={42}
-                color={pressed ? "#2D6823" : "#60DD49"}
-              />
-              <Text
-                style={[
-                  styles.startNewWorkoutText,
-                  pressed && { color: "#A0A0A0" },
-                ]}
-              >
-                Start New Workout
-              </Text>
-            </>
-          )}
-        </Pressable>
-      </View>
+      {data.length > 0 ? (
+        <View style={{ padding: 20, gap: 24 }}>
+          {data
+            .reduce<TransformedExerciseData[]>((acc, item) => {
+              // Check if the exercise already exists in the accumulator
+              const existingExercise = acc.find(
+                (accItem) => accItem.exerciseId === item.setsData.exercise_id
+              );
+              if (existingExercise) {
+                // If it does, push the new set data to the existing exercise
+                existingExercise.sets.push(item.setsData);
+              } else {
+                // If it doesn't, create a new exercise object and push it to the accumulator
+                acc.push({
+                  exerciseId: item.setsData.exercise_id,
+                  exerciseName: item.exerciseName!,
+                  sets: [item.setsData],
+                });
+              }
+
+              return acc;
+            }, [])
+            .map((exercise: TransformedExerciseData) => {
+              return (
+                <WorkoutListItem
+                  key={exercise.exerciseId}
+                  exercise={exercise}
+                  date={date}
+                />
+              );
+            })}
+        </View>
+      ) : (
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>Workout Empty</Text>
+          <Pressable
+            onPress={() =>
+              router.push({
+                // /exercisesSearch/categories avoids trapping the query param in the layout
+                pathname: "/exercisesSearch/categories",
+                params: { date: date },
+              })
+            }
+            style={styles.startNewWorkoutContainer}
+          >
+            {({ pressed }) => (
+              <>
+                <AntDesign
+                  name="plus"
+                  size={42}
+                  color={pressed ? "#2D6823" : "#60DD49"}
+                />
+                <Text
+                  style={[
+                    styles.startNewWorkoutText,
+                    pressed && { color: "#A0A0A0" },
+                  ]}
+                >
+                  Start New Workout
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 };
