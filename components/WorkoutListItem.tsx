@@ -4,10 +4,14 @@ import { Set } from "@/types/sets";
 import { router } from "expo-router";
 import { formatTime } from "@/utils/formatTime";
 import UtilityStyles from "@/constants/UtilityStyles";
+import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 
 interface WorkoutListItemProps {
   exercise: { exerciseId: number; exerciseName: string; sets: Set[] };
   date: string;
+  editMode: boolean;
+  handleEditMode: (exerciseId: number) => void;
+  selected: boolean;
 }
 
 /**
@@ -23,6 +27,9 @@ interface WorkoutListItemProps {
  * @param {WorkoutListItemProps} props - The properties for the WorkoutListItem component.
  * @param {{ exerciseId: number; exerciseName: string; sets: Set[] }} props.exercise - The exercise object containing details about the exercise.
  * @param {string} props.date - The date of the workout.
+ * @param {boolean} props.editMode - The edit mode state, this operates in the parent and does not relate to data such as workout sets.
+ * @param {(exerciseId: number) => void} props.handleEditMode - The function to handle the edit mode.
+ * @param {boolean} props.selected - The selected state of the workout list item while in edit mode.
  * @returns {React.JSX.Element} The rendered WorkoutListItem component.
  *
  * @example
@@ -36,11 +43,17 @@ interface WorkoutListItemProps {
  *     ],
  *   }}
  *   date="2023-10-01"
+ *   editMode={false}
+ *   handleEditMode={() => console.log('Edit mode')}
+ *   selected={false}
  * />
  */
 const WorkoutListItem = ({
   exercise,
   date,
+  editMode,
+  handleEditMode,
+  selected,
 }: WorkoutListItemProps): React.JSX.Element => {
   /**
    * Sets the set display variant based on the keys of the set object.
@@ -140,53 +153,70 @@ const WorkoutListItem = ({
 
   return (
     <Pressable
-      style={styles.itemContainer}
-      onPress={() =>
+      style={({ pressed }) => [
+        styles.itemContainer,
+        {
+          backgroundColor: selected
+            ? hexcodeLuminosity("#60DD49", -80)
+            : hexcodeLuminosity("#0F0F0F", 25),
+        },
+        pressed && { borderColor: "#60DD49" },
+      ]}
+      onPress={() => {
+        // If edit mode is active, handle the edit mode
+        if (editMode) {
+          handleEditMode(exercise.exerciseId);
+          return;
+        }
+        // Else allow navigation to the exercise screen
         router.push({
           pathname: "/exercise/[exerciseId]",
           params: { exerciseId: exercise.exerciseId, date: date },
-        })
-      }
+        });
+      }}
+      onLongPress={() => handleEditMode(exercise.exerciseId)}
     >
       <View style={[{ backgroundColor: "#60DD49" }, styles.itemSideBar]} />
-      <View style={UtilityStyles.flex1}>
+      {/* apply justifyContent: center on edit true to soothe UI preventing off-center text */}
+      <View style={[UtilityStyles.flex1, editMode && styles.justifyCenter]}>
         <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
         <View>
-          {exercise.sets.map((set: Set) => (
-            <View key={set.id} style={styles.setDataContainer}>
-              <View style={styles.setNotesPersonalRecordContainer}>
-                {!set.notes ? (
-                  // If notes is blank render a blank view to maintain layout
-                  <View style={styles.setNotesPlaceholder} />
-                ) : (
+          {!editMode &&
+            exercise.sets.map((set: Set) => (
+              <View key={set.id} style={styles.setDataContainer}>
+                <View style={styles.setNotesPersonalRecordContainer}>
+                  {!set.notes ? (
+                    // If notes is blank render a blank view to maintain layout
+                    <View style={styles.setNotesPlaceholder} />
+                  ) : (
+                    <Pressable
+                      onPress={() => console.log(set.notes)}
+                      style={styles.justifyCenter}
+                    >
+                      <MaterialIcons
+                        name="speaker-notes"
+                        size={24}
+                        color="#60DD49"
+                      />
+                    </Pressable>
+                  )}
+                  {/* Records indicator, not yet fully implemented but required for layout */}
                   <Pressable
-                    onPress={() => console.log(set.notes)}
-                    style={styles.justifyCenter}
+                    onPress={() => console.log("PR, not yet implemented")}
+                    style={styles.setPrButton}
                   >
-                    <MaterialIcons
-                      name="speaker-notes"
+                    <MaterialCommunityIcons
+                      name="trophy"
                       size={24}
                       color="#60DD49"
                     />
                   </Pressable>
-                )}
-                {/* Records indicator, not yet fully implemented but required for layout */}
-                <Pressable
-                  onPress={() => console.log("PR, not yet implemented")}
-                  style={styles.setPrButton}
-                >
-                  <MaterialCommunityIcons
-                    name="trophy"
-                    size={24}
-                    color="#60DD49"
-                  />
-                </Pressable>
+                </View>
+                <View style={styles.setDataSubContainer}>
+                  {setDisplayVariant(set)}
+                </View>
               </View>
-              <View style={styles.setDataSubContainer}>
-                {setDisplayVariant(set)}
-              </View>
-            </View>
-          ))}
+            ))}
         </View>
       </View>
     </Pressable>
@@ -196,12 +226,23 @@ const WorkoutListItem = ({
 export default WorkoutListItem;
 
 const styles = StyleSheet.create({
-  itemContainer: { flexDirection: "row" },
+  itemContainer: {
+    flexDirection: "row",
+    minHeight: 40,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
   itemSideBar: {
     width: 8,
     borderRadius: 4,
     marginRight: 8,
-    // Use array styles to apply background colour [{ backgroundColor: "col" }]
+    // Adjust for border width, prevents any bleedthrough behind the sidebar and prevents movement of the sidebar
+    marginLeft: -1,
+    marginTop: -1,
+    marginBottom: -1,
+    // Use array styles to apply background colour [{ backgroundColor: "col" }], allows
+    // flexibility for conditional styles i.e. settings to show exercise category colour
   },
   exerciseName: {
     color: "white",
