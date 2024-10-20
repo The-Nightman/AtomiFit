@@ -19,7 +19,7 @@ interface TransformedHistoryData {
 
 /**
  * History component.
- * 
+ *
  * The history component displays the exercise history based on the exercise ID
  * passed through local route params. It queries the database sets_data table by
  * exercise ID and organizes it by date descending, displaying sets with different
@@ -126,17 +126,19 @@ const History = (): React.JSX.Element => {
     <View style={styles.container}>
       {data
         .reduce<TransformedHistoryData[]>((acc, set) => {
+          // Check if date is already in the accumulator
           const existingDate = acc.find((item) => item.date === set.date);
-
+          // If date is already in acc, push the set to the sets array
           if (existingDate) {
             existingDate.sets.push(set);
           } else {
+            // If date is not in acc, push a new object with the date and an array of sets
             acc.push({
               date: set.date,
               sets: [set],
             });
           }
-
+          // Return sets grouped by date
           return acc;
         }, [])
         .map((historyObj: TransformedHistoryData) => {
