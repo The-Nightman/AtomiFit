@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import { formatTime } from "@/utils/formatTime";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import { setDisplayVariant } from "@/utils/setDisplayVariant";
 
 interface WorkoutListItemProps {
   exercise: { exerciseId: number; exerciseName: string; sets: Set[] };
@@ -55,100 +56,85 @@ const WorkoutListItem = ({
   handleEditMode,
   selected,
 }: WorkoutListItemProps): React.JSX.Element => {
-  /**
-   * Sets the set display variant based on the keys of the set object.
-   *
-   * @param {Set} set - The set object.
-   * @returns {React.JSX.Element} The display variant element configuration.
-   */
-  const setDisplayVariant = (set: Set): React.JSX.Element => {
-    // Dictionary of display variants based on the keys of the set object
-    const displayVariants: Record<string, (set: Set) => React.JSX.Element> = {
-      weight_reps: (set: Set) => (
-        <>
-          <Text style={styles.setData}>
-            {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
-          </Text>
-          <Text style={styles.setData}>
-            {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
-          </Text>
-        </>
-      ),
-      distance_time: (set: Set) => (
-        <>
-          <Text style={styles.setData}>
-            {set.distance}
-            <Text style={styles.setDataUnit}>Km</Text>
-          </Text>
-          <Text style={styles.setData}>{formatTime(set.time!)}</Text>
-        </>
-      ),
-      weight_distance: (set: Set) => (
-        <>
-          <Text style={styles.setData}>
-            {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
-          </Text>
-          <Text style={styles.setData}>
-            {set.distance}
-            <Text style={styles.setDataUnit}>Km</Text>
-          </Text>
-        </>
-      ),
-      weight_time: (set: Set) => (
-        <>
-          <Text style={styles.setData}>
-            {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
-          </Text>
-          <Text style={styles.setData}>{formatTime(set.time!)}</Text>
-        </>
-      ),
-      reps_distance: (set: Set) => (
-        <>
-          <Text style={styles.setData}>
-            {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
-          </Text>
-          <Text style={styles.setData}>
-            {set.distance}
-            <Text style={styles.setDataUnit}>Km</Text>
-          </Text>
-        </>
-      ),
-      reps_time: (set: Set) => (
-        <>
-          <Text style={styles.setData}>
-            {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
-          </Text>
-          <Text style={styles.setData}>{formatTime(set.time!)}</Text>
-        </>
-      ),
-      weight: (set: Set) => (
+
+  // Dictionary of display variants based on the keys of the set object
+  const displayVariants: Record<string, (set: Set) => React.JSX.Element> = {
+    weight_reps: (set: Set) => (
+      <>
         <Text style={styles.setData}>
           {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
         </Text>
-      ),
-      reps: (set: Set) => (
         <Text style={styles.setData}>
           {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
         </Text>
-      ),
-      distance: (set: Set) => (
+      </>
+    ),
+    distance_time: (set: Set) => (
+      <>
         <Text style={styles.setData}>
           {set.distance}
           <Text style={styles.setDataUnit}>Km</Text>
         </Text>
-      ),
-      time: (set: Set) => (
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
-      ),
-    };
-    // Define the keys to be checked in the set object
-    const keys = ["weight", "reps", "distance", "time"];
-    // Filter out nulls and return a string of the keys joined
-    const displayKeys: string = keys
-      .filter((key: string) => set[key as keyof Set] !== null)
-      .join("_");
-    // Return the display variant based on the result of the keys
-    return displayVariants[displayKeys](set);
+      </>
+    ),
+    weight_distance: (set: Set) => (
+      <>
+        <Text style={styles.setData}>
+          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+        </Text>
+        <Text style={styles.setData}>
+          {set.distance}
+          <Text style={styles.setDataUnit}>Km</Text>
+        </Text>
+      </>
+    ),
+    weight_time: (set: Set) => (
+      <>
+        <Text style={styles.setData}>
+          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+        </Text>
+        <Text style={styles.setData}>{formatTime(set.time!)}</Text>
+      </>
+    ),
+    reps_distance: (set: Set) => (
+      <>
+        <Text style={styles.setData}>
+          {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
+        </Text>
+        <Text style={styles.setData}>
+          {set.distance}
+          <Text style={styles.setDataUnit}>Km</Text>
+        </Text>
+      </>
+    ),
+    reps_time: (set: Set) => (
+      <>
+        <Text style={styles.setData}>
+          {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
+        </Text>
+        <Text style={styles.setData}>{formatTime(set.time!)}</Text>
+      </>
+    ),
+    weight: (set: Set) => (
+      <Text style={styles.setData}>
+        {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+      </Text>
+    ),
+    reps: (set: Set) => (
+      <Text style={styles.setData}>
+        {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
+      </Text>
+    ),
+    distance: (set: Set) => (
+      <Text style={styles.setData}>
+        {set.distance}
+        <Text style={styles.setDataUnit}>Km</Text>
+      </Text>
+    ),
+    time: (set: Set) => (
+      <Text style={styles.setData}>{formatTime(set.time!)}</Text>
+    ),
   };
 
   return (
@@ -213,7 +199,7 @@ const WorkoutListItem = ({
                   </Pressable>
                 </View>
                 <View style={styles.setDataSubContainer}>
-                  {setDisplayVariant(set)}
+                  {setDisplayVariant(set, displayVariants)}
                 </View>
               </View>
             ))}
