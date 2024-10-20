@@ -3,8 +3,9 @@ import { Set } from "@/types/sets";
 import { displayDate } from "@/utils/displayDate";
 import { distanceDisplay } from "@/utils/formatDistance";
 import { formatTime } from "@/utils/formatTime";
+import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { memo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 
 interface ListViewItemProps {
   workout: ListWorkout;
@@ -21,38 +22,68 @@ interface ListViewItemProps {
  */
 const ListViewItem = memo(
   ({ workout, today }: ListViewItemProps): JSX.Element => {
-    /**
-     * Sets the set display variant based on the keys of the set object.
-     *
-     * @param {Set} set - The set object.
-     * @returns {string} The display variant string.
-     */
-    const setDisplayVariant = (set: Set): string => {
-      // Dictionary of display variants based on the keys of the set object
-      const displayVariants: Record<string, (set: Set) => string> = {
-        weight_reps: (set: Set) => `${set.weight} KG x ${set.reps} REPS`,
-        distance_time: (set: Set) =>
-          `${distanceDisplay(set.distance!)} - ${formatTime(set.time!)}`,
-        weight_distance: (set: Set) =>
-          `${set.weight} KG - ${distanceDisplay(set.distance!)}`,
-        weight_time: (set: Set) =>
-          `${set.weight} KG - ${formatTime(set.time!)}`,
-        reps_distance: (set: Set) =>
-          `${set.reps} REPS - ${distanceDisplay(set.distance!)}`,
-        reps_time: (set: Set) => `${set.reps} REPS - ${formatTime(set.time!)}`,
-        weight: (set: Set) => `${set.weight} KG`,
-        reps: (set: Set) => `${set.reps} REPS`,
-        distance: (set: Set) => `${distanceDisplay(set.distance!)}`,
-        time: (set: Set) => `${formatTime(set.time!)}`,
-      };
-      // Define the keys to be checked in the set object
-      const keys = ["weight", "reps", "distance", "time"];
-      // Filter out nulls and return a string of the keys joined
-      const displayKeys: string = keys
-        .filter((key: string) => set[key as keyof Set] !== null)
-        .join("_");
-      // Return the display variant based on the result of the keys
-      return displayVariants[displayKeys](set);
+    const { width } = Dimensions.get("screen"); // Get the screen width for styling reasons
+
+    // Dictionary of display variants based on the keys of the set object
+    const displayVariants: Record<string, (set: Set) => React.JSX.Element> = {
+      weight_reps: (set: Set) => (
+        <Text style={styles.text}>
+          {set.weight} KG x {set.reps} REPS
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      distance_time: (set: Set) => (
+        <Text style={styles.text}>
+          {distanceDisplay(set.distance!)} - {formatTime(set.time!)}
+          {set.notes && `  -  ${set.notes}`}11111111111111111111111111111111111111111111111111111111111
+        </Text>
+      ),
+      weight_distance: (set: Set) => (
+        <Text style={styles.text}>
+          {set.weight} KG - {distanceDisplay(set.distance!)}
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      weight_time: (set: Set) => (
+        <Text style={styles.text}>
+          {set.weight} KG - {formatTime(set.time!)}
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      reps_distance: (set: Set) => (
+        <Text style={styles.text}>
+          {set.reps} REPS - {distanceDisplay(set.distance!)}
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      reps_time: (set: Set) => (
+        <Text style={styles.text}>
+          {set.reps} REPS x {formatTime(set.time!)}
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      weight: (set: Set) => (
+        <Text style={styles.text}>
+          {set.weight} KG{set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      reps: (set: Set) => (
+        <Text style={styles.text}>
+          {set.reps} REPS{set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      distance: (set: Set) => (
+        <Text style={styles.text}>
+          {distanceDisplay(set.distance!)}
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
+      time: (set: Set) => (
+        <Text style={styles.text}>
+          {formatTime(set.time!)}
+          {set.notes && `  -  ${set.notes}`}
+        </Text>
+      ),
     };
 
     return (
@@ -89,12 +120,12 @@ const ListViewItem = memo(
                   </Text>
                   <View>
                     {exercise.sets.map((set: Set) => (
-                      <Text
-                        key={`${workout.data}-set${set.id}`}
-                        style={styles.text}
-                      >
-                        {setDisplayVariant(set)}
-                      </Text>
+                      // set maxWidth to the width of the screen minus margins
+                      // and paddings (44) + extra for safety and readability
+                      //! Test this on a smaller screen in android studio before merging into dev
+                      <View key={set.id} style={{maxWidth:(width-64)}}>
+                        {setDisplayVariant(set, displayVariants)}
+                      </View>
                     ))}
                   </View>
                 </View>
@@ -150,7 +181,7 @@ const ListViewItem = memo(
 export default ListViewItem;
 
 const styles = StyleSheet.create({
-  itemContainer: { display: "flex", flexDirection: "row", margin: 8 },
+  itemContainer: { flexDirection: "row", margin: 8 },
   itemSideBar: {
     width: 8,
     borderRadius: 4,
@@ -161,7 +192,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 34,
   },
-  exerciseContainer: { display: "flex", flexDirection: "row" },
+  exerciseContainer: { flexDirection: "row" },
   exerciseCategoryMarker: {
     width: 10,
     height: 10,

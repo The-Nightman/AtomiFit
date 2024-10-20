@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { Entypo, MaterialIcons, AntDesign } from "@expo/vector-icons";
+import { Entypo, MaterialIcons, AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as SplashScreen from "expo-splash-screen";
 import LottieSplashScreen from "@/components/Splash/LottieSplashScreen";
 import { DrizzleProvider, DrizzleContext } from "@/contexts/drizzleContext";
@@ -15,6 +15,7 @@ const RootLayoutNav = () => {
     ...Entypo.font,
     ...MaterialIcons.font,
     ...AntDesign.font,
+    ...MaterialCommunityIcons.font,
   });
 
   // Prevent the splash screen from auto-hiding so we can manually control it while the app is loading
@@ -47,6 +48,7 @@ const RootLayoutNav = () => {
           <Stack.Screen name="index" options={{ gestureEnabled: true }} />
           <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
           <Stack.Screen name="exercisesSearch" options={{ gestureEnabled: true, presentation:"modal" }} />
+          <Stack.Screen name="exercise/[exerciseId]" options={{ gestureEnabled: true }} />
         </Stack>
       </GestureHandlerRootView>
     </DrizzleProvider>

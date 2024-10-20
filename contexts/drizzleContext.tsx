@@ -14,7 +14,7 @@ interface DrizzleContextProps {
   db: ExpoSQLiteDatabase<Record<string, never>>;
 }
 
-const atomifitDB: SQLiteDatabase = openDatabaseSync(__DEV__ ? "test.db" : "atomifit.db");
+const atomifitDB: SQLiteDatabase = openDatabaseSync(__DEV__ ? "test.db" : "atomifit.db", { enableChangeListener: true });
 const db: ExpoSQLiteDatabase<Record<string, never>> = drizzle(atomifitDB);
 
 /**
