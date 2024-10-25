@@ -2,6 +2,7 @@
  * Displays a formatted date string based on the given date.
  * If the date is today, it returns "TODAY".
  * If the date is yesterday, it returns "YESTERDAY".
+ * If the date is tomorrow, it returns "TOMORROW".
  * Otherwise, it returns the date formatted as a short weekday, short month, numeric day and numeric year.
  *
  * @param {string} date - The date string in yyyy-mm-dd format to be formatted.
@@ -12,10 +13,19 @@ export const displayDate = (date: string, today: string): string => {
   if (date === today) {
     return "TODAY";
   } else if (
-    new Date(date) ===
+    date ===
     new Date(new Date(today).setDate(new Date(today).getDate() - 1))
+      .toISOString()
+      .slice(0, 10)
   ) {
     return "YESTERDAY";
+  } else if (
+    date ===
+    new Date(new Date(today).setDate(new Date(today).getDate() + 1))
+      .toISOString()
+      .slice(0, 10)
+  ) {
+    return "TOMORROW";
   }
 
   return new Date(date)
