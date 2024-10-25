@@ -35,7 +35,7 @@ const ListViewItem = memo(
       distance_time: (set: Set) => (
         <Text style={styles.text}>
           {distanceDisplay(set.distance!)} - {formatTime(set.time!)}
-          {set.notes && `  -  ${set.notes}`}11111111111111111111111111111111111111111111111111111111111
+          {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
       weight_distance: (set: Set) => (
