@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, Pressable, BackHandler } from "react-native";
 import {
-  AntDesign,
   Entypo,
   MaterialCommunityIcons,
   MaterialIcons,
@@ -10,53 +9,26 @@ import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
 import DumbbellIconSVG from "@/components/Svg/DumbbellSVG";
 import { router } from "expo-router";
 import { getToday } from "@/utils/getToday";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { and, eq, inArray } from "drizzle-orm";
-import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { Set } from "@/types/sets";
-import WorkoutListItem from "@/components/WorkoutListItem";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
-
-interface QueryData {
-  exerciseId: number | null;
-  exerciseName: string | null;
-  setsData: Set;
-}
-
-interface TransformedExerciseData {
-  exerciseId: number;
-  exerciseName: string;
-  sets: Set[];
-}
+import { displayDate } from "@/utils/displayDate";
+import InfinitePager, {
+  InfinitePagerImperativeApi,
+} from "react-native-infinite-pager";
+import WorkoutView from "@/components/workoutScreen/WorkoutView";
 
 const index = () => {
-  const [date, setDate] = useState(getToday());
+  const [date, setDate] = useState<string>(getToday());
   const [editMode, setEditMode] = useState<{
     edit: boolean;
     selectedExercises: number[];
   }>({ edit: false, selectedExercises: [] });
-  const { db } = useContext(DrizzleContext);
+  const pagerViewRef = useRef<InfinitePagerImperativeApi>(null);
 
-  const { data }: { data: QueryData[] } = useLiveQuery(
-    db
-      .select({
-        exerciseId: schema.exercises.id,
-        exerciseName: schema.exercises.name,
-        setsData: schema.setsData,
-      })
-      .from(schema.setsData)
-      .leftJoin(
-        schema.exercises,
-        eq(schema.setsData.exercise_id, schema.exercises.id)
-      )
-      .where(eq(schema.setsData.date, date)),
-    [date] // re-run query when date changes
-    //! IMPORTANT: Drizzle docs were updated on Oct 7th 2024 16:01 UTC, the docs are still
-    //! plagued with errors and missing information, live query dependencies among them.
-    //! simply put use LiveQuery as you would a useEffect
-  );
+  const { db } = useContext(DrizzleContext);
 
   // Create an event listener for the back button to exit edit mode without navigation
   useEffect(() => {
@@ -145,6 +117,70 @@ const index = () => {
     });
   };
 
+  /**
+   * Local utility function that calculates a new date by adding a specified number
+   * of days to a given date. Passing a negative number will subtract days.
+   *
+   * @param {string} date - The initial date as a string in the format YYYY-MM-DD.
+   * @param {number} days - The number of days to add to the initial date.
+   * @returns {string} The new date as a string in the format YYYY-MM-DD.
+   */
+  const calculateDate = (date: string, days: number): string => {
+    const parsedDate = new Date(date);
+    parsedDate.setDate(parsedDate.getDate() + days);
+    // Return the date in ISO format without the time so we get a YYYY-MM-DD string
+    return parsedDate.toISOString().split("T")[0];
+  };
+
+  /**
+   * Function to return the component representing a workout page for a specific day.
+   *
+   * The date is calculated based on the current day and the provided index.
+   * Swiping left decreases the date (e.g., today - 1, today - 2, etc.),
+   * while swiping right increases the date.
+   *
+   * @param {Object} props - The component props.
+   * @param {number} props.index - The index representing the page and subsequently the day offset from today.
+   * @returns {JSX.Element} The rendered workout view for the specified day.
+   */
+  const DayWorkoutPage = ({ index }: { index: number }): JSX.Element => {
+    return (
+      <WorkoutView
+        // Calculate based on getToday as using date state will desync the pager
+        // i.e. 1 left swipe = today - 1 (the day before), 1 more left swipe = date - 2 (3 days before today) etc
+        // Inverse is true for right swipes
+        date={calculateDate(getToday(), index)}
+        editMode={editMode}
+        handleEditMode={handleEditMode}
+      />
+    );
+  };
+
+  /**
+   * Handles the infinite pager functionality by updating the date based on the given index.
+   *
+   * @param {number} index - The index used to calculate the new date.
+   * @returns {void}
+   */
+  const handleInfinitePager = (index: number): void => {
+    setDate(calculateDate(getToday(), index));
+  };
+
+  /**
+   * Resets the date to today's date and sets the pager view to the first page without animation.
+   *
+   * This function updates the state with the current date by calling `setDate` with the result of `getToday()`.
+   * If the `pagerViewRef` is defined, it sets the pager view to the first page (index 0) without animation.
+   *
+   * @returns {void}
+   */
+  const handleDateReset = (): void => {
+    setDate(getToday());
+    if (pagerViewRef.current) {
+      pagerViewRef.current.setPage(0, { animated: false });
+    }
+  };
+
   return (
     <View style={UtilityStyles.flex1}>
       {/* Header, contains interactive elements and is specific to this screen */}
@@ -229,77 +265,61 @@ const index = () => {
           )}
         </View>
       </View>
-      {/* Placeholder */}
-      {data.length > 0 ? (
-        <View style={styles.workoutContainer}>
-          {data
-            .reduce<TransformedExerciseData[]>((acc, item) => {
-              // Check if the exercise already exists in the accumulator
-              const existingExercise = acc.find(
-                (accItem) => accItem.exerciseId === item.setsData.exercise_id
-              );
-              if (existingExercise) {
-                // If it does, push the new set data to the existing exercise
-                existingExercise.sets.push(item.setsData);
-              } else {
-                // If it doesn't, create a new exercise object and push it to the accumulator
-                acc.push({
-                  exerciseId: item.setsData.exercise_id,
-                  exerciseName: item.exerciseName!,
-                  sets: [item.setsData],
-                });
-              }
-
-              return acc;
-            }, [])
-            .map((exercise: TransformedExerciseData) => {
-              return (
-                <WorkoutListItem
-                  key={exercise.exerciseId}
-                  exercise={exercise}
-                  date={date}
-                  editMode={editMode.edit}
-                  handleEditMode={handleEditMode}
-                  selected={editMode.selectedExercises.includes(
-                    exercise.exerciseId
-                  )}
-                />
-              );
-            })}
-        </View>
-      ) : (
-        <View style={styles.placeholderContainer}>
-          <Text style={styles.placeholderText}>Workout Empty</Text>
-          <Pressable
-            onPress={() =>
-              router.push({
-                // /exercisesSearch/categories avoids trapping the query param in the layout
-                pathname: "/exercisesSearch/categories",
-                params: { date: date },
-              })
+      {/* Date scrolling container */}
+      <View style={styles.dateScrollContainer}>
+        <Pressable
+          onPress={() => {
+            if (pagerViewRef.current) {
+              pagerViewRef.current.decrementPage({ animated: true });
             }
-            style={styles.startNewWorkoutContainer}
-          >
-            {({ pressed }) => (
-              <>
-                <AntDesign
-                  name="plus"
-                  size={42}
-                  color={pressed ? "#2D6823" : "#60DD49"}
-                />
-                <Text
-                  style={[
-                    styles.startNewWorkoutText,
-                    pressed && { color: "#A0A0A0" },
-                  ]}
-                >
-                  Start New Workout
-                </Text>
-              </>
-            )}
-          </Pressable>
-        </View>
-      )}
+          }}
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="chevron-thin-left"
+              size={30}
+              color={pressed ? "#2D6823" : "#60DD49"}
+            />
+          )}
+        </Pressable>
+        <Pressable
+          hitSlop={10}
+          style={({ pressed }) => [
+            {
+              backgroundColor: pressed
+                ? hexcodeLuminosity("#0F0F0F", 60)
+                : "transparent",
+              paddingHorizontal: 12,
+            },
+          ]}
+          onPress={() => handleDateReset()}
+        >
+          <Text style={styles.dateText}>{displayDate(date, getToday())}</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            if (pagerViewRef.current) {
+              pagerViewRef.current.incrementPage({ animated: true });
+            }
+          }}
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="chevron-thin-right"
+              size={30}
+              color={pressed ? "#2D6823" : "#60DD49"}
+            />
+          )}
+        </Pressable>
+      </View>
+      {/* Pager scrolling */}
+      <InfinitePager
+        style={{ flex: 1 }}
+        ref={pagerViewRef}
+        PageComponent={DayWorkoutPage}
+        onPageChange={(index) => handleInfinitePager(index)}
+        pageBuffer={1}
+      />
     </View>
   );
 };
@@ -349,6 +369,19 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     alignItems: "center",
     justifyContent: "center",
+  },
+  dateScrollContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 4,
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#60DD49",
+  },
+  dateText: {
+    color: "white",
+    fontSize: 22,
   },
   workoutContainer: { padding: 20, gap: 16 },
   placeholderContainer: {
