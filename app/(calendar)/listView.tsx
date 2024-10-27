@@ -1,12 +1,13 @@
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import * as schema from "@/database/schema";
-import { desc, eq, Placeholder, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { ListWorkout } from "@/types/listView";
 import { FlatList } from "react-native-gesture-handler";
 import ListViewItem from "@/components/ListViewItem";
 import { Set } from "@/types/sets";
+import { getToday } from "@/utils/getToday";
 
 interface QueryResult {
   date: string;
@@ -26,6 +27,8 @@ interface QueryResult {
 const ListView = (): JSX.Element => {
   const [data, setData] = useState<ListWorkout[]>([]);
   const { db } = useContext(DrizzleContext);
+
+  const today = getToday(); // Get the current date
 
   useEffect(() => {
     // Query the database for the data
@@ -114,30 +117,35 @@ const ListView = (): JSX.Element => {
       })
     );
 
-    setData(formattedData);
+    // Check if there is data for today
+    if (!formattedData.some((item) => item.date === today)) {
+      setData(() => {
+        // If there is no data for today, add a placeholder element and sort
+        const data = [...formattedData, { date: today, data: [] }].sort(
+          (a, b) => {
+            // Sort the data by date descending, we use getTime() to compare the dates as integers
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          }
+        );
+        // Return the data to state
+        return data;
+      });
+    } else {
+      setData(formattedData);
+    }
   }, []);
 
   /**
-   * Returns the current date in the format "YYYY-MM-DD".
+   * Render the list item elements for the listview.
+   * 
+   * Renders a placeholder element if the item date property is the current date
+   * and data array is empty. Renders the ListViewItem component otherwise.
    *
-   * @returns {string} The current date.
+   * @param {ListWorkout} item The workout item in the data array.
+   * @returns {JSX.Element} The JSX.Element of the placeholder or null if no placeholder is needed.
    */
-  const getToday: string = useMemo(() => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  }, []);
-
-  /**
-   * Renders a placeholder element if the data is empty or the first item's date is not today.
-   *
-   * @returns {(JSX.Element | null)} The JSX.Element of the placeholder or null if no placeholder is needed.
-   */
-  const renderPlaceholder = (): JSX.Element | null => {
-    if (data.length === 0 || data[0].date !== getToday) {
+  const renderItem = (item: ListWorkout): JSX.Element => {
+    if (item.date === today && item.data.length === 0) {
       return (
         <View style={styles.placeholderContainer}>
           <View style={styles.placeholderSidebar} />
@@ -154,19 +162,16 @@ const ListView = (): JSX.Element => {
           </View>
         </View>
       );
+    } else {
+      return <ListViewItem workout={item} today={today} />;
     }
-
-    return null;
   };
 
   return (
     <FlatList
       data={data}
       keyExtractor={(item) => item.date}
-      renderItem={({ item }) => (
-        <ListViewItem workout={item} today={getToday} />
-      )}
-      ListHeaderComponent={renderPlaceholder}
+      renderItem={({ item }) => renderItem(item)}
     />
   );
 };
