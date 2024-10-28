@@ -8,6 +8,7 @@ import { useContext } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface QueryData {
   exerciseId: number | null;
@@ -29,25 +30,29 @@ interface WorkoutViewProps {
 
 /**
  * Component for displaying a workout view based on the provided date.
- * 
+ *
  * @component
  * @param {WorkoutViewProps} props - The properties for the WorkoutView component.
  * @param {string} props.date - The date for which the workout data is to be displayed in YYYY-MM-DD format.
  * @param {{ edit: boolean; selectedExercises: number[] }} props.editMode - The current edit mode state object containing a boolean and number array property.
  * @param {(exerciseId: number) => void} props.handleEditMode - Function to handle changes in edit mode.
- * 
+ *
  * @returns {JSX.Element} The rendered WorkoutView component.
- * 
+ *
  * @example
  * ```tsx
- * <WorkoutView 
- *   date="2023-10-10" 
- *   editMode={{ edit: false, selectedExercises: [] }} 
- *   handleEditMode={() => {}} 
+ * <WorkoutView
+ *   date="2023-10-10"
+ *   editMode={{ edit: false, selectedExercises: [] }}
+ *   handleEditMode={() => {}}
  * />
  * ```
  */
-const WorkoutView = ({ date, editMode, handleEditMode }: WorkoutViewProps): JSX.Element => {
+const WorkoutView = ({
+  date,
+  editMode,
+  handleEditMode,
+}: WorkoutViewProps): JSX.Element => {
   const { db } = useContext(DrizzleContext);
 
   const { data }: { data: QueryData[] } = useLiveQuery(
@@ -72,7 +77,11 @@ const WorkoutView = ({ date, editMode, handleEditMode }: WorkoutViewProps): JSX.
   return (
     <>
       {data.length > 0 ? (
-        <View collapsable={false} style={styles.workoutContainer}>
+        <ScrollView
+          collapsable={false}
+          style={styles.workoutContainer}
+          contentContainerStyle={styles.workoutContainerContent}
+        >
           {data
             .reduce<TransformedExerciseData[]>((acc, item) => {
               // Check if the exercise already exists in the accumulator
@@ -107,7 +116,7 @@ const WorkoutView = ({ date, editMode, handleEditMode }: WorkoutViewProps): JSX.
                 />
               );
             })}
-        </View>
+        </ScrollView>
       ) : (
         <View collapsable={false} style={styles.placeholderContainer}>
           <Text style={styles.placeholderText}>Workout Empty</Text>
@@ -148,7 +157,8 @@ const WorkoutView = ({ date, editMode, handleEditMode }: WorkoutViewProps): JSX.
 export default WorkoutView;
 
 const styles = StyleSheet.create({
-  workoutContainer: { width: "100%", height: "100%", padding: 20, gap: 16 },
+  workoutContainer: { width: "100%", height: "100%" },
+  workoutContainerContent: { padding: 20, gap: 16 },
   placeholderContainer: {
     width: "100%",
     height: "100%",

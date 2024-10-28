@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
@@ -15,6 +15,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 
 /**
  * Track component.
@@ -26,7 +27,6 @@ import Animated, {
  * @returns {JSX.Element} The rendered component.
  */
 const Track = (): JSX.Element => {
-  const [sets, setSets] = useState<Set[]>([]);
   const [menuVisible, setMenuVisible] = useState<{
     state: boolean;
     pos: { x: number; y: number };
@@ -45,10 +45,10 @@ const Track = (): JSX.Element => {
   const containerRef = useRef<View>(null);
   const overlayWidth = useSharedValue<number>(0);
 
-  // Fetch sets data from the database based on the exercise ID and the current date.
-  // Dynamic date not yet implemented, currently only fetches sets for the current date.
-  useEffect(() => {
-    const data: Set[] = db
+  // Fetch sets data from the database based on the exercise ID and passed date.
+  // make use of useLiveQuery hook to watch for changes in the database.
+  const { data }: { data: Set[] } = useLiveQuery(
+    db
       .select()
       .from(schema.setsData)
       .where(
@@ -58,10 +58,7 @@ const Track = (): JSX.Element => {
           eq(schema.setsData.date, date)
         )
       )
-      .all();
-
-    setSets(data);
-  }, []);
+  );
 
   /**
    * Adds a new set to the exercise tracking state.
@@ -77,26 +74,23 @@ const Track = (): JSX.Element => {
    */
   const addNewSet = async (): Promise<void> => {
     // If there are sets copy the previous for user convenience
-    if (sets.length > 0) {
+    if (data.length > 0) {
       // Copy the previous set, blank the notes and delete the id
-      const newSet = { ...sets[sets.length - 1], notes: "" };
+      const newSet = { ...data[data.length - 1], notes: "" };
       delete newSet.id;
       // Insert the new set and return the id
-      const newSetId = await db
-        .insert(schema.setsData)
-        .values(newSet)
-        .returning({ id: schema.setsData.id });
-      // Add the new set to the state with the new id
-      setSets([...sets, { ...newSet, id: newSetId[0].id }]);
+      await db.insert(schema.setsData).values(newSet);
+
       return; // Return early
     }
 
     // If there are no sets, fetch the date of the most recent workout with the exercise or null
-    const mostRecentDateQuery: { recentDate: string | null } | undefined = db
-      .select({ recentDate: max(schema.setsData.date) })
-      .from(schema.setsData)
-      .where(eq(schema.setsData.exercise_id, Number(exerciseId)))
-      .get();
+    const mostRecentDateQuery: { recentDate: string | null } | undefined = (
+      await db
+        .select({ recentDate: max(schema.setsData.date) })
+        .from(schema.setsData)
+        .where(eq(schema.setsData.exercise_id, Number(exerciseId)))
+    )[0];
 
     // If the most recent date query is false there are no previous sets
     // Therefore we create a blank set, otherwise we copy the previous set outside the block
@@ -138,32 +132,28 @@ const Track = (): JSX.Element => {
         notes: "",
       };
 
-      // Insert the new set and return the id
-      const newSetId = await db
-        .insert(schema.setsData)
-        .values(newSet)
-        .returning({ id: schema.setsData.id });
+      // Insert the new set
+      await db.insert(schema.setsData).values(newSet);
 
-      // Add the new set to the state with the new id
-      setSets([...sets, { ...newSet, id: newSetId[0].id }]);
       return; // Return early
     }
 
-    // If there are sets, copy the first set from the most recent date
+    // If there are past sets, copy the first set from the most recent date
     // This lets the user start with their warmup weight and reps
     // Or provides a reference for progressive overload
-    const firstSetQuery: Set | undefined = db
-      .select()
-      .from(schema.setsData)
-      .where(
-        and(
-          eq(schema.setsData.exercise_id, Number(exerciseId)),
-          eq(schema.setsData.date, mostRecentDateQuery!.recentDate!)
+    const firstSetQuery: Set | undefined = (
+      await db
+        .select()
+        .from(schema.setsData)
+        .where(
+          and(
+            eq(schema.setsData.exercise_id, Number(exerciseId)),
+            eq(schema.setsData.date, mostRecentDateQuery!.recentDate!)
+          )
         )
-      )
-      .orderBy(schema.setsData.id)
-      .limit(1)
-      .get();
+        .orderBy(schema.setsData.id)
+        .limit(1)
+    )[0];
 
     // Return early if the query fails for some reason, at this point it should be gauranteed
     if (!firstSetQuery) return;
@@ -173,14 +163,8 @@ const Track = (): JSX.Element => {
     firstSetQuery.date = date;
     firstSetQuery.notes = "";
 
-    // Insert the new set and return the id
-    const newSetId = await db
-      .insert(schema.setsData)
-      .values(firstSetQuery)
-      .returning({ id: schema.setsData.id });
-
-    // Add the new set to the state with the new id
-    setSets([...sets, { ...firstSetQuery, id: newSetId[0].id }]);
+    // Insert the new set
+    await db.insert(schema.setsData).values(firstSetQuery);
   };
 
   /**
@@ -223,8 +207,6 @@ const Track = (): JSX.Element => {
       pos: { x: 0, y: 0 },
       currentSelectedId: null,
     });
-    // Remove the set from the state
-    setSets(sets.filter((set) => set.id !== menuVisible.currentSelectedId));
   };
 
   // Reanimated styles for the background of the set menu delete button
@@ -272,7 +254,7 @@ const Track = (): JSX.Element => {
           ref={containerRef}
         >
           {/* Mapped sets */}
-          {sets.map((set, i) => (
+          {data.map((set, i) => (
             <TrackSetListItem
               key={set.id || `newset-${i}`}
               set={set}
