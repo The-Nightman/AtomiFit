@@ -87,9 +87,12 @@ const ExerciseLayout = (): JSX.Element => {
               exerciseId
             }}
           />
-          <MaterialTopTabs.Screen // This screen is not yet implemented
+          <MaterialTopTabs.Screen
             name="graph"
             options={{ tabBarLabel: "Graph" }}
+            initialParams={{
+              exerciseId
+            }}
           />
           <MaterialTopTabs.Screen // This screen is not yet implemented
             name="info"
