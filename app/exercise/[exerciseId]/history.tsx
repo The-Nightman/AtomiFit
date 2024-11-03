@@ -11,6 +11,7 @@ import { displayDate } from "@/utils/displayDate";
 import { getToday } from "@/utils/getToday";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface TransformedHistoryData {
   date: string;
@@ -123,7 +124,7 @@ const History = (): React.JSX.Element => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {data
         .reduce<TransformedHistoryData[]>((acc, set) => {
           // Check if date is already in the accumulator
@@ -190,7 +191,7 @@ const History = (): React.JSX.Element => {
             </View>
           );
         })}
-    </View>
+    </ScrollView>
   );
 };
 
