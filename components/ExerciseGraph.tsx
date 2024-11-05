@@ -2,10 +2,13 @@ import { StyleSheet, Text, View } from "react-native";
 import { useMemo, useState } from "react";
 import Svg, {
   Circle,
+  Defs,
   G,
   Line,
+  LinearGradient,
   Path,
   Rect,
+  Stop,
   Text as SvgText,
   TextAnchor,
 } from "react-native-svg";
@@ -29,6 +32,7 @@ interface GraphConfig {
   }[];
   yTicks: number[];
   line: d3.Line<Set>;
+  area: any;
 }
 
 /**
@@ -80,7 +84,7 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
       // Weight * Reps = Total Volume, other functions to come not yet fully implemented
       [
         // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
-        Math.ceil(d3.min(data, (d) => d.weight! * d.reps!)! / 50) * 50 - 50,
+        Math.floor(d3.min(data, (d) => d.weight! * d.reps!)! / 50) * 50 - 50,
         Math.ceil(d3.max(data, (d) => d.weight! * d.reps!)! / 50) * 50 + 50,
       ],
       // graphSize.height - 16 and 16 are the top and bottom bounds of the SVG element respectively
@@ -92,6 +96,15 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
       .line<Set>()
       .x((d) => xScale(new Date(d.date)))
       .y((d) => yScale(d.weight! * d.reps!)); // Weight * Reps = Total Volume, other functions to come not yet fully implemented
+
+    // Create an area generator function
+    const area = d3
+      .area<Set>()
+      .x((d) => xScale(new Date(d.date)))
+      .y0(graphSize.height - 16) // Bottom of the graph
+      .y1((d) => yScale(d.weight! * d.reps!))
+      .defined((d) => d.weight !== null && d.reps !== null) // Only include defined points
+      .curve(d3.curveLinear); // Use linear curve for simplicity
 
     // Calculate the midpoint epoch timestamp for the x-axis ticks
     const midpointTimestamp =
@@ -120,7 +133,7 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
 
     // Calculate the y-axis tick values, same rounding and buffer calculation as yScale
     const yTicks: number[] = d3.ticks(
-      Math.ceil(d3.min(data, (d) => d.weight! * d.reps!)! / 50) * 50 - 50,
+      Math.floor(d3.min(data, (d) => d.weight! * d.reps!)! / 50) * 50 - 50,
       Math.ceil(d3.max(data, (d) => d.weight! * d.reps!)! / 50) * 50 + 50,
       7
     );
@@ -131,6 +144,7 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
       xTicks,
       yTicks,
       line,
+      area,
     };
   };
 
@@ -171,6 +185,13 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
         }}
       >
         <Svg width={graphSize.width} height={graphSize.height}>
+          <Defs>
+            <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor="#60DD49" stopOpacity="0.6" />
+              <Stop offset="1" stopColor="#60DD49" stopOpacity="0" />
+            </LinearGradient>
+          </Defs>
+          {/* Graph Box */}
           <Rect
             x={32}
             y={16}
@@ -180,50 +201,63 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
             stroke={hexcodeLuminosity("#3F3C3C", 20)}
           />
           {/* X-axis ticks */}
-          {graph.xTicks.map((tick, i) => (
-            <SvgText
-              key={`tick-${tick.date}-${i}`}
-              fill="white"
-              fontSize="11"
-              fontWeight="normal"
-              textAnchor={tick.textAnchor as TextAnchor}
-              x={tick.xPos}
-              y={graphSize.height - 2}
-            >
-              {processTickDate(tick.date)}
-            </SvgText>
-          ))}
+          <G>
+            {graph.xTicks.map((tick, i) => (
+              <SvgText
+                key={`tick-${tick.date}-${i}`}
+                fill="white"
+                fontSize="11"
+                fontWeight="normal"
+                textAnchor={tick.textAnchor as TextAnchor}
+                x={tick.xPos}
+                y={graphSize.height - 2}
+              >
+                {processTickDate(tick.date)}
+              </SvgText>
+            ))}
+          </G>
           {/* Y-axis ticks and grid lines */}
-          {graph.yTicks.map((weight, _) => (
-            <SvgText
-              key={`text-${weight}`}
-              fill="white"
-              fontSize="11"
-              fontWeight="normal"
-              textAnchor="end"
-              x={26}
-              y={graph.yScale(weight) + 3}
-            >
-              {weight}
-            </SvgText>
-          ))}
-          {graph.yTicks.map((weight, _) => (
-            <Line
-              key={`line-${weight}`}
-              x1={32}
-              x2={graphSize.width - 16}
-              y1={graph.yScale(weight)}
-              y2={graph.yScale(weight)}
-              stroke={hexcodeLuminosity("#3F3C3C", 20)}
+          <G>
+            {graph.yTicks.map((weight, _) => (
+              <SvgText
+                key={`text-${weight}`}
+                fill="white"
+                fontSize="11"
+                fontWeight="normal"
+                textAnchor="end"
+                x={26}
+                y={graph.yScale(weight) + 3}
+              >
+                {weight}
+              </SvgText>
+            ))}
+            {graph.yTicks.map((weight, _) => (
+              <Line
+                key={`line-${weight}`}
+                x1={32}
+                x2={graphSize.width - 16}
+                y1={graph.yScale(weight)}
+                y2={graph.yScale(weight)}
+                stroke={hexcodeLuminosity("#3F3C3C", 20)}
+              />
+            ))}
+          </G>
+          {/* Data line and area */}
+          <G>
+            <Path
+              d={graph.line(data) || ""}
+              fill="none"
+              stroke="#60DD49"
+              strokeWidth={1.5}
             />
-          ))}
-          <Path
-            d={graph.line(data) || ""}
-            fill="none"
-            stroke="#60DD49"
-            strokeWidth={1.5}
-          />
-          <G transform={`translate(0,0)`}>
+            <Path
+              d={graph.area(data) || ""}
+              fill="url(#gradient)"
+              stroke="none"
+            />
+          </G>
+          {/* Datapoint markers */}
+          <G>
             {data.map((d, _) => (
               <Circle
                 key={`circle-${d.date}`}
