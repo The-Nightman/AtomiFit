@@ -17,9 +17,15 @@ import { displayDate } from "@/utils/displayDate";
 import { getToday } from "@/utils/getToday";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Set } from "@/types/sets";
+import { LineGraphOptions } from "@/types/graphs";
 
 interface ExerciseGraphComponentProps {
-  data: Set[];
+  selectedOptions: LineGraphOptions;
+  data: GraphDataSet[];
+}
+
+interface GraphDataSet extends Set {
+  dataPoint: number;
 }
 
 interface GraphConfig {
@@ -31,23 +37,37 @@ interface GraphConfig {
     xPos: number;
   }[];
   yTicks: number[];
-  line: d3.Line<Set>;
+  line: d3.Line<GraphDataSet>;
   area: any;
 }
 
 /**
  * ExerciseGraph component renders a line graph based on the provided exercise data.
- * The graph currently displays the total volume (weight * reps) over time using SVG elements.
+ * The graph supports the following data views:
+ * - Estimated 1RM (One Rep Max) using the Epley formula.
+ * Option to use the Brzycki and O'Conner formulas as well to be implemented in future.
+ * - Max Weight
+ * - Max Reps
+ * - Max Volume
+ * - Max Weight x Reps
+ * - Workout Volume
+ * - Workout Reps
+ * - Personal Records
+ *
  * It includes x and y axes with ticks, a line representing the data points, and circles for each data point.
  *
  * Not yet fully implemented.
  *
+ * @component
  * @param {ExerciseGraphComponentProps} props - The props for the ExerciseGraph component.
- * @param {Set[]} props.data - An array of data points, where each data point contains a `date`, `weight`, and `reps` property.
+ * @param {GraphDataSet[]} props.data - An array of data points, where each data point contains a `date`, `weight`, and `reps` property.
  *
  * @returns {JSX.Element} The rendered ExerciseGraph component.
  */
-const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
+const ExerciseGraph = ({
+  selectedOptions,
+  data,
+}: ExerciseGraphComponentProps): JSX.Element => {
   const [graphSize, setGraphSize] = useState<{ width: number; height: number }>(
     { width: 0, height: 0 }
   );
@@ -63,7 +83,6 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
    * The graph is rendered using SVG elements, including a rectangle for the graph area,
    * text elements for the axis labels, and a path for the data line.
    *
-   * @param {Set[]} data - An array of data points, where each data point contains a `date`, `weight`, and `reps` property.
    * @returns {GraphConfig} A GraphConfig object containing the following properties:
    * - `xScale`: A D3 scale for the x-axis (UTC time scale).
    * - `yScale`: A D3 scale for the y-axis (linear scale).
@@ -71,7 +90,7 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
    * - `yTicks`: An array of y-axis tick values.
    * - `line`: A D3 line generator function for plotting the data points.
    */
-  const makeGraph = (data: Set[]): GraphConfig => {
+  const makeGraph = (): GraphConfig => {
     // Create a time scale for the x-axis
     const xScale: d3.ScaleTime<number, number> = d3.scaleUtc(
       [new Date(data[0].date), new Date(data[data.length - 1].date)],
@@ -81,29 +100,28 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
 
     // Create a linear scale for the y-axis
     const yScale: d3.ScaleLinear<number, number> = d3.scaleLinear(
-      // Weight * Reps = Total Volume, other functions to come not yet fully implemented
       [
         // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
-        Math.floor(d3.min(data, (d) => d.weight! * d.reps!)! / 50) * 50 - 50,
-        Math.ceil(d3.max(data, (d) => d.weight! * d.reps!)! / 50) * 50 + 50,
+        Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
+        Math.ceil(d3.max(data, (d) => d.dataPoint)! / 50) * 50 + 50,
       ],
       // graphSize.height - 16 and 16 are the top and bottom bounds of the SVG element respectively
       [graphSize.height - 16, 16]
     );
 
     // Create a line generator function
-    const line: d3.Line<Set> = d3
-      .line<Set>()
+    const line: d3.Line<GraphDataSet> = d3
+      .line<GraphDataSet>()
       .x((d) => xScale(new Date(d.date)))
-      .y((d) => yScale(d.weight! * d.reps!)); // Weight * Reps = Total Volume, other functions to come not yet fully implemented
+      .y((d) => yScale(d.dataPoint));
 
     // Create an area generator function
     const area = d3
-      .area<Set>()
+      .area<GraphDataSet>()
       .x((d) => xScale(new Date(d.date)))
       .y0(graphSize.height - 16) // Bottom of the graph
-      .y1((d) => yScale(d.weight! * d.reps!))
-      .defined((d) => d.weight !== null && d.reps !== null) // Only include defined points
+      .y1((d) => yScale(d.dataPoint))
+      .defined((d) => d.dataPoint !== undefined && d.dataPoint !== null) // Only include defined points
       .curve(d3.curveLinear); // Use linear curve for simplicity
 
     // Calculate the midpoint epoch timestamp for the x-axis ticks
@@ -133,8 +151,8 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
 
     // Calculate the y-axis tick values, same rounding and buffer calculation as yScale
     const yTicks: number[] = d3.ticks(
-      Math.floor(d3.min(data, (d) => d.weight! * d.reps!)! / 50) * 50 - 50,
-      Math.ceil(d3.max(data, (d) => d.weight! * d.reps!)! / 50) * 50 + 50,
+      Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
+      Math.ceil(d3.max(data, (d) => d.dataPoint)! / 50) * 50 + 50,
       7
     );
 
@@ -149,7 +167,10 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
   };
 
   // Generate the graph configuration memoized by the data and graphSize
-  const graph = useMemo(() => makeGraph(data), [data, graphSize]);
+  const graph = useMemo(
+    () => makeGraph(),
+    [data, graphSize, selectedOptions.selectedGraph]
+  );
 
   /**
    * Formats a given date string into a more readable format.
@@ -260,9 +281,9 @@ const ExerciseGraph = ({ data }: ExerciseGraphComponentProps): JSX.Element => {
           <G>
             {data.map((d, _) => (
               <Circle
-                key={`circle-${d.date}`}
+                key={`circle-${d.date}-${d.id}`}
                 cx={graph.xScale(new Date(d.date))}
-                cy={graph.yScale(d.weight! * d.reps!)}
+                cy={graph.yScale(d.dataPoint)}
                 r={4}
                 fill="#60DD49"
               />
