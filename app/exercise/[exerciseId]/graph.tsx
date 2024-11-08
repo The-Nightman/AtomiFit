@@ -6,7 +6,7 @@ import * as schema from "@/database/schema";
 import { SQL, sql } from "drizzle-orm";
 import { Set } from "@/types/sets";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import ExerciseGraph from "@/components/ExerciseGraph";
+import ExerciseGraph from "@/components/graphs/ExerciseGraph";
 import { getToday } from "@/utils/getToday";
 import GraphOptions from "@/components/graphs/GraphOptions";
 import { LineGraphOptions } from "@/types/graphs";
