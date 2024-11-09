@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
-import { useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useMemo, useState } from "react";
 import Svg, {
   Circle,
   Defs,
@@ -18,6 +18,7 @@ import { getToday } from "@/utils/getToday";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Set } from "@/types/sets";
 import { LineGraphOptions } from "@/types/graphs";
+import { Entypo } from "@expo/vector-icons";
 
 interface ExerciseGraphComponentProps {
   selectedOptions: LineGraphOptions;
@@ -63,6 +64,20 @@ interface GraphConfig {
  * @param {GraphDataSet[]} props.data - An array of data points, where each data point contains a `date`, `weight`, and `reps` property.
  *
  * @returns {JSX.Element} The rendered ExerciseGraph component.
+ *
+ * @example
+ * ```tsx
+ * <ExerciseGraph
+ *   selectedOptions={selectedOptions}
+ *   data={[
+ *     { date: "2021-09-01", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-02", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-03", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-04", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-05", weight: 100, reps: 5, dataPoint: 80 },
+ *   ]}
+ * />
+ * ```
  */
 const ExerciseGraph = ({
   selectedOptions,
@@ -71,6 +86,7 @@ const ExerciseGraph = ({
   const [graphSize, setGraphSize] = useState<{ width: number; height: number }>(
     { width: 0, height: 0 }
   );
+  const [selectedData, setSelectedData] = useState<number | null>(null);
 
   /**
    * Generates a graph configuration based on the provided data.
@@ -89,6 +105,7 @@ const ExerciseGraph = ({
    * - `xTicks`: An array of objects representing the x-axis ticks, each with `date`, `textAnchor`, and `xPos` properties.
    * - `yTicks`: An array of y-axis tick values.
    * - `line`: A D3 line generator function for plotting the data points.
+   * - `area`: A D3 area generator function for filling the area under the line.
    */
   const makeGraph = (): GraphConfig => {
     // Create a time scale for the x-axis
@@ -196,6 +213,81 @@ const ExerciseGraph = ({
       .toUpperCase();
   };
 
+  // Dictionary that maps variant names to functions that generate JSX elements
+  // for displaying exercise graph data for the selected datapoint.
+  const displayVariants: Record<
+    string,
+    (data: GraphDataSet) => React.JSX.Element
+  > = {
+    oneRepMax: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
+          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          REPS)
+        </Text>
+      );
+    },
+    maxWeight: (data: GraphDataSet): React.JSX.Element => {
+      // return `${data.dataPoint} KG (${data.weight} KG x ${data.reps} REPS)`;
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
+          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          REPS)
+        </Text>
+      );
+    },
+    maxReps: (data: GraphDataSet): React.JSX.Element => {
+      // return `${data.dataPoint} REPS (${data.weight} KG x ${data.reps} REPS)`;
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          REPS (<Text style={styles.selectedTextBold}>{data.weight} </Text>
+          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          REPS)
+        </Text>
+      );
+    },
+    maxVolume: (data: GraphDataSet): React.JSX.Element => {
+      // return `${data.dataPoint} KG (${data.weight} KG x ${data.reps} REPS)`;
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
+          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          REPS)
+        </Text>
+      );
+    },
+    maxWeightReps: (data: GraphDataSet): React.JSX.Element => {
+      return <></>; // Not yet implemented
+    },
+    workoutVolume: (data: GraphDataSet): React.JSX.Element => {
+      // return `${data.dataPoint} KG (${data.weight} KG x ${data.reps} REPS)`;
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          KG
+        </Text>
+      );
+    },
+    workoutReps: (data: GraphDataSet): React.JSX.Element => {
+      // return `${data.dataPoint} REPS (${data.weight} KG x ${data.reps} REPS)`;
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          REPS
+        </Text>
+      );
+    },
+    personalRecords: (data: GraphDataSet): React.JSX.Element => {
+      return <></>; // Not yet implemented
+    },
+  };
+
   return (
     <View style={styles.mainContainer}>
       <View
@@ -205,7 +297,13 @@ const ExerciseGraph = ({
           setGraphSize({ width, height });
         }}
       >
-        <Svg width={graphSize.width} height={graphSize.height}>
+        <Svg
+          width={graphSize.width}
+          height={graphSize.height}
+          // Clear the selected data point when anywhere on
+          // the graph is pressed that is not a data point
+          onPress={() => setSelectedData(null)}
+        >
           <Defs>
             <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor="#60DD49" stopOpacity="0.6" />
@@ -279,27 +377,98 @@ const ExerciseGraph = ({
           </G>
           {/* Datapoint markers */}
           <G>
-            {data.map((d, _) => (
-              <Circle
-                key={`circle-${d.date}-${d.id}`}
-                cx={graph.xScale(new Date(d.date))}
-                cy={graph.yScale(d.dataPoint)}
-                r={4}
-                fill="#60DD49"
-              />
+            {data.map((d, i) => (
+              <G key={`circle-${d.date}-${d.id}`}>
+                {/* Display circle */}
+                <Circle
+                  cx={graph.xScale(new Date(d.date))}
+                  cy={graph.yScale(d.dataPoint)}
+                  r={4}
+                  fill="#60DD49"
+                />
+                {/* Selected data circle */}
+                {selectedData === i && (
+                  <Circle
+                    cx={graph.xScale(new Date(d.date))}
+                    cy={graph.yScale(d.dataPoint)}
+                    r={6}
+                    stroke="#60DD49"
+                    strokeWidth={2}
+                    fill="none"
+                  />
+                )}
+                {/*
+                  Touchable circle due to inability to use pressable,
+                  react-native-svg does not support hitslop as dev refuses to 
+                  implement due to svg pressable interaction not being standard on web
+                  https://github.com/software-mansion/react-native-svg/issues/81
+                */}
+                <Circle
+                  cx={graph.xScale(new Date(d.date))}
+                  cy={graph.yScale(d.dataPoint)}
+                  r={12}
+                  fill="none"
+                  onPress={() => {
+                    setSelectedData(i);
+                  }}
+                />
+              </G>
             ))}
           </G>
         </Svg>
       </View>
-      <View style={styles.selectedContainer}>
-        <Text style={styles.selectedText}>
-          {data[0].weight! * data[0].reps!} KG ({data[0].weight!} KG x{" "}
-          {data[0].reps!} Reps)
-        </Text>
-        <Text style={styles.selectedText}>
-          {displayDate(data[0].date, getToday())}
-        </Text>
-      </View>
+      {/* Selected data and placeholder */}
+      {typeof selectedData === "number" ? (
+        <View style={styles.selectedContainer}>
+          <Pressable
+            onPress={() =>
+              setSelectedData((prevData) => {
+                if (prevData === 0) return prevData;
+                return prevData! - 1;
+              })
+            }
+            hitSlop={30}
+          >
+            {({ pressed }) => (
+              <Entypo
+                name="chevron-thin-left"
+                size={30}
+                color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
+              />
+            )}
+          </Pressable>
+          <View style={styles.selectedTextContainer}>
+            {/* Generate JSX based on the select graph type */}
+            {displayVariants[selectedOptions.selectedGraph](data[selectedData])}
+            <Text style={styles.selectedText}>
+              {displayDate(data[selectedData].date, getToday())}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() =>
+              setSelectedData((prevData) => {
+                if (prevData === data.length - 1) return prevData;
+                return prevData! + 1;
+              })
+            }
+            hitSlop={30}
+          >
+            {({ pressed }) => (
+              <Entypo
+                name="chevron-thin-right"
+                size={30}
+                color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
+              />
+            )}
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.selectedText}>
+            Tap a point on the graph to view details
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -312,11 +481,25 @@ const styles = StyleSheet.create({
   selectedContainer: {
     minHeight: 64,
     width: "95%",
+    flexDirection: "row",
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopColor: hexcodeLuminosity("#3F3C3C", 20),
+    borderTopWidth: 1,
+  },
+  selectedTextContainer: {
+    alignItems: "center",
+  },
+  selectedText: { fontSize: 12, fontWeight: "normal", color: "white" },
+  selectedTextBold: { fontSize: 14, fontWeight: "bold", color: "white" },
+  placeholderContainer: {
+    minHeight: 64,
+    width: "95%",
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
     borderTopColor: hexcodeLuminosity("#3F3C3C", 20),
     borderTopWidth: 1,
   },
-  selectedText: { color: "white" },
 });
