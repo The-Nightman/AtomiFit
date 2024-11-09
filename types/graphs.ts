@@ -51,20 +51,3 @@ type RepsDistanceOptions =
 type RepsOptions = "maxReps" | "workoutReps";
 
 type DistanceOptions = "maxDistance" | "workoutDistance";
-
-export interface ExerciseGraphData {
-  id: number;
-  date: string;
-  exercise_id: number;
-}
-
-export interface ExerciseGraphData {
-  id: number;
-  date: string;
-  exercise_id: number;
-  weight: number | null;
-  reps: number | null;
-  distance: number | null;
-  time: number | null;
-  notes: string | null;
-}
