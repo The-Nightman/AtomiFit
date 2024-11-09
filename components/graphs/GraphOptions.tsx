@@ -26,6 +26,14 @@ interface GraphOptionsProps {
  * @param {Date} props.today - The current date.
  *
  * @returns {JSX.Element} The rendered component.
+ * 
+ * @example
+ * ```tsx
+ * <GraphOptions
+ *   selectedOptions={selectedOptions}
+ *   setSelectedOptions={setSelectedOptions}
+ *   today={"2023-10-10"}
+ * />
  */
 const GraphOptions = ({
   selectedOptions,
