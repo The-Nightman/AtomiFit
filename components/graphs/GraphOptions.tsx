@@ -1,11 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import React, { useState } from "react";
+import { useState } from "react";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Entypo } from "@expo/vector-icons";
 import { LineGraphOptions } from "@/types/graphs";
 
 interface GraphOptionsProps {
+  optionsType: string;
   selectedOptions: LineGraphOptions;
   setSelectedOptions: React.Dispatch<React.SetStateAction<LineGraphOptions>>;
   today: string;
@@ -21,12 +22,13 @@ interface GraphOptionsProps {
  *
  * @component
  * @param {Object} props - The properties object.
+ * @param {string} props.optionsType - The type of graph options to display.
  * @param {Object} props.selectedOptions - The currently selected options for the graph.
  * @param {Function} props.setSelectedOptions - Function to update the selected options.
  * @param {Date} props.today - The current date.
  *
  * @returns {JSX.Element} The rendered component.
- * 
+ *
  * @example
  * ```tsx
  * <GraphOptions
@@ -36,6 +38,7 @@ interface GraphOptionsProps {
  * />
  */
 const GraphOptions = ({
+  optionsType,
   selectedOptions,
   setSelectedOptions,
   today,
@@ -43,6 +46,66 @@ const GraphOptions = ({
   const [menuVisible, setMenuVisible] = useState({
     state: false,
   });
+
+  const getOptions = (type: string) => {
+    const options: { [key: string]: { label: string; option: string }[] } = {
+      WeightRepsOptions: [
+        { label: "Estimated 1RM", option: "oneRepMax" },
+        { label: "Max Weight", option: "maxWeight" },
+        { label: "Max Reps", option: "maxReps" },
+        { label: "Max Volume", option: "maxVolume" },
+        { label: "Max Weight x Reps", option: "maxWeightReps" },
+        { label: "Workout Volume", option: "workoutVolume" },
+        { label: "Workout Reps", option: "workoutReps" },
+        { label: "Personal Records", option: "personalRecords" },
+      ],
+      DistanceTimeOptions: [
+        { label: "Max Distance", option: "maxDistance" },
+        { label: "Max Time", option: "maxTime" },
+        { label: "Max Speed", option: "maxSpeed" },
+        { label: "Max Pace", option: "maxPace" },
+        { label: "Workout Distance", option: "workoutDistance" },
+        { label: "Workout Time", option: "workoutTime" },
+      ],
+      WeightTimeOptions: [
+        { label: "Max Weight", option: "maxWeight" },
+        { label: "Max Time", option: "maxTime" },
+        { label: "Workout Time", option: "workoutTime" },
+      ],
+      WeightDistanceOptions: [
+        { label: "Max Weight", option: "maxWeight" },
+        { label: "Max Distance", option: "maxDistance" },
+        { label: "Workout Distance", option: "workoutDistance" },
+      ],
+      WeightOptions: [{ label: "Max Weight", option: "maxWeight" }],
+      TimeOptions: [
+        { label: "Max Time", option: "maxTime" },
+        { label: "Workout Time", option: "workoutTime" },
+      ],
+      RepsTimeOptions: [
+        { label: "Max Reps", option: "maxReps" },
+        { label: "Workout Reps", option: "workoutReps" },
+        { label: "Max Time", option: "maxTime" },
+        { label: "Workout Time", option: "workoutTime" },
+      ],
+      RepsDistanceOptions: [
+        { label: "Max Reps", option: "maxReps" },
+        { label: "Workout Reps", option: "workoutReps" },
+        { label: "Max Distance", option: "maxDistance" },
+        { label: "Workout Distance", option: "workoutDistance" },
+      ],
+      RepsOptions: [
+        { label: "Max Reps", option: "maxReps" },
+        { label: "Workout Reps", option: "workoutReps" },
+      ],
+      DistanceOptions: [
+        { label: "Max Distance", option: "maxDistance" },
+        { label: "Workout Distance", option: "workoutDistance" },
+      ],
+    };
+
+    return options[type];
+  };
 
   return (
     <View style={styles.container}>
@@ -57,46 +120,14 @@ const GraphOptions = ({
             setSelectedOptions({ ...selectedOptions, selectedGraph: itemValue })
           }
         >
-          <Picker.Item
-            label="Estimated 1RM"
-            value="oneRepMax"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Max Weight"
-            value="maxWeight"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Max Reps"
-            value="maxReps"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Max Volume"
-            value="maxVolume"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Max Weight x Reps"
-            value="maxWeightReps"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Workout Volume"
-            value="workoutVolume"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Workout Reps"
-            value="workoutReps"
-            style={styles.pickerItem}
-          />
-          <Picker.Item
-            label="Personal Records"
-            value="personalRecords"
-            style={styles.pickerItem}
-          />
+          {getOptions(optionsType).map((option) => (
+            <Picker.Item
+              key={option.option}
+              label={option.label}
+              value={option.option}
+              style={styles.pickerItem}
+            />
+          ))}
         </Picker>
         <Pressable
           style={styles.justifyCenter}
