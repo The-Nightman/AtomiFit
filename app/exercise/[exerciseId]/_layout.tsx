@@ -84,14 +84,15 @@ const ExerciseLayout = (): JSX.Element => {
             name="history"
             options={{ tabBarLabel: "History" }}
             initialParams={{
-              exerciseId
+              exerciseId,
             }}
           />
           <MaterialTopTabs.Screen
             name="graph"
             options={{ tabBarLabel: "Graph" }}
             initialParams={{
-              exerciseId
+              exerciseId,
+              type: exerciseInfo.type,
             }}
           />
           <MaterialTopTabs.Screen // This screen is not yet implemented
