@@ -33,8 +33,9 @@ const graph = (): JSX.Element => {
     startDate: "1M",
     endDate: today,
   });
-  const { exerciseId } = useLocalSearchParams<{
+  const { exerciseId, type } = useLocalSearchParams<{
     exerciseId: string;
+    type: string;
   }>();
   const { db } = useContext(DrizzleContext);
 
@@ -121,6 +122,19 @@ const graph = (): JSX.Element => {
   );
 
   /**
+   * Prepares the exercise type by matching specific keywords and appending "Options" to the result.
+   *
+   * Minor function intended to seperate concerns of processing logic.
+   *
+   * @param {string} type - The exercise type as a string.
+   * @returns {string} A string that concatenates the matched keywords and appends "Options".
+   */
+  const prepExerciseType = (type: string): string => {
+    const matches: string[] = type.match(/Weight|Reps|Distance|Time/gi) ?? [];
+    return `${matches.join("")}Options`;
+  };
+
+  /**
    * Processes the given data to generate a graph dataset based on the selected graph type.
    *
    * The function supports the following graph types:
@@ -133,6 +147,12 @@ const graph = (): JSX.Element => {
    * - `workoutVolume`: Calculates the total volume (weight * reps) for all sets on each date.
    * - `workoutReps`: Counts the total number of repetitions for all sets on each date.
    * - TODO - `personalRecords`: Placeholder for tracking personal records **(not yet implemented)**.
+   * - `maxDistance`: Finds the highest distance covered for each date.
+   * - `maxTime`: Finds the highest time taken for each date.
+   * - `maxSpeed`: Calculates the highest speed (distance / time) for each date.
+   * - `maxPace`: Calculates the highest pace (time / distance) for each date.
+   * - `workoutDistance`: Calculates the total distance covered on each date.
+   * - `workoutTime`: Calculates the total time taken on each date.
    *
    * @param {Set[]} data - The input data array containing sets of exercise data.
    *
@@ -302,6 +322,141 @@ const graph = (): JSX.Element => {
           dataPoint: 0, // Placeholder value
         }));
       },
+
+      // highest distance sets
+      maxDistance: (data: Set[]): GraphDataSet[] => {
+        const filteredResults: GraphDataSet[] = Object.values(
+          data.reduce((acc, set) => {
+            // If the date is not in acc or the datapoint is lower than the current sets distance
+            if (!acc[set.date] || acc[set.date].dataPoint < set.distance!) {
+              acc[set.date] = {
+                ...set,
+                dataPoint: set.distance!,
+              };
+            }
+            return acc;
+          }, {} as { [key: string]: GraphDataSet })
+        );
+
+        return filteredResults;
+      },
+
+      // highest time sets
+      maxTime: (data: Set[]): GraphDataSet[] => {
+        const filteredResults: GraphDataSet[] = Object.values(
+          data.reduce((acc, set) => {
+            // If the date is not in acc or the datapoint is lower than the current sets time
+            if (!acc[set.date] || acc[set.date].dataPoint < set.time!) {
+              acc[set.date] = {
+                ...set,
+                dataPoint: set.time!,
+              };
+            }
+            return acc;
+          }, {} as { [key: string]: GraphDataSet })
+        );
+
+        return filteredResults;
+      },
+
+      // highest speed sets
+      maxSpeed: (data: Set[]): GraphDataSet[] => {
+        const filteredResults: GraphDataSet[] = Object.values(
+          data.reduce((acc, set) => {
+            // If the date is not in acc or the datapoint is lower than the current sets speed
+            if (
+              !acc[set.date] ||
+              acc[set.date].dataPoint <
+                Math.round(((set.distance! * 3.6) / set.time!) * 100) / 100
+            ) {
+              // Add the date as a property and the current set as the best set for the date
+              acc[set.date] = {
+                ...set,
+                dataPoint:
+                  Math.round(((set.distance! * 3.6) / set.time!) * 100) / 100,
+              };
+            }
+            return acc;
+          }, {} as { [key: string]: GraphDataSet })
+        );
+
+        return filteredResults;
+      },
+
+      // highest pace sets
+      maxPace: (data: Set[]): GraphDataSet[] => {
+        const filteredResults: GraphDataSet[] = Object.values(
+          data.reduce((acc, set) => {
+            // If the date is not in acc or the datapoint is lower than the current sets pace
+            if (
+              !acc[set.date] ||
+              acc[set.date].dataPoint >
+                Math.round((set.time! / (set.distance! / 1000)) * 100) / 100
+            ) {
+              // Add the date as a property and the current set as the best set for the date
+              acc[set.date] = {
+                ...set,
+                dataPoint:
+                  Math.round((set.time! / (set.distance! / 1000)) * 100) / 100,
+              };
+            }
+            return acc;
+          }, {} as { [key: string]: GraphDataSet })
+        );
+
+        return filteredResults;
+      },
+
+      // distance all sets
+      workoutDistance: (data: Set[]): GraphDataSet[] => {
+        const filteredResults: GraphDataSet[] = Object.values(
+          data.reduce((acc, set) => {
+            if (acc[set.date]) {
+              // If the date datapoint is in acc, add the current set's distance to the existing datapoint
+              if (acc[set.date].hasOwnProperty("dataPoint")) {
+                acc[set.date].dataPoint =
+                  acc[set.date].dataPoint + set.distance!;
+              } else {
+                // Edge case if date key present but no datapoint property
+                // Add the current set as the best set for the date
+                acc[set.date] = { ...set, dataPoint: set.distance! };
+              }
+            } else {
+              // If the date is not in acc, add the current set as the starting point
+              acc[set.date] = { ...set, dataPoint: set.distance! };
+            }
+
+            return acc;
+          }, {} as { [key: string]: GraphDataSet })
+        );
+
+        return filteredResults;
+      },
+
+      // time all sets
+      workoutTime: (data: Set[]): GraphDataSet[] => {
+        const filteredResults: GraphDataSet[] = Object.values(
+          data.reduce((acc, set) => {
+            if (acc[set.date]) {
+              // If the date datapoint is in acc, add the current set's time to the existing datapoint
+              if (acc[set.date].hasOwnProperty("dataPoint")) {
+                acc[set.date].dataPoint = acc[set.date].dataPoint + set.time!;
+              } else {
+                // Edge case if date key present but no datapoint property
+                // Add the current set as the best set for the date
+                acc[set.date] = { ...set, dataPoint: set.time! };
+              }
+            } else {
+              // If the date is not in acc, add the current set as the starting point
+              acc[set.date] = { ...set, dataPoint: set.time! };
+            }
+
+            return acc;
+          }, {} as { [key: string]: GraphDataSet })
+        );
+
+        return filteredResults;
+      },
     };
 
     return graphTypes[selectedOptions.selectedGraph](data);
@@ -310,6 +465,7 @@ const graph = (): JSX.Element => {
   return (
     <View style={UtilityStyles.flex1}>
       <GraphOptions
+        optionsType={prepExerciseType(type)}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
         today={today}
