@@ -19,6 +19,8 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Set } from "@/types/sets";
 import { LineGraphOptions } from "@/types/graphs";
 import { Entypo } from "@expo/vector-icons";
+import { formatTime } from "@/utils/formatTime";
+import { distanceDisplay } from "@/utils/formatDistance";
 
 interface ExerciseGraphComponentProps {
   selectedOptions: LineGraphOptions;
@@ -285,6 +287,73 @@ const ExerciseGraph = ({
     },
     personalRecords: (data: GraphDataSet): React.JSX.Element => {
       return <></>; // Not yet implemented
+    },
+    maxDistance: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.distance! / 1000} </Text>
+          KM -{" "}
+          <Text style={styles.selectedTextBold}>
+            {formatTime(data.dataPoint)}
+          </Text>
+        </Text>
+      );
+    },
+    maxTime: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.distance! / 1000} </Text>
+          KM -{" "}
+          <Text style={styles.selectedTextBold}>
+            {formatTime(data.dataPoint)}
+          </Text>
+        </Text>
+      );
+    },
+    maxSpeed: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          KM/H (
+          <Text style={styles.selectedTextBold}>
+            {distanceDisplay(data.distance!)}{" "}
+          </Text>
+          KM -{" "}
+          <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>)
+        </Text>
+      );
+    },
+    maxPace: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>
+            {formatTime(data.dataPoint)}{" "}
+          </Text>
+          /KM (
+          <Text style={styles.selectedTextBold}>
+            {distanceDisplay(data.distance!)}{" "}
+          </Text>
+          KM -{" "}
+          <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>)
+        </Text>
+      );
+    },
+    workoutDistance: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.dataPoint / 1000} </Text>
+          KM
+        </Text>
+      );
+    },
+    workoutTime: (data: GraphDataSet): React.JSX.Element => {
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>
+            {formatTime(data.dataPoint)}{" "}
+          </Text>
+        </Text>
+      );
     },
   };
 
