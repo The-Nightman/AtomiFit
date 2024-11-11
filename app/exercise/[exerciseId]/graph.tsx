@@ -32,6 +32,7 @@ const graph = (): JSX.Element => {
     selectedGraph: "oneRepMax",
     startDate: "1M",
     endDate: today,
+    graphPoints: true,
   });
   const { exerciseId, type } = useLocalSearchParams<{
     exerciseId: string;

@@ -12,6 +12,7 @@ export interface LineGraphOptions {
     | DistanceOptions;
   startDate: "1M" | "3M" | "6M" | "1Y" | "ALL" | "string";
   endDate: string;
+  graphPoints: boolean;
 }
 
 type WeightRepsOptions =

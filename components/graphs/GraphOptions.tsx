@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LineGraphOptions } from "@/types/graphs";
 
 interface GraphOptionsProps {
@@ -43,9 +43,7 @@ const GraphOptions = ({
   setSelectedOptions,
   today,
 }: GraphOptionsProps): JSX.Element => {
-  const [menuVisible, setMenuVisible] = useState({
-    state: false,
-  });
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
 
   const getOptions = (type: string) => {
     const options: { [key: string]: { label: string; option: string }[] } = {
@@ -129,13 +127,12 @@ const GraphOptions = ({
             />
           ))}
         </Picker>
+        {/* { children } */}
         <Pressable
           style={styles.justifyCenter}
-          onPress={() =>
-            setMenuVisible((prevState) => ({
-              state: !prevState.state,
-            }))
-          }
+          onPress={() => {
+            setMenuVisible(!menuVisible);
+          }}
         >
           <Entypo name="dots-three-vertical" size={32} color={"#9F9F9F"} />
         </Pressable>
@@ -209,10 +206,31 @@ const GraphOptions = ({
         </Pressable>
       </View>
       {/* Menu, elements declared here for visibility */}
-      {menuVisible.state && (
+      {menuVisible && (
         <View style={styles.menuContainer}>
-          <Pressable onPress={() => {}} style={styles.menuPressable}>
+          <Pressable
+            onPress={() =>
+              setSelectedOptions((prevState) => ({
+                ...prevState,
+                graphPoints: !prevState.graphPoints,
+              }))
+            }
+            style={styles.menuPressable}
+          >
             <Text style={styles.menuText}>Graph Points</Text>
+            {selectedOptions.graphPoints ? (
+              <MaterialCommunityIcons
+                name="checkbox-outline"
+                size={24}
+                color={"#60DD49"}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="checkbox-blank-outline"
+                size={24}
+                color={hexcodeLuminosity("#9F9F9F", 30)}
+              />
+            )}
           </Pressable>
           <Pressable onPress={() => {}} style={styles.menuPressable}>
             <Text style={styles.menuText}>Y-Axis From 0</Text>
@@ -223,7 +241,10 @@ const GraphOptions = ({
           <Pressable onPress={() => {}} style={styles.menuPressable}>
             <Text style={styles.menuText}>Custom Date</Text>
           </Pressable>
-          <Pressable onPress={() => {}} style={styles.menuPressable}>
+          <Pressable
+            onPress={() => {}}
+            style={[styles.menuPressable, { borderBottomWidth: 0 }]}
+          >
             <Text style={styles.menuText}>Share</Text>
           </Pressable>
         </View>
@@ -257,11 +278,14 @@ const styles = StyleSheet.create({
     backgroundColor: hexcodeLuminosity("#3F3C3C", 20),
     borderRadius: 10,
     elevation: 15,
+    zIndex: 1,
   },
   menuPressable: {
     flexDirection: "row",
     justifyContent: "space-between",
-    margin: 8,
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#9F9F9F",
   },
   menuText: {
     color: "white",

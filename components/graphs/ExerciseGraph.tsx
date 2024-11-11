@@ -445,45 +445,47 @@ const ExerciseGraph = ({
             />
           </G>
           {/* Datapoint markers */}
-          <G>
-            {data.map((d, i) => (
-              <G key={`circle-${d.date}-${d.id}`}>
-                {/* Display circle */}
-                <Circle
-                  cx={graph.xScale(new Date(d.date))}
-                  cy={graph.yScale(d.dataPoint)}
-                  r={4}
-                  fill="#60DD49"
-                />
-                {/* Selected data circle */}
-                {selectedData === i && (
+          {(selectedOptions.graphPoints || data.length === 1) && (
+            <G>
+              {data.map((d, i) => (
+                <G key={`circle-${d.date}-${d.id}`}>
+                  {/* Display circle */}
                   <Circle
                     cx={graph.xScale(new Date(d.date))}
                     cy={graph.yScale(d.dataPoint)}
-                    r={6}
-                    stroke="#60DD49"
-                    strokeWidth={2}
-                    fill="none"
+                    r={4}
+                    fill="#60DD49"
                   />
-                )}
-                {/*
+                  {/* Selected data circle */}
+                  {selectedData === i && (
+                    <Circle
+                      cx={graph.xScale(new Date(d.date))}
+                      cy={graph.yScale(d.dataPoint)}
+                      r={6}
+                      stroke="#60DD49"
+                      strokeWidth={2}
+                      fill="none"
+                    />
+                  )}
+                  {/*
                   Touchable circle due to inability to use pressable,
                   react-native-svg does not support hitslop as dev refuses to 
                   implement due to svg pressable interaction not being standard on web
                   https://github.com/software-mansion/react-native-svg/issues/81
                 */}
-                <Circle
-                  cx={graph.xScale(new Date(d.date))}
-                  cy={graph.yScale(d.dataPoint)}
-                  r={12}
-                  fill="none"
-                  onPress={() => {
-                    setSelectedData(i);
-                  }}
-                />
-              </G>
-            ))}
-          </G>
+                  <Circle
+                    cx={graph.xScale(new Date(d.date))}
+                    cy={graph.yScale(d.dataPoint)}
+                    r={12}
+                    fill="none"
+                    onPress={() => {
+                      setSelectedData(i);
+                    }}
+                  />
+                </G>
+              ))}
+            </G>
+          )}
         </Svg>
       </View>
       {/* Selected data and placeholder */}
