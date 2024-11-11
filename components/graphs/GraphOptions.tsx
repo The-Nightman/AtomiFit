@@ -1,9 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LineGraphOptions } from "@/types/graphs";
+import { eventEmitter } from "@/utils/eventEmitter";
+import { useIsFocused } from "@react-navigation/native";
 
 interface GraphOptionsProps {
   optionsType: string;
@@ -44,6 +46,24 @@ const GraphOptions = ({
   today,
 }: GraphOptionsProps): JSX.Element => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const isFocused = useIsFocused(); // Use this hook to determine if the screen is focused
+
+  // Close the menu when the user taps anywhere with the eventEmitter
+  useEffect(() => {
+    eventEmitter.on("closeGraphMenu", () => {
+      setMenuVisible(false);
+    });
+    return () => {
+      eventEmitter.off("closeGraphMenu");
+    };
+  }, []);
+
+  // Close the menu when the screen loses focus
+  useEffect(() => {
+    if (!isFocused) {
+      setMenuVisible(false);
+    }
+  }, [isFocused]);
 
   const getOptions = (type: string) => {
     const options: { [key: string]: { label: string; option: string }[] } = {
@@ -117,6 +137,9 @@ const GraphOptions = ({
           onValueChange={(itemValue) =>
             setSelectedOptions({ ...selectedOptions, selectedGraph: itemValue })
           }
+          // Close menu if the picker is focused, this keeps things responsive and closes the menu
+          // when the user taps outside of the menu as picker mutes other touch events
+          onFocus={() => setMenuVisible(false)}
         >
           {getOptions(optionsType).map((option) => (
             <Picker.Item
@@ -146,9 +169,12 @@ const GraphOptions = ({
               backgroundColor: hexcodeLuminosity("#60DD49", -30),
             },
           ]}
-          onPress={() =>
-            setSelectedOptions({ ...selectedOptions, startDate: "1M" })
-          }
+          onPress={() => {
+            setSelectedOptions({ ...selectedOptions, startDate: "1M" });
+            // Close menu if pressed on all date button options, this keeps
+            // things responsive just as with the picker focus
+            setMenuVisible(false);
+          }}
         >
           <Text style={{ color: "white" }}>1M</Text>
         </Pressable>
@@ -159,9 +185,10 @@ const GraphOptions = ({
               backgroundColor: hexcodeLuminosity("#60DD49", -30),
             },
           ]}
-          onPress={() =>
-            setSelectedOptions({ ...selectedOptions, startDate: "3M" })
-          }
+          onPress={() => {
+            setSelectedOptions({ ...selectedOptions, startDate: "3M" });
+            setMenuVisible(false);
+          }}
         >
           <Text style={{ color: "white" }}>3M</Text>
         </Pressable>
@@ -172,9 +199,10 @@ const GraphOptions = ({
               backgroundColor: hexcodeLuminosity("#60DD49", -30),
             },
           ]}
-          onPress={() =>
-            setSelectedOptions({ ...selectedOptions, startDate: "6M" })
-          }
+          onPress={() => {
+            setSelectedOptions({ ...selectedOptions, startDate: "6M" });
+            setMenuVisible(false);
+          }}
         >
           <Text style={{ color: "white" }}>6M</Text>
         </Pressable>
@@ -185,9 +213,10 @@ const GraphOptions = ({
               backgroundColor: hexcodeLuminosity("#60DD49", -30),
             },
           ]}
-          onPress={() =>
-            setSelectedOptions({ ...selectedOptions, startDate: "1Y" })
-          }
+          onPress={() => {
+            setSelectedOptions({ ...selectedOptions, startDate: "1Y" });
+            setMenuVisible(false);
+          }}
         >
           <Text style={{ color: "white" }}>1Y</Text>
         </Pressable>
@@ -198,9 +227,10 @@ const GraphOptions = ({
               backgroundColor: hexcodeLuminosity("#60DD49", -30),
             },
           ]}
-          onPress={() =>
-            setSelectedOptions({ ...selectedOptions, startDate: "ALL" })
-          }
+          onPress={() => {
+            setSelectedOptions({ ...selectedOptions, startDate: "ALL" });
+            setMenuVisible(false);
+          }}
         >
           <Text style={{ color: "white" }}>ALL</Text>
         </Pressable>
@@ -256,8 +286,29 @@ const GraphOptions = ({
               />
             )}
           </Pressable>
-          <Pressable onPress={() => {}} style={styles.menuPressable}>
+          <Pressable
+            onPress={() =>
+              setSelectedOptions((prevState) => ({
+                ...prevState,
+                trendline: !prevState.trendline,
+              }))
+            }
+            style={styles.menuPressable}
+          >
             <Text style={styles.menuText}>Trend Line</Text>
+            {selectedOptions.trendline ? (
+              <MaterialCommunityIcons
+                name="checkbox-outline"
+                size={24}
+                color={"#60DD49"}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="checkbox-blank-outline"
+                size={24}
+                color={hexcodeLuminosity("#9F9F9F", 30)}
+              />
+            )}
           </Pressable>
           <Pressable onPress={() => {}} style={styles.menuPressable}>
             <Text style={styles.menuText}>Custom Date</Text>
@@ -299,7 +350,7 @@ const styles = StyleSheet.create({
     backgroundColor: hexcodeLuminosity("#3F3C3C", 20),
     borderRadius: 10,
     elevation: 15,
-    zIndex: 1,
+    zIndex: 10,
   },
   menuPressable: {
     flexDirection: "row",

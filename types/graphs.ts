@@ -14,6 +14,7 @@ export interface LineGraphOptions {
   endDate: string;
   graphPoints: boolean;
   yAxisFromZero: boolean;
+  trendline: boolean;
 }
 
 type WeightRepsOptions =

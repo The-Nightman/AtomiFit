@@ -34,6 +34,7 @@ const graph = (): JSX.Element => {
     endDate: today,
     graphPoints: true,
     yAxisFromZero: false,
+    trendline: false,
   });
   const { exerciseId, type } = useLocalSearchParams<{
     exerciseId: string;
