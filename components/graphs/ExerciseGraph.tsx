@@ -58,6 +58,12 @@ interface GraphConfig {
  * - Workout Volume
  * - Workout Reps
  * - Personal Records
+ * - Max Distance
+ * - Max Time
+ * - Max Speed
+ * - Max Pace
+ * - Workout Distance
+ * - Workout Time
  *
  * It includes x and y axes with ticks, a line representing the data points, and circles for each data point.
  *
