@@ -232,8 +232,29 @@ const GraphOptions = ({
               />
             )}
           </Pressable>
-          <Pressable onPress={() => {}} style={styles.menuPressable}>
+          <Pressable
+            onPress={() =>
+              setSelectedOptions((prevState) => ({
+                ...prevState,
+                yAxisFromZero: !prevState.yAxisFromZero,
+              }))
+            }
+            style={styles.menuPressable}
+          >
             <Text style={styles.menuText}>Y-Axis From 0</Text>
+            {selectedOptions.yAxisFromZero ? (
+              <MaterialCommunityIcons
+                name="checkbox-outline"
+                size={24}
+                color={"#60DD49"}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="checkbox-blank-outline"
+                size={24}
+                color={hexcodeLuminosity("#9F9F9F", 30)}
+              />
+            )}
           </Pressable>
           <Pressable onPress={() => {}} style={styles.menuPressable}>
             <Text style={styles.menuText}>Trend Line</Text>

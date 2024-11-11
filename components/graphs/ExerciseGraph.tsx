@@ -121,7 +121,9 @@ const ExerciseGraph = ({
     const yScale: d3.ScaleLinear<number, number> = d3.scaleLinear(
       [
         // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
-        Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
+        selectedOptions.yAxisFromZero
+          ? 0
+          : Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
         Math.ceil(d3.max(data, (d) => d.dataPoint)! / 50) * 50 + 50,
       ],
       // graphSize.height - 16 and 16 are the top and bottom bounds of the SVG element respectively
@@ -170,7 +172,9 @@ const ExerciseGraph = ({
 
     // Calculate the y-axis tick values, same rounding and buffer calculation as yScale
     const yTicks: number[] = d3.ticks(
-      Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
+      selectedOptions.yAxisFromZero
+        ? 0
+        : Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
       Math.ceil(d3.max(data, (d) => d.dataPoint)! / 50) * 50 + 50,
       7
     );
@@ -188,7 +192,12 @@ const ExerciseGraph = ({
   // Generate the graph configuration memoized by the data and graphSize
   const graph = useMemo(
     () => makeGraph(),
-    [data, graphSize, selectedOptions.selectedGraph]
+    [
+      data,
+      graphSize,
+      selectedOptions.selectedGraph,
+      selectedOptions.yAxisFromZero,
+    ]
   );
 
   /**

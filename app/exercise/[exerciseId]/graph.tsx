@@ -33,6 +33,7 @@ const graph = (): JSX.Element => {
     startDate: "1M",
     endDate: today,
     graphPoints: true,
+    yAxisFromZero: false,
   });
   const { exerciseId, type } = useLocalSearchParams<{
     exerciseId: string;

@@ -13,6 +13,7 @@ export interface LineGraphOptions {
   startDate: "1M" | "3M" | "6M" | "1Y" | "ALL" | "string";
   endDate: string;
   graphPoints: boolean;
+  yAxisFromZero: boolean;
 }
 
 type WeightRepsOptions =
