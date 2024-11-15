@@ -68,8 +68,8 @@ const ExerciseLayout = (): JSX.Element => {
             tabBarLabelStyle: { color: "white" },
             tabBarStyle: { backgroundColor: "#0F0F0F" },
             tabBarIndicatorStyle: { backgroundColor: "#60DD49" },
+            sceneStyle: { backgroundColor: "#0F0F0F" },
           }}
-          sceneContainerStyle={{ backgroundColor: "#0F0F0F" }}
         >
           <MaterialTopTabs.Screen
             name="track"
