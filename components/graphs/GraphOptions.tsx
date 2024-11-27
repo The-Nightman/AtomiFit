@@ -1,12 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LineGraphOptions } from "@/types/graphs";
-import { eventEmitter } from "@/utils/eventEmitter";
-import { useIsFocused } from "@react-navigation/native";
 import GraphDateRangePicker from "./GraphDateRangePicker";
+import ModalBase from "../modals/ModalBase";
 
 interface DataDateRange {
   startDate: string;
@@ -56,25 +55,7 @@ const GraphOptions = ({
   dataDateRange,
 }: GraphOptionsProps): JSX.Element => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const isFocused = useIsFocused(); // Use this hook to determine if the screen is focused
-
-  // Close the menu when the user taps anywhere with the eventEmitter
-  useEffect(() => {
-    eventEmitter.on("closeGraphMenu", () => {
-      setMenuVisible(false);
-    });
-    return () => {
-      eventEmitter.off("closeGraphMenu");
-    };
-  }, []);
-
-  // Close the menu when the screen loses focus
-  useEffect(() => {
-    if (!isFocused) {
-      setMenuVisible(false);
-    }
-  }, [isFocused]);
+  const [datepickerVisible, setDatepickerVisible] = useState<boolean>(false);
 
   /**
    * Retrieves the available graph options based on the provided type.
@@ -183,9 +164,6 @@ const GraphOptions = ({
           onValueChange={(itemValue) =>
             setSelectedOptions({ ...selectedOptions, selectedGraph: itemValue })
           }
-          // Close menu if the picker is focused, this keeps things responsive and closes the menu
-          // when the user taps outside of the menu as picker mutes other touch events
-          onFocus={() => setMenuVisible(false)}
         >
           {getOptions(optionsType).map((option) => (
             <Picker.Item
@@ -326,7 +304,20 @@ const GraphOptions = ({
         </View>
       )}
       {/* Menu, elements declared here for visibility */}
-      {menuVisible && (
+      <ModalBase
+        modalState={menuVisible}
+        setModalState={setMenuVisible}
+        animationProps={{
+          animationIn: "zoomInRight",
+          animationOut: "zoomOutRight",
+        }}
+        backdropStyle={
+          // We need to do this because of quirks on iOS impacting functionality, view ModalBase jsdocs for more info
+          Platform.OS === "ios"
+            ? { color: "#ffffff00", opacity: 1 }
+            : { color: "", opacity: 0 }
+        }
+      >
         <View style={styles.menuContainer}>
           <Pressable
             onPress={() =>
@@ -415,7 +406,7 @@ const GraphOptions = ({
             </Pressable>
           ) : (
             <Pressable
-              onPress={() => setModalVisible(true)}
+              onPress={() => setDatepickerVisible(true)}
               style={styles.menuPressable}
             >
               <Text style={styles.menuText}>Custom Date</Text>
@@ -428,11 +419,11 @@ const GraphOptions = ({
             <Text style={styles.menuText}>Share</Text>
           </Pressable>
         </View>
-      )}
+      </ModalBase>
       {/* Modal for custom date selection */}
       <GraphDateRangePicker
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
+        modalVisible={datepickerVisible}
+        setModalVisible={setDatepickerVisible}
         dataDateRange={dataDateRange}
         setDateRange={setSelectedOptions}
         selectedOptions={selectedOptions}
@@ -475,8 +466,8 @@ const styles = StyleSheet.create({
   cancelCustomDateButton: { marginRight: 4 },
   menuContainer: {
     position: "absolute",
-    top: 64,
-    right: 8,
+    top: "31.5%",
+    right: 0,
     minWidth: "50%",
     backgroundColor: hexcodeLuminosity("#3F3C3C", 20),
     borderRadius: 10,
