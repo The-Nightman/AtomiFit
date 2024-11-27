@@ -6,12 +6,19 @@ import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LineGraphOptions } from "@/types/graphs";
 import { eventEmitter } from "@/utils/eventEmitter";
 import { useIsFocused } from "@react-navigation/native";
+import GraphDateRangePicker from "./GraphDateRangePicker";
+
+interface DataDateRange {
+  startDate: string;
+  endDate: string;
+}
 
 interface GraphOptionsProps {
   optionsType: string;
   selectedOptions: LineGraphOptions;
   setSelectedOptions: React.Dispatch<React.SetStateAction<LineGraphOptions>>;
   today: string;
+  dataDateRange: DataDateRange;
 }
 
 /**
@@ -25,9 +32,10 @@ interface GraphOptionsProps {
  * @component
  * @param {Object} props - The properties object.
  * @param {string} props.optionsType - The type of graph options to display.
- * @param {Object} props.selectedOptions - The currently selected options for the graph.
- * @param {Function} props.setSelectedOptions - Function to update the selected options.
+ * @param {LineGraphOptions} props.selectedOptions - The currently selected options for the graph.
+ * @param {React.Dispatch<React.SetStateAction<LineGraphOptions>>} props.setSelectedOptions - Function to update the selected options.
  * @param {Date} props.today - The current date.
+ * @param {DataDateRange} props.dataDateRange - The date range data containing the `startDate` and `endDate` properties.
  *
  * @returns {JSX.Element} The rendered component.
  *
@@ -37,6 +45,7 @@ interface GraphOptionsProps {
  *   selectedOptions={selectedOptions}
  *   setSelectedOptions={setSelectedOptions}
  *   today={"2023-10-10"}
+ *   dataDateRange={{ startDate: "2023-09-10", endDate: "2023-10-10" }}
  * />
  */
 const GraphOptions = ({
@@ -44,8 +53,10 @@ const GraphOptions = ({
   selectedOptions,
   setSelectedOptions,
   today,
+  dataDateRange,
 }: GraphOptionsProps): JSX.Element => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const isFocused = useIsFocused(); // Use this hook to determine if the screen is focused
 
   // Close the menu when the user taps anywhere with the eventEmitter
@@ -65,7 +76,24 @@ const GraphOptions = ({
     }
   }, [isFocused]);
 
-  const getOptions = (type: string) => {
+  /**
+   * Retrieves the available graph options based on the provided type.
+   *
+   * @param {string} type - The type of graph options to retrieve.
+   *                        Possible values include:
+   *                        - "WeightRepsOptions"
+   *                        - "DistanceTimeOptions"
+   *                        - "WeightTimeOptions"
+   *                        - "WeightDistanceOptions"
+   *                        - "WeightOptions"
+   *                        - "TimeOptions"
+   *                        - "RepsTimeOptions"
+   *                        - "RepsDistanceOptions"
+   *                        - "RepsOptions"
+   *                        - "DistanceOptions"
+   * @returns {{ label: string; option: string; }[]} An array of objects, each containing a label and an option key.
+   */
+  const getOptions = (type: string): { label: string; option: string }[] => {
     const options: { [key: string]: { label: string; option: string }[] } = {
       WeightRepsOptions: [
         { label: "Estimated 1RM", option: "oneRepMax" },
@@ -125,6 +153,24 @@ const GraphOptions = ({
     return options[type];
   };
 
+  /**
+   * Checks if the selected date range is a custom date range.
+   *
+   * This function returns `true` if the `selectedOptions.startDate` is not one of the predefined
+   * date ranges ("1M", "3M", "6M", "1Y", "ALL"). Otherwise, it returns `false`.
+   *
+   * @returns {boolean} `true` if a custom date range is set, `false` otherwise.
+   */
+  const isCustomDateSet = (): boolean => {
+    return (
+      selectedOptions.startDate !== "1M" &&
+      selectedOptions.startDate !== "3M" &&
+      selectedOptions.startDate !== "6M" &&
+      selectedOptions.startDate !== "1Y" &&
+      selectedOptions.startDate !== "ALL"
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Graph type options and menu button */}
@@ -150,7 +196,6 @@ const GraphOptions = ({
             />
           ))}
         </Picker>
-        {/* { children } */}
         <Pressable
           style={styles.justifyCenter}
           onPress={() => {
@@ -310,9 +355,27 @@ const GraphOptions = ({
               />
             )}
           </Pressable>
-          <Pressable onPress={() => {}} style={styles.menuPressable}>
-            <Text style={styles.menuText}>Custom Date</Text>
-          </Pressable>
+          {isCustomDateSet() ? (
+            <Pressable
+              onPress={() =>
+                setSelectedOptions({
+                  ...selectedOptions,
+                  startDate: "1M",
+                  endDate: today,
+                })
+              }
+              style={styles.menuPressable}
+            >
+              <Text style={styles.menuText}>Clear Custom Date</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => setModalVisible(true)}
+              style={styles.menuPressable}
+            >
+              <Text style={styles.menuText}>Custom Date</Text>
+            </Pressable>
+          )}
           <Pressable
             onPress={() => {}}
             style={[styles.menuPressable, { borderBottomWidth: 0 }]}
@@ -321,6 +384,14 @@ const GraphOptions = ({
           </Pressable>
         </View>
       )}
+      {/* Modal for custom date selection */}
+      <GraphDateRangePicker
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        dataDateRange={dataDateRange}
+        setDateRange={setSelectedOptions}
+        selectedOptions={selectedOptions}
+      />
     </View>
   );
 };
@@ -364,4 +435,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   justifyCenter: { justifyContent: "center" },
+  modalBody: {
+    minWidth: "80%",
+    minHeight: "35%",
+    maxHeight: "70%",
+    backgroundColor: "#292929",
+    borderRadius: 10,
+    alignItems: "center",
+    padding: 20,
+  },
 });
