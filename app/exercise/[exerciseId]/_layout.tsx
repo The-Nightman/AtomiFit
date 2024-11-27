@@ -56,7 +56,7 @@ const ExerciseLayout = (): JSX.Element => {
 
   return (
     <View style={UtilityStyles.flex1}>
-      <View style={[styles.headerContainer]}>
+      <View style={styles.headerContainer}>
         <View style={styles.headerIcon}>
           <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
         </View>
