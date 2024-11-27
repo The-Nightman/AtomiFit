@@ -472,6 +472,11 @@ const graph = (): JSX.Element => {
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
         today={today}
+        dataDateRange={{
+          // We pass today as a fallback to prevent errors and crashes until there is data
+          startDate: data.length ? data[0].date : today,
+          endDate: data.length ? data[data.length - 1].date : today,
+        }}
       />
       {data.length ? (
         <ExerciseGraph
