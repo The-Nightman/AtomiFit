@@ -205,81 +205,126 @@ const GraphOptions = ({
           <Entypo name="dots-three-vertical" size={32} color={"#9F9F9F"} />
         </Pressable>
       </View>
-      {/* Timeframe Options */}
-      <View style={styles.optionsContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.timeFrameButton,
-            (pressed || selectedOptions.startDate === "1M") && {
-              backgroundColor: hexcodeLuminosity("#60DD49", -30),
-            },
-          ]}
-          onPress={() => {
-            setSelectedOptions({ ...selectedOptions, startDate: "1M" });
-            // Close menu if pressed on all date button options, this keeps
-            // things responsive just as with the picker focus
-            setMenuVisible(false);
-          }}
-        >
-          <Text style={{ color: "white" }}>1M</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.timeFrameButton,
-            (pressed || selectedOptions.startDate === "3M") && {
-              backgroundColor: hexcodeLuminosity("#60DD49", -30),
-            },
-          ]}
-          onPress={() => {
-            setSelectedOptions({ ...selectedOptions, startDate: "3M" });
-            setMenuVisible(false);
-          }}
-        >
-          <Text style={{ color: "white" }}>3M</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.timeFrameButton,
-            (pressed || selectedOptions.startDate === "6M") && {
-              backgroundColor: hexcodeLuminosity("#60DD49", -30),
-            },
-          ]}
-          onPress={() => {
-            setSelectedOptions({ ...selectedOptions, startDate: "6M" });
-            setMenuVisible(false);
-          }}
-        >
-          <Text style={{ color: "white" }}>6M</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.timeFrameButton,
-            (pressed || selectedOptions.startDate === "1Y") && {
-              backgroundColor: hexcodeLuminosity("#60DD49", -30),
-            },
-          ]}
-          onPress={() => {
-            setSelectedOptions({ ...selectedOptions, startDate: "1Y" });
-            setMenuVisible(false);
-          }}
-        >
-          <Text style={{ color: "white" }}>1Y</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.timeFrameButton,
-            (pressed || selectedOptions.startDate === "ALL") && {
-              backgroundColor: hexcodeLuminosity("#60DD49", -30),
-            },
-          ]}
-          onPress={() => {
-            setSelectedOptions({ ...selectedOptions, startDate: "ALL" });
-            setMenuVisible(false);
-          }}
-        >
-          <Text style={{ color: "white" }}>ALL</Text>
-        </Pressable>
-      </View>
+      {isCustomDateSet() ? (
+        // Custom Date Range
+        <View style={styles.customDateContainer}>
+          <Text style={styles.customDateTitle}>DATE:</Text>
+          <View style={styles.customDateSubcontainer}>
+            <Text style={styles.customDateText}>
+              {new Date(selectedOptions.startDate).toLocaleDateString(
+                undefined,
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }
+              )}
+            </Text>
+            <Text style={{ color: "white" }}>To</Text>
+            <Text style={styles.customDateText}>
+              {new Date(selectedOptions.endDate).toLocaleDateString(undefined, {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </Text>
+          </View>
+          <Pressable
+            style={styles.cancelCustomDateButton}
+            onPress={() =>
+              setSelectedOptions({
+                ...selectedOptions,
+                startDate: "1M",
+                endDate: today,
+              })
+            }
+          >
+            {({ pressed }) => (
+              <MaterialCommunityIcons
+                name="calendar-remove"
+                size={24}
+                color={pressed ? hexcodeLuminosity("#60DD49", -60) : "#60DD49"}
+              />
+            )}
+          </Pressable>
+        </View>
+      ) : (
+        // Timeframe Options
+        <View style={styles.optionsContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.timeFrameButton,
+              (pressed || selectedOptions.startDate === "1M") && {
+                backgroundColor: hexcodeLuminosity("#60DD49", -30),
+              },
+            ]}
+            onPress={() => {
+              setSelectedOptions({ ...selectedOptions, startDate: "1M" });
+              // Close menu if pressed on all date button options, this keeps
+              // things responsive just as with the picker focus
+              setMenuVisible(false);
+            }}
+          >
+            <Text style={{ color: "white" }}>1M</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.timeFrameButton,
+              (pressed || selectedOptions.startDate === "3M") && {
+                backgroundColor: hexcodeLuminosity("#60DD49", -30),
+              },
+            ]}
+            onPress={() => {
+              setSelectedOptions({ ...selectedOptions, startDate: "3M" });
+              setMenuVisible(false);
+            }}
+          >
+            <Text style={{ color: "white" }}>3M</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.timeFrameButton,
+              (pressed || selectedOptions.startDate === "6M") && {
+                backgroundColor: hexcodeLuminosity("#60DD49", -30),
+              },
+            ]}
+            onPress={() => {
+              setSelectedOptions({ ...selectedOptions, startDate: "6M" });
+              setMenuVisible(false);
+            }}
+          >
+            <Text style={{ color: "white" }}>6M</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.timeFrameButton,
+              (pressed || selectedOptions.startDate === "1Y") && {
+                backgroundColor: hexcodeLuminosity("#60DD49", -30),
+              },
+            ]}
+            onPress={() => {
+              setSelectedOptions({ ...selectedOptions, startDate: "1Y" });
+              setMenuVisible(false);
+            }}
+          >
+            <Text style={{ color: "white" }}>1Y</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.timeFrameButton,
+              (pressed || selectedOptions.startDate === "ALL") && {
+                backgroundColor: hexcodeLuminosity("#60DD49", -30),
+              },
+            ]}
+            onPress={() => {
+              setSelectedOptions({ ...selectedOptions, startDate: "ALL" });
+              setMenuVisible(false);
+            }}
+          >
+            <Text style={{ color: "white" }}>ALL</Text>
+          </Pressable>
+        </View>
+      )}
       {/* Menu, elements declared here for visibility */}
       {menuVisible && (
         <View style={styles.menuContainer}>
@@ -413,6 +458,21 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
   },
+  customDateContainer: { flexDirection: "row", gap: 8, alignItems: "center" },
+  customDateTitle: { color: "white", fontSize: 17, fontWeight: "600" },
+  customDateSubcontainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    gap: 16,
+  },
+  customDateText: {
+    flex: 1,
+    color: "white",
+    borderBottomWidth: 1.5,
+    borderBottomColor: "#9F9F9F",
+  },
+  cancelCustomDateButton: { marginRight: 4 },
   menuContainer: {
     position: "absolute",
     top: 64,
