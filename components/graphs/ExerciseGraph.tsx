@@ -21,7 +21,6 @@ import { LineGraphOptions } from "@/types/graphs";
 import { Entypo } from "@expo/vector-icons";
 import { formatTime } from "@/utils/formatTime";
 import { distanceDisplay } from "@/utils/formatDistance";
-import { eventEmitter } from "@/utils/eventEmitter";
 
 interface ExerciseGraphComponentProps {
   selectedOptions: LineGraphOptions;
@@ -418,10 +417,7 @@ const ExerciseGraph = ({
   };
 
   return (
-    <View
-      style={styles.mainContainer}
-      onTouchStart={() => eventEmitter.emit("closeGraphMenu")}
-    >
+    <View style={styles.mainContainer}>
       <View
         style={styles.graphContainer}
         onLayout={(e) => {
