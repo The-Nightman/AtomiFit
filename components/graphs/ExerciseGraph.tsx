@@ -24,7 +24,7 @@ import { distanceDisplay } from "@/utils/formatDistance";
 
 interface ExerciseGraphComponentProps {
   selectedOptions: LineGraphOptions;
-  data: GraphDataSet[];
+  data: GraphDataSet[] | GraphDataSet[][]; // If selectedOptions.selectedGraph is "maxWeightReps" then data will be a 2D array
 }
 
 interface GraphDataSet extends Set {
@@ -70,7 +70,9 @@ interface GraphConfig {
  *
  * @component
  * @param {ExerciseGraphComponentProps} props - The props for the ExerciseGraph component.
- * @param {GraphDataSet[]} props.data - An array of data points, where each data point contains a `date`, `weight`, and `reps` property.
+ * @param {GraphDataSet[] | GraphDataSet[][]} props.data - An array of data points where each data point
+ * contains a `date` and `datapoint` property. If the selected graph is "maxWeightReps" or another multiline
+ * graph, the data will be a 2D array of data points.
  *
  * @returns {JSX.Element} The rendered ExerciseGraph component.
  *
@@ -95,7 +97,18 @@ const ExerciseGraph = ({
   const [graphSize, setGraphSize] = useState<{ width: number; height: number }>(
     { width: 0, height: 0 }
   );
-  const [selectedData, setSelectedData] = useState<number | null>(null);
+  // By using an object here instead we can manage both flat and nested arrays of data points
+  const [selectedData, setSelectedData] = useState<{
+    multiIndex: number | null;
+    index: number | null;
+  }>({ multiIndex: null, index: null });
+
+  /**
+   * Lambda function to check if the provided data is a 2-dimensional array.
+   *
+   * @returns {boolean} `true` if the data is a 2D array, otherwise `false`.
+   */
+  const isData2D = (): boolean => Array.isArray(data[0]); // We need to make quick checks to see if the data is 2D or not
 
   /**
    * Generates a graph configuration based on the provided data.
@@ -118,9 +131,20 @@ const ExerciseGraph = ({
    * - `calculateTrendLine`: A function that calculates the trend line for the data points and returns the SVG path or null.
    */
   const makeGraph = (): GraphConfig => {
+    // We need to flatten the data if to make sure it is not a 2D array for processing
+    const graphData: GraphDataSet[] = isData2D()
+      ? data.flat()
+      : (data as GraphDataSet[]);
+
+    // Get the extents for x & y axes so that we can reuse them for scales and ticks, lower performance cost than the previous min/max(...map()) calls
+    const xExtents = d3.extent(
+      graphData.map((d) => new Date(d.date).getTime())
+    );
+    const yExtents = d3.extent(graphData.map((d) => d.dataPoint));
+
     // Create a time scale for the x-axis
     const xScale: d3.ScaleTime<number, number> = d3.scaleUtc(
-      [new Date(data[0].date), new Date(data[data.length - 1].date)],
+      [new Date(xExtents[0]!), new Date(xExtents[1]!)],
       // 32 and graphSize.width - 16 are the left and right bounds of the SVG element respectively
       [32, graphSize.width - 16]
     );
@@ -131,8 +155,8 @@ const ExerciseGraph = ({
         // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
         selectedOptions.yAxisFromZero
           ? 0
-          : Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
-        Math.ceil(d3.max(data, (d) => d.dataPoint)! / 50) * 50 + 50,
+          : Math.floor(yExtents[0]! / 50) * 50 - 50,
+        Math.ceil(yExtents[1]! / 50) * 50 + 50,
       ],
       // graphSize.height - 16 and 16 are the top and bottom bounds of the SVG element respectively
       [graphSize.height - 16, 16]
@@ -154,10 +178,7 @@ const ExerciseGraph = ({
       .curve(d3.curveLinear); // Use linear curve for simplicity
 
     // Calculate the midpoint epoch timestamp for the x-axis ticks
-    const midpointTimestamp =
-      (new Date(data[0].date).getTime() +
-        new Date(data[data.length - 1].date).getTime()) /
-      2;
+    const midpointTimestamp = (xExtents[0]! + xExtents[1]!) / 2;
 
     // Convert the midpoint timestamp to an ISO string
     // No need to split as we will be procesing it later with toLocaleDateString options
@@ -170,20 +191,24 @@ const ExerciseGraph = ({
       xPos: number;
     }[] = [
       {
-        date: data[data.length - 1].date,
+        date: new Date(xExtents[1]!).toDateString(),
         textAnchor: "end",
         xPos: graphSize.width - 16,
       },
       { date: midpointDate, textAnchor: "middle", xPos: graphSize.width / 2 },
-      { date: data[0].date, textAnchor: "start", xPos: 32 },
+      {
+        date: new Date(xExtents[0]!).toDateString(),
+        textAnchor: "start",
+        xPos: 32,
+      },
     ];
 
     // Calculate the y-axis tick values, same rounding and buffer calculation as yScale
     const yTicks: number[] = d3.ticks(
       selectedOptions.yAxisFromZero
         ? 0
-        : Math.floor(d3.min(data, (d) => d.dataPoint)! / 50) * 50 - 50,
-      Math.ceil(d3.max(data, (d) => d.dataPoint)! / 50) * 50 + 50,
+        : Math.floor(yExtents[0]! / 50) * 50 - 50,
+      Math.ceil(yExtents[1]! / 50) * 50 + 50,
       7
     );
 
@@ -291,7 +316,6 @@ const ExerciseGraph = ({
       );
     },
     maxWeight: (data: GraphDataSet): React.JSX.Element => {
-      // return `${data.dataPoint} KG (${data.weight} KG x ${data.reps} REPS)`;
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
@@ -302,7 +326,6 @@ const ExerciseGraph = ({
       );
     },
     maxReps: (data: GraphDataSet): React.JSX.Element => {
-      // return `${data.dataPoint} REPS (${data.weight} KG x ${data.reps} REPS)`;
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
@@ -313,7 +336,6 @@ const ExerciseGraph = ({
       );
     },
     maxVolume: (data: GraphDataSet): React.JSX.Element => {
-      // return `${data.dataPoint} KG (${data.weight} KG x ${data.reps} REPS)`;
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
@@ -324,10 +346,15 @@ const ExerciseGraph = ({
       );
     },
     maxWeightReps: (data: GraphDataSet): React.JSX.Element => {
-      return <></>; // Not yet implemented
+      return (
+        <Text style={styles.selectedText}>
+          <Text style={styles.selectedTextBold}>{data.weight} </Text>
+          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          REPS
+        </Text>
+      );
     },
     workoutVolume: (data: GraphDataSet): React.JSX.Element => {
-      // return `${data.dataPoint} KG (${data.weight} KG x ${data.reps} REPS)`;
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
@@ -336,7 +363,6 @@ const ExerciseGraph = ({
       );
     },
     workoutReps: (data: GraphDataSet): React.JSX.Element => {
-      // return `${data.dataPoint} REPS (${data.weight} KG x ${data.reps} REPS)`;
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
@@ -416,6 +442,35 @@ const ExerciseGraph = ({
     },
   };
 
+  /**
+   * An array of distinct color codes used for multiline graphs, each color is represented as a hexadecimal string.
+   * Currently a placeholder, plan to implement customization later and limit number of data lines visible to 10.
+   * 
+   * Colors included:
+   * - Red: #E6194B
+   * - Green: #3CB44B
+   * - Yellow: #FFE119
+   * - Blue: #4363D8
+   * - Orange: #F58231
+   * - Purple: #911EB4
+   * - Cyan: #42D4F4
+   * - Magenta: #F032E6
+   * - Lime: #BFEF45
+   * - Pink: #FABEBE
+   */
+  const multilineColors = [
+    "#E6194B", // Red
+    "#3CB44B", // Green
+    "#FFE119", // Yellow
+    "#4363D8", // Blue
+    "#F58231", // Orange
+    "#911EB4", // Purple
+    "#42D4F4", // Cyan
+    "#F032E6", // Magenta
+    "#BFEF45", // Lime
+    "#FABEBE", // Pink
+  ];
+
   return (
     <View style={styles.mainContainer}>
       <View
@@ -430,7 +485,7 @@ const ExerciseGraph = ({
           height={graphSize.height}
           // Clear the selected data point when anywhere on
           // the graph is pressed that is not a data point
-          onPress={() => setSelectedData(null)}
+          onPress={() => setSelectedData({ multiIndex: null, index: null })}
         >
           <Defs>
             <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
@@ -491,20 +546,34 @@ const ExerciseGraph = ({
           </G>
           {/* Data line and area */}
           <G>
-            <Path
-              d={graph.line(data) || ""}
-              fill="none"
-              stroke="#60DD49"
-              strokeWidth={1.5}
-            />
-            <Path
-              d={graph.area(data) || ""}
-              fill="url(#gradient)"
-              stroke="none"
-            />
-            {selectedOptions.trendline && data.length > 1 && (
+            {!isData2D() ? (
+              <>
+                <Path
+                  d={graph.line(data as GraphDataSet[]) || ""}
+                  fill="none"
+                  stroke="#60DD49"
+                  strokeWidth={1.5}
+                />
+                <Path
+                  d={graph.area(data) || ""}
+                  fill="url(#gradient)"
+                  stroke="none"
+                />
+              </>
+            ) : (
+              data.map((d, i) => (
+                <Path
+                  key={`multiline-${i}`}
+                  d={graph.line(d as GraphDataSet[]) || ""}
+                  fill="none"
+                  stroke={multilineColors[i]}
+                  strokeWidth={1.5}
+                />
+              ))
+            )}
+            {selectedOptions.trendline && data.length > 1 && !isData2D() && (
               <Path
-                d={graph.calculateTrendLine(data) || ""}
+                d={graph.calculateTrendLine(data as GraphDataSet[]) || ""}
                 fill="none"
                 stroke={hexcodeLuminosity("#FF0000", 0)}
                 strokeDasharray={[10, 4]}
@@ -513,9 +582,9 @@ const ExerciseGraph = ({
             )}
           </G>
           {/* Datapoint markers */}
-          {(selectedOptions.graphPoints || data.length === 1) && (
+          {(selectedOptions.graphPoints || data.length === 1) && !isData2D() ? (
             <G>
-              {data.map((d, i) => (
+              {(data as GraphDataSet[]).map((d, i) => (
                 <G key={`circle-${d.date}-${d.id}`}>
                   {/* Display circle */}
                   <Circle
@@ -525,7 +594,7 @@ const ExerciseGraph = ({
                     fill="#60DD49"
                   />
                   {/* Selected data circle */}
-                  {selectedData === i && (
+                  {selectedData.index === i && (
                     <Circle
                       cx={graph.xScale(new Date(d.date))}
                       cy={graph.yScale(d.dataPoint)}
@@ -535,21 +604,62 @@ const ExerciseGraph = ({
                       fill="none"
                     />
                   )}
-                  {/*
-                  Touchable circle due to inability to use pressable,
-                  react-native-svg does not support hitslop as dev refuses to 
-                  implement due to svg pressable interaction not being standard on web
-                  https://github.com/software-mansion/react-native-svg/issues/81
-                */}
+                  {/* We use an onPress event for the same functionality and reasons as above */}
                   <Circle
                     cx={graph.xScale(new Date(d.date))}
                     cy={graph.yScale(d.dataPoint)}
                     r={12}
                     fill="none"
                     onPress={() => {
-                      setSelectedData(i);
+                      setSelectedData({ multiIndex: null, index: i });
                     }}
                   />
+                </G>
+              ))}
+            </G>
+          ) : (
+            // Multiline datapoint markers
+            <G>
+              {data.map((d, i) => (
+                <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
+                  {(d as GraphDataSet[]).map((d, j) => (
+                    <G key={`circle-${d.date}-${d.id}`}>
+                      {/* Display circle */}
+                      <Circle
+                        cx={graph.xScale(new Date(d.date))}
+                        cy={graph.yScale(d.dataPoint)}
+                        r={4}
+                        fill={multilineColors[i]}
+                      />
+                      {/* Selected data circle */}
+                      {selectedData.multiIndex === i &&
+                        selectedData.index === j && (
+                          <Circle
+                            cx={graph.xScale(new Date(d.date))}
+                            cy={graph.yScale(d.dataPoint)}
+                            r={6}
+                            stroke={multilineColors[i]}
+                            strokeWidth={2}
+                            fill="none"
+                          />
+                        )}
+                      {/*
+                        Touchable circle due to inability to use pressable,
+                        react-native-svg does not support hitslop as dev refuses to 
+                        implement due to svg pressable interaction not being standard on web
+                        https://github.com/software-mansion/react-native-svg/issues/81
+                      */}
+                      <Circle
+                        cx={graph.xScale(new Date(d.date))}
+                        cy={graph.yScale(d.dataPoint)}
+                        r={12}
+                        fill="none"
+                        onPress={() => {
+                          setSelectedData({ multiIndex: i, index: j });
+                        }}
+                      />
+                    </G>
+                  ))}
                 </G>
               ))}
             </G>
@@ -557,13 +667,13 @@ const ExerciseGraph = ({
         </Svg>
       </View>
       {/* Selected data and placeholder */}
-      {typeof selectedData === "number" ? (
+      {typeof selectedData.index === "number" ? (
         <View style={styles.selectedContainer}>
           <Pressable
             onPress={() =>
               setSelectedData((prevData) => {
-                if (prevData === 0) return prevData;
-                return prevData! - 1;
+                if (prevData.index === 0) return prevData;
+                return { ...prevData, index: prevData.index! - 1 };
               })
             }
             hitSlop={30}
@@ -578,16 +688,38 @@ const ExerciseGraph = ({
           </Pressable>
           <View style={styles.selectedTextContainer}>
             {/* Generate JSX based on the select graph type */}
-            {displayVariants[selectedOptions.selectedGraph](data[selectedData])}
+            {displayVariants[selectedOptions.selectedGraph](
+              isData2D()
+                ? (data as GraphDataSet[][])[selectedData.multiIndex!][
+                    selectedData.index!
+                  ]
+                : (data as GraphDataSet[])[selectedData.index!]
+            )}
             <Text style={styles.selectedText}>
-              {displayDate(data[selectedData].date, getToday())}
+              {displayDate(
+                isData2D()
+                  ? (data as GraphDataSet[][])[selectedData.multiIndex!][
+                      selectedData.index!
+                    ].date
+                  : (data as GraphDataSet[])[selectedData.index!].date,
+                getToday()
+              )}
             </Text>
           </View>
           <Pressable
             onPress={() =>
               setSelectedData((prevData) => {
-                if (prevData === data.length - 1) return prevData;
-                return prevData! + 1;
+                // We need to make sure that if this is a 2D array, we dont go out of bounds of nested the array
+                if (isData2D()) {
+                  if (
+                    prevData.index ===
+                    (data as GraphDataSet[][])[prevData.multiIndex!].length - 1
+                  ) {
+                    return prevData;
+                  }
+                }
+                if (prevData.index === data.length - 1) return prevData;
+                return { ...prevData, index: prevData.index! + 1 };
               })
             }
             hitSlop={30}
