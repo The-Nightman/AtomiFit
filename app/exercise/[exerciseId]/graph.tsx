@@ -146,7 +146,7 @@ const graph = (): JSX.Element => {
    * - `maxWeight`: Finds the highest weight lifted for each date.
    * - `maxReps`: Finds the highest number of repetitions performed for each date.
    * - `maxVolume`: Finds the highest volume set (weight * reps) for each date.
-   * - TODO - `maxWeightReps`: Placeholder for a multiline graph showing the highest weight for n reps **(not yet implemented)**.
+   * - `maxWeightReps`: Multiline graph showing the highest weight for n reps, returns an array of arrays.
    * - `workoutVolume`: Calculates the total volume (weight * reps) for all sets on each date.
    * - `workoutReps`: Counts the total number of repetitions for all sets on each date.
    * - TODO - `personalRecords`: Placeholder for tracking personal records **(not yet implemented)**.
@@ -159,9 +159,9 @@ const graph = (): JSX.Element => {
    *
    * @param {Set[]} data - The input data array containing sets of exercise data.
    *
-   * @returns {GraphDataSet[]} - The processed graph dataset.
+   * @returns {GraphDataSet[] | GraphDataSet[][]} - The processed graph dataset.
    */
-  const processData = (data: Set[]): GraphDataSet[] => {
+  const processData = (data: Set[]): GraphDataSet[] | GraphDataSet[][] => {
     const graphTypes = {
       // Epley formula: w * ( 1 + r/30 ) assuming r > 1.
       // https://en.wikipedia.org/wiki/One-repetition_maximum#cite_ref-6
@@ -259,12 +259,57 @@ const graph = (): JSX.Element => {
         return filteredResults;
       },
 
-      // highest weight for reps all sets, multiline graph, not yet implemented
-      maxWeightReps: (data: Set[]): GraphDataSet[] => {
-        return data.map((d) => ({
-          ...d,
-          dataPoint: 0, // Placeholder value
-        }));
+      // highest weight for reps all sets, multiline graph
+      maxWeightReps: (data: Set[]): GraphDataSet[][] => {
+        const filteredResults: {
+          [date: string]: GraphDataSet;
+        }[] = Object.values(
+          data.reduce((acc, set) => {
+            if (!acc[set.reps!]) {
+              // Add the reps as a property and the current set date as the child property with the set as the best for the days reps
+              acc[set.reps!] = {
+                [set.date]: {
+                  ...set,
+                  dataPoint: set.weight!,
+                },
+              };
+            }
+
+            if (acc[set.reps!]) {
+              if (!acc[set.reps!][set.date]) {
+                // If the date is not in the reps property, add the current set as the best set for the date
+                acc[set.reps!][set.date] = {
+                  ...set,
+                  dataPoint: set.weight!,
+                };
+              } else {
+                // If the date is in the reps property, check if the current set is the best set for the date
+                if (acc[set.reps!][set.date].weight! < set.weight!) {
+                  acc[set.reps!][set.date] = {
+                    ...set,
+                    dataPoint: set.weight!,
+                  };
+                }
+              }
+            }
+
+            return acc;
+            /*
+            We need to use a nested object to store the array of objects, we have to
+            do this because each line will be for a certain number of reps and we need to
+            store our data grouped by reps for each line but the graph scales by date.
+            Simply put: reps = y scale, date = x scale or
+            r1: [ { date: { set } }, { date: { set } } ]
+            r2: [ { date: { set } }, { date: { set } } ] etc.
+            */
+          }, {} as { [reps: string]: { [date: string]: GraphDataSet } })
+        );
+
+        const flattenedResults: GraphDataSet[][] = filteredResults.map(
+          (dataset) => Object.values(dataset) // Right now we have an array of objects so we can just use Object.values to map a 2D array
+        );
+
+        return flattenedResults;
       },
 
       // weight * reps all sets
