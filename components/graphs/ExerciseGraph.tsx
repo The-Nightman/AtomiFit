@@ -185,15 +185,26 @@ const ExerciseGraph = ({
       [32, graphSize.width - 16]
     );
 
+    /**
+     * Calculates the bottom value for the y-axis scale.
+     *
+     * This function rounds down the minimum y extent to the nearest multiple of 50
+     * and subtracts 50 to create a buffer. If the `selectedOptions.yAxisFromZero`
+     * is true or the calculated buffer is less than or equal to 0, it returns 0.
+     * Otherwise, it returns the calculated buffer.
+     *
+     * @returns {number} The bottom value for the y-axis scale.
+     */
+    const yScaleBottom = (): number => {
+      // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
+      const buffer = Math.floor(yExtents[0]! / 50) * 50 - 50;
+      if (selectedOptions.yAxisFromZero || buffer <= 0) return 0;
+      return buffer;
+    };
+
     // Create a linear scale for the y-axis
     const yScale: d3.ScaleLinear<number, number> = d3.scaleLinear(
-      [
-        // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
-        selectedOptions.yAxisFromZero
-          ? 0
-          : Math.floor(yExtents[0]! / 50) * 50 - 50,
-        Math.ceil(yExtents[1]! / 50) * 50 + 50,
-      ],
+      [yScaleBottom(), Math.ceil(yExtents[1]! / 50) * 50 + 50],
       // graphSize.height - 16 and 16 are the top and bottom bounds of the SVG element respectively
       [graphSize.height - 16, 16]
     );
