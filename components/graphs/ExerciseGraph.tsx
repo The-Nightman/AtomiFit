@@ -891,20 +891,21 @@ const ExerciseGraph = ({
               setSelectedData((prevData) => {
                 // We need to make sure that if this is a 2D array, we dont go out of bounds of nested the array
                 if (isData2D()) {
-                  if (
-                    prevData.index ===
-                    // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
-                    // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
-                    (data as GraphDataSet[][]).filter((repArr) =>
-                      multiSettings.selected.includes(repArr[0].reps!)
-                    )[prevData.multiIndex!].length -
-                      1
-                  ) {
-                    return prevData;
+                  // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
+                  // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
+                  const filteredData = (data as GraphDataSet[][]).filter(
+                    (repArr) => multiSettings.selected.includes(repArr[0].reps!)
+                  );
+                  const currentSubArray = filteredData[prevData.multiIndex!];
+                  if (prevData.index! < currentSubArray.length - 1) {
+                    return { ...prevData, index: prevData.index! + 1 };
+                  }
+                } else {
+                  if (prevData.index! < data.length - 1) {
+                    return { ...prevData, index: prevData.index! + 1 };
                   }
                 }
-                if (prevData.index === data.length - 1) return prevData;
-                return { ...prevData, index: prevData.index! + 1 };
+                return prevData;
               })
             }
             hitSlop={30}
