@@ -529,7 +529,13 @@ const ExerciseGraph = ({
         ...multiSettings,
         selected: prevState.selected.filter((r) => r !== repCount),
       }));
-    } else if (multiSettings.selected.length < 10) {
+    }
+    // We need to make sure that the selected data does not exist in the array or else this code may fire when attempting to remove
+    // a selected data point despite it meeting the conditions of the previous if statement, else if does not solve this problem
+    if (
+      !multiSettings.selected.includes(repCount) &&
+      multiSettings.selected.length < 10
+    ) {
       setMultiSettings((prevState) => ({
         ...multiSettings,
         selected: [...prevState.selected, repCount].sort((a, b) => a - b),
