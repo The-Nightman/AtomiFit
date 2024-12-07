@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Svg, {
   Circle,
   Defs,
@@ -18,9 +18,11 @@ import { getToday } from "@/utils/getToday";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Set } from "@/types/sets";
 import { LineGraphOptions } from "@/types/graphs";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatTime } from "@/utils/formatTime";
 import { distanceDisplay } from "@/utils/formatDistance";
+import ModalBase from "../modals/ModalBase";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface ExerciseGraphComponentProps {
   selectedOptions: LineGraphOptions;
@@ -102,6 +104,41 @@ const ExerciseGraph = ({
     multiIndex: number | null;
     index: number | null;
   }>({ multiIndex: null, index: null });
+  const [multiSettings, setMultiSettings] = useState<{
+    modal: boolean;
+    selected: number[];
+    graphHint: boolean;
+  }>({
+    modal: false,
+    selected: [],
+    graphHint: false,
+  });
+
+  useEffect(() => {
+    // If the selected graph is maxWeightReps, we'll automatically select the top 3 highest rep counts for the user by number of workouts
+    if (selectedOptions.selectedGraph === "maxWeightReps" && isData2D()) {
+      // We'll validate just incase, it isn't really needed but it'll catch any mistakes
+      const dataSortLen: GraphDataSet[][] = [
+        ...(data as GraphDataSet[][]),
+      ].sort((a, b) => b.length - a.length);
+      setMultiSettings({
+        modal: false,
+        selected: [
+          dataSortLen[0][0].reps!,
+          dataSortLen[1][0].reps!,
+          dataSortLen[2][0].reps!,
+        ].sort((a, b) => a - b),
+        graphHint: true,
+      });
+    } else {
+      setMultiSettings({ modal: false, selected: [], graphHint: false }); // We do this to clear unnecessary data when the graph changes or is not a 2D array
+    }
+
+    return () => {
+      // Clear selected data when the graph changes before re-render, data will change when this happens and if we dont clear it, it will cause an error
+      setSelectedData({ multiIndex: null, index: null });
+    };
+  }, [selectedOptions.selectedGraph]);
 
   /**
    * Lambda function to check if the provided data is a 2-dimensional array.
@@ -444,8 +481,8 @@ const ExerciseGraph = ({
 
   /**
    * An array of distinct color codes used for multiline graphs, each color is represented as a hexadecimal string.
-   * Currently a placeholder, plan to implement customization later and limit number of data lines visible to 10.
-   * 
+   * Currently a placeholder, possible plan to implement customization later and limit number of data lines visible to 10.
+   *
    * Colors included:
    * - Red: #E6194B
    * - Green: #3CB44B
@@ -471,6 +508,97 @@ const ExerciseGraph = ({
     "#FABEBE", // Pink
   ];
 
+  /**
+   * Handles the selection and deselection of multiline graph datasets based on the rep count.
+   * If the rep count is already selected, it will be removed from the selection.
+   * If the rep count is not selected and the selection count is less than 10, it will be added to the selection.
+   * The selectedData state is reset when the user changes the options to prevent errors.
+   *
+   * @param {number} repCount - The rep count to be selected or deselected.
+   * @returns void
+   */
+  const handleMultilineSelection = (repCount: number): void => {
+    setSelectedData({ multiIndex: null, index: null }); // We clear the selected data when the user changes the options to prevent errors
+
+    if (multiSettings.selected.includes(repCount)) {
+      setMultiSettings((prevState) => ({
+        ...multiSettings,
+        selected: prevState.selected.filter((r) => r !== repCount),
+      }));
+    } else if (multiSettings.selected.length < 10) {
+      setMultiSettings((prevState) => ({
+        ...multiSettings,
+        selected: [...prevState.selected, repCount].sort((a, b) => a - b),
+      }));
+    }
+  };
+
+  /**
+   * Renders the appropriate variant of the selected graph data based on the selected data state.
+   *
+   * This function checks if the data is 2D and if the selected data indices are not null.
+   * If the data is 2D, it filters the data based on the selected rep counts and renders
+   * the corresponding graph variant along with the date. If the data is not 2D, it renders
+   * the graph variant and date based on the selected index.
+   *
+   * In case of failure (i.e., if the selected data indices are null), it returns a placeholder
+   * view with a message prompting the user to tap a point on the graph to view details.
+   *
+   * @returns {React.JSX.Element} The rendered graph variant or a placeholder view.
+   */
+  const renderVariant = (): React.JSX.Element => {
+    // We should enforce that the selectedData is not null before we try to render
+    // anything and especially that both properties are not null for 2D data
+    if (
+      isData2D() &&
+      selectedData.multiIndex !== null &&
+      selectedData.index !== null
+    ) {
+      return (
+        <>
+          {displayVariants[selectedOptions.selectedGraph](
+            // We need to filter the data now due to how we are handling the rendering of selected rep counts data
+            (data as GraphDataSet[][]).filter((repArr) =>
+              multiSettings.selected.includes(repArr[0].reps!)
+            )[selectedData.multiIndex!][selectedData.index!]
+          )}
+          <Text style={styles.selectedText}>
+            {displayDate(
+              (data as GraphDataSet[][]).filter((repArr) =>
+                multiSettings.selected.includes(repArr[0].reps!)
+              )[selectedData.multiIndex!][selectedData.index!].date,
+              getToday()
+            )}
+          </Text>
+        </>
+      );
+    }
+    if (!isData2D() && selectedData.index !== null) {
+      return (
+        <>
+          {displayVariants[selectedOptions.selectedGraph](
+            (data as GraphDataSet[])[selectedData.index!]
+          )}
+          <Text style={styles.selectedText}>
+            {displayDate(
+              (data as GraphDataSet[])[selectedData.index!].date,
+              getToday()
+            )}
+          </Text>
+        </>
+      );
+    }
+
+    // In the event of failure we will just return the placeholder
+    return (
+      <View style={styles.placeholderContainer}>
+        <Text style={styles.selectedText}>
+          Tap a point on the graph to view details
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.mainContainer}>
       <View
@@ -480,12 +608,64 @@ const ExerciseGraph = ({
           setGraphSize({ width, height });
         }}
       >
+        {isData2D() && (
+          <Pressable
+            style={styles.graphHintContainer}
+            onPress={() =>
+              setMultiSettings((prevState) => ({
+                ...prevState,
+                graphHint: !prevState.graphHint,
+              }))
+            }
+          >
+            {multiSettings.graphHint && (
+              <View>
+                {multiSettings.selected.map((repCount, i) => (
+                  <View
+                    key={`rep-${repCount}`}
+                    style={styles.graphHintItemContainer}
+                  >
+                    {/* Colour indicator */}
+                    <View
+                      style={{
+                        width: 12,
+                        height: 12,
+                        backgroundColor: multilineColors[i],
+                      }}
+                    />
+                    <Text style={styles.graphHintItemText}>
+                      {repCount} REPS
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Text style={styles.graphHintShowHideText}>
+              {multiSettings.graphHint ? "HIDE" : "SHOW"}
+            </Text>
+          </Pressable>
+        )}
+        {isData2D() && (
+          <Pressable
+            style={[
+              { left: graphSize.width - 18 },
+              styles.multilineSettingsIcon,
+            ]}
+            onPress={() => setMultiSettings({ ...multiSettings, modal: true })}
+          >
+            <MaterialCommunityIcons name="cog" size={24} color="#9F9F9F" />
+          </Pressable>
+        )}
         <Svg
           width={graphSize.width}
           height={graphSize.height}
-          // Clear the selected data point when anywhere on
-          // the graph is pressed that is not a data point
-          onPress={() => setSelectedData({ multiIndex: null, index: null })}
+          onPress={() => {
+            // We need to clear the selected data if the user presses on the graph but also
+            // only do it if there is data selected to prevent unnecessary re-renders
+            if (selectedData.index !== null) {
+              setSelectedData({ multiIndex: null, index: null });
+            }
+          }}
         >
           <Defs>
             <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
@@ -561,15 +741,19 @@ const ExerciseGraph = ({
                 />
               </>
             ) : (
-              data.map((d, i) => (
-                <Path
-                  key={`multiline-${i}`}
-                  d={graph.line(d as GraphDataSet[]) || ""}
-                  fill="none"
-                  stroke={multilineColors[i]}
-                  strokeWidth={1.5}
-                />
-              ))
+              (data as GraphDataSet[][])
+                .filter((repArr) =>
+                  multiSettings.selected.includes(repArr[0].reps!)
+                )
+                .map((d, i) => (
+                  <Path
+                    key={`multiline-${i}`}
+                    d={graph.line(d as GraphDataSet[]) || ""}
+                    fill="none"
+                    stroke={multilineColors[i]}
+                    strokeWidth={1.5}
+                  />
+                ))
             )}
             {selectedOptions.trendline && data.length > 1 && !isData2D() && (
               <Path
@@ -620,54 +804,58 @@ const ExerciseGraph = ({
           ) : (
             // Multiline datapoint markers
             <G>
-              {data.map((d, i) => (
-                <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
-                  {(d as GraphDataSet[]).map((d, j) => (
-                    <G key={`circle-${d.date}-${d.id}`}>
-                      {/* Display circle */}
-                      <Circle
-                        cx={graph.xScale(new Date(d.date))}
-                        cy={graph.yScale(d.dataPoint)}
-                        r={4}
-                        fill={multilineColors[i]}
-                      />
-                      {/* Selected data circle */}
-                      {selectedData.multiIndex === i &&
-                        selectedData.index === j && (
-                          <Circle
-                            cx={graph.xScale(new Date(d.date))}
-                            cy={graph.yScale(d.dataPoint)}
-                            r={6}
-                            stroke={multilineColors[i]}
-                            strokeWidth={2}
-                            fill="none"
-                          />
-                        )}
-                      {/*
+              {(data as GraphDataSet[][])
+                .filter((repArr) =>
+                  multiSettings.selected.includes(repArr[0].reps!)
+                )
+                .map((d, i) => (
+                  <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
+                    {(d as GraphDataSet[]).map((d, j) => (
+                      <G key={`circle-${d.date}-${d.id}`}>
+                        {/* Display circle */}
+                        <Circle
+                          cx={graph.xScale(new Date(d.date))}
+                          cy={graph.yScale(d.dataPoint)}
+                          r={4}
+                          fill={multilineColors[i]}
+                        />
+                        {/* Selected data circle */}
+                        {selectedData.multiIndex === i &&
+                          selectedData.index === j && (
+                            <Circle
+                              cx={graph.xScale(new Date(d.date))}
+                              cy={graph.yScale(d.dataPoint)}
+                              r={6}
+                              stroke={multilineColors[i]}
+                              strokeWidth={2}
+                              fill="none"
+                            />
+                          )}
+                        {/*
                         Touchable circle due to inability to use pressable,
                         react-native-svg does not support hitslop as dev refuses to 
                         implement due to svg pressable interaction not being standard on web
                         https://github.com/software-mansion/react-native-svg/issues/81
                       */}
-                      <Circle
-                        cx={graph.xScale(new Date(d.date))}
-                        cy={graph.yScale(d.dataPoint)}
-                        r={12}
-                        fill="none"
-                        onPress={() => {
-                          setSelectedData({ multiIndex: i, index: j });
-                        }}
-                      />
-                    </G>
-                  ))}
-                </G>
-              ))}
+                        <Circle
+                          cx={graph.xScale(new Date(d.date))}
+                          cy={graph.yScale(d.dataPoint)}
+                          r={12}
+                          fill="none"
+                          onPress={() => {
+                            setSelectedData({ multiIndex: i, index: j });
+                          }}
+                        />
+                      </G>
+                    ))}
+                  </G>
+                ))}
             </G>
           )}
         </Svg>
       </View>
       {/* Selected data and placeholder */}
-      {typeof selectedData.index === "number" ? (
+      {selectedData.index !== null ? (
         <View style={styles.selectedContainer}>
           <Pressable
             onPress={() =>
@@ -688,23 +876,11 @@ const ExerciseGraph = ({
           </Pressable>
           <View style={styles.selectedTextContainer}>
             {/* Generate JSX based on the select graph type */}
-            {displayVariants[selectedOptions.selectedGraph](
-              isData2D()
-                ? (data as GraphDataSet[][])[selectedData.multiIndex!][
-                    selectedData.index!
-                  ]
-                : (data as GraphDataSet[])[selectedData.index!]
-            )}
-            <Text style={styles.selectedText}>
-              {displayDate(
-                isData2D()
-                  ? (data as GraphDataSet[][])[selectedData.multiIndex!][
-                      selectedData.index!
-                    ].date
-                  : (data as GraphDataSet[])[selectedData.index!].date,
-                getToday()
-              )}
-            </Text>
+            {
+              renderVariant() // We moved to a function for better control and error prevention,
+              // the old method crashed the app if data was selected and the graph type changed
+              // even with cleanup functions or other state calls in useEffect
+            }
           </View>
           <Pressable
             onPress={() =>
@@ -713,7 +889,12 @@ const ExerciseGraph = ({
                 if (isData2D()) {
                   if (
                     prevData.index ===
-                    (data as GraphDataSet[][])[prevData.multiIndex!].length - 1
+                    // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
+                    // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
+                    (data as GraphDataSet[][]).filter((repArr) =>
+                      multiSettings.selected.includes(repArr[0].reps!)
+                    )[prevData.multiIndex!].length -
+                      1
                   ) {
                     return prevData;
                   }
@@ -739,6 +920,67 @@ const ExerciseGraph = ({
             Tap a point on the graph to view details
           </Text>
         </View>
+      )}
+      {isData2D() && ( // We only render if the data array is 2D or we get breaking errors as technically the elements are there just not visible
+        <ModalBase
+          modalState={multiSettings.modal}
+          setModalState={() =>
+            setMultiSettings({ ...multiSettings, modal: false })
+          }
+        >
+          <View style={styles.multilineModalBody}>
+            <View style={styles.modalHeaderContainer}>
+              <Text style={styles.modalHeaderText}>REP COUNTS</Text>
+              <Text style={styles.modalHeaderHelpText}>
+                select the rep counts to view (max 10)
+              </Text>
+            </View>
+            <ScrollView style={styles.multilineModalOptionsListContainer}>
+              {(data as GraphDataSet[][]).map((d, i) => (
+                <Pressable
+                  key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}
+                  onPress={() => handleMultilineSelection(d[0].reps as number)}
+                  style={[
+                    styles.multilineModalOptionContainer,
+                    { borderTopWidth: i === 0 ? 1 : 0 },
+                  ]}
+                >
+                  <View>
+                    <Text style={styles.multilineModalOptionText}>
+                      {d[0].reps} REPS
+                    </Text>
+                    <Text style={styles.multilineModalOptionSubtext}>
+                      {d.length} WORKOUTS
+                    </Text>
+                  </View>
+                  {multiSettings.selected.includes(d[0].reps as number) ? (
+                    <MaterialCommunityIcons
+                      name="checkbox-outline"
+                      size={24}
+                      color={"#60DD49"}
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="checkbox-blank-outline"
+                      size={24}
+                      color={hexcodeLuminosity("#9F9F9F", 30)}
+                    />
+                  )}
+                </Pressable>
+              ))}
+            </ScrollView>
+            <View style={styles.multilineModalButtonContainer}>
+              <Pressable
+                style={styles.multilineModalOkButton}
+                onPress={() =>
+                  setMultiSettings({ ...multiSettings, modal: false })
+                }
+              >
+                <Text style={styles.multilineModalOkButtonText}>OK</Text>
+              </Pressable>
+            </View>
+          </View>
+        </ModalBase>
       )}
     </View>
   );
@@ -772,5 +1014,85 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderTopColor: hexcodeLuminosity("#3F3C3C", 20),
     borderTopWidth: 1,
+  },
+  graphHintContainer: {
+    position: "absolute",
+    top: 20, // 16 is the top bound of the SVG element + 4 for "padding"
+    left: 36, // 32 is the left bound of the SVG element + 4 for "padding"
+    zIndex: 10,
+    minWidth: "15%",
+    padding: 4,
+    backgroundColor: "#3F3C3C66",
+    gap: 8,
+    alignItems: "center",
+    borderRadius: 2,
+  },
+  graphHintItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  graphHintItemText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "white",
+  },
+  graphHintShowHideText: { fontSize: 11, color: "white" },
+  multilineSettingsIcon: {
+    position: "absolute",
+    top: 18,
+    transform: [{ translateX: -24 }],
+    zIndex: 10,
+  },
+  multilineModalBody: {
+    width: "80%",
+    minHeight: "30%",
+    maxHeight: "90%",
+    backgroundColor: "#292929",
+    borderRadius: 10,
+    alignItems: "center",
+    padding: 20,
+    gap: 16,
+  },
+  modalHeaderContainer: {
+    alignSelf: "flex-start",
+  },
+  modalHeaderText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  modalHeaderHelpText: {
+    color: "white",
+    fontSize: 13,
+  },
+  multilineModalOptionsListContainer: { width: "100%" },
+  multilineModalOptionContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    padding: 8,
+    borderBottomWidth: 1,
+    borderColor: hexcodeLuminosity("#3F3C3C", 20),
+  },
+  multilineModalOptionText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  multilineModalOptionSubtext: { color: "white", fontSize: 11 },
+  multilineModalButtonContainer: { flexDirection: "row" },
+  multilineModalOkButton: {
+    flex: 1,
+    width: "30%",
+    borderRadius: 10,
+    padding: 10,
+    alignItems: "center",
+    backgroundColor: "#2B72DE",
+  },
+  multilineModalOkButtonText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
   },
 });
