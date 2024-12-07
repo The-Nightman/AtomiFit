@@ -510,17 +510,20 @@ const ExerciseGraph = ({
 
   /**
    * Handles the selection and deselection of multiline graph datasets based on the rep count.
-   * If the rep count is already selected, it will be removed from the selection.
+   * If the rep count is already selected and the selection count is greater than 1, it will be removed from the selection.
    * If the rep count is not selected and the selection count is less than 10, it will be added to the selection.
    * The selectedData state is reset when the user changes the options to prevent errors.
    *
    * @param {number} repCount - The rep count to be selected or deselected.
-   * @returns void
+   * @returns {void}
    */
   const handleMultilineSelection = (repCount: number): void => {
     setSelectedData({ multiIndex: null, index: null }); // We clear the selected data when the user changes the options to prevent errors
 
-    if (multiSettings.selected.includes(repCount)) {
+    if (
+      multiSettings.selected.includes(repCount) &&
+      multiSettings.selected.length > 1
+    ) {
       setMultiSettings((prevState) => ({
         ...multiSettings,
         selected: prevState.selected.filter((r) => r !== repCount),
