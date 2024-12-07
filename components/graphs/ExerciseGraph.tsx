@@ -345,7 +345,7 @@ const ExerciseGraph = ({
     oneRepMax: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          <Text style={styles.selectedTextBold}>{data.dataPoint.toFixed(2)} </Text>
           KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
           KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
