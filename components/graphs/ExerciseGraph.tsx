@@ -123,11 +123,10 @@ const ExerciseGraph = ({
       ].sort((a, b) => b.length - a.length);
       setMultiSettings({
         modal: false,
-        selected: [
-          dataSortLen[0][0].reps!,
-          dataSortLen[1][0].reps!,
-          dataSortLen[2][0].reps!,
-        ].sort((a, b) => a - b),
+        selected: dataSortLen
+          .slice(0, 3) // We need to slice here as the data may not have 3 rep counts minimum, this method will prevent errors
+          .map((arr) => arr[0].reps!)
+          .sort((a, b) => a - b),
         graphHint: true,
       });
     } else {
@@ -138,7 +137,7 @@ const ExerciseGraph = ({
       // Clear selected data when the graph changes before re-render, data will change when this happens and if we dont clear it, it will cause an error
       setSelectedData({ multiIndex: null, index: null });
     };
-  }, [selectedOptions.selectedGraph]);
+  }, [selectedOptions.selectedGraph, data]);
 
   /**
    * Lambda function to check if the provided data is a 2-dimensional array.
@@ -345,7 +344,9 @@ const ExerciseGraph = ({
     oneRepMax: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint.toFixed(2)} </Text>
+          <Text style={styles.selectedTextBold}>
+            {data.dataPoint.toFixed(2)}{" "}
+          </Text>
           KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
           KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
