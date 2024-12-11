@@ -393,11 +393,13 @@ const graph = (): JSX.Element => {
       maxTime: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
+            //! The graph scales by minutes on the y axis so we need to convert ALL following time based datapoints to minutes for readability
+            const time: number = set.time! / 60;
             // If the date is not in acc or the datapoint is lower than the current sets time
-            if (!acc[set.date] || acc[set.date].dataPoint < set.time!) {
+            if (!acc[set.date] || acc[set.date].dataPoint < time) {
               acc[set.date] = {
                 ...set,
-                dataPoint: set.time!,
+                dataPoint: time,
               };
             }
             return acc;
@@ -411,17 +413,14 @@ const graph = (): JSX.Element => {
       maxSpeed: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
+            // Speed formula (km/h): (distance * 1000) / time * 3.6, we do this for now until the units are implemented
+            const speed: number = (set.distance! * 1000 * 3.6) / set.time!;
             // If the date is not in acc or the datapoint is lower than the current sets speed
-            if (
-              !acc[set.date] ||
-              acc[set.date].dataPoint <
-                Math.round(((set.distance! * 3.6) / set.time!) * 100) / 100
-            ) {
+            if (!acc[set.date] || acc[set.date].dataPoint < speed) {
               // Add the date as a property and the current set as the best set for the date
               acc[set.date] = {
                 ...set,
-                dataPoint:
-                  Math.round(((set.distance! * 3.6) / set.time!) * 100) / 100,
+                dataPoint: speed,
               };
             }
             return acc;
@@ -435,17 +434,14 @@ const graph = (): JSX.Element => {
       maxPace: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
+            // Pace formula: time (minutes) / distance
+            const pace: number = set.time! / 60 / set.distance!;
             // If the date is not in acc or the datapoint is lower than the current sets pace
-            if (
-              !acc[set.date] ||
-              acc[set.date].dataPoint >
-                Math.round((set.time! / (set.distance! / 1000)) * 100) / 100
-            ) {
+            if (!acc[set.date] || acc[set.date].dataPoint > pace) {
               // Add the date as a property and the current set as the best set for the date
               acc[set.date] = {
                 ...set,
-                dataPoint:
-                  Math.round((set.time! / (set.distance! / 1000)) * 100) / 100,
+                dataPoint: pace,
               };
             }
             return acc;
@@ -462,8 +458,7 @@ const graph = (): JSX.Element => {
             if (acc[set.date]) {
               // If the date datapoint is in acc, add the current set's distance to the existing datapoint
               if (acc[set.date].hasOwnProperty("dataPoint")) {
-                acc[set.date].dataPoint =
-                  acc[set.date].dataPoint + set.distance!;
+                acc[set.date].dataPoint += set.distance!;
               } else {
                 // Edge case if date key present but no datapoint property
                 // Add the current set as the best set for the date
@@ -485,18 +480,20 @@ const graph = (): JSX.Element => {
       workoutTime: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
+            const minutes = set.time! / 60;
             if (acc[set.date]) {
               // If the date datapoint is in acc, add the current set's time to the existing datapoint
               if (acc[set.date].hasOwnProperty("dataPoint")) {
-                acc[set.date].dataPoint = acc[set.date].dataPoint + set.time!;
+                acc[set.date].dataPoint += minutes;
+                acc[set.date].time! += set.time!;
               } else {
                 // Edge case if date key present but no datapoint property
                 // Add the current set as the best set for the date
-                acc[set.date] = { ...set, dataPoint: set.time! };
+                acc[set.date] = { ...set, dataPoint: minutes };
               }
             } else {
               // If the date is not in acc, add the current set as the starting point
-              acc[set.date] = { ...set, dataPoint: set.time! };
+              acc[set.date] = { ...set, dataPoint: minutes };
             }
 
             return acc;
