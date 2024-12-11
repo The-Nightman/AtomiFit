@@ -1,9 +1,9 @@
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
-import { LineGraphOptions } from "@/types/graphs";
+import { ExerciseGraphSelections, LineGraphOptions } from "@/types/graphs";
 import GraphDateRangePicker from "./GraphDateRangePicker";
 import ModalBase from "../modals/ModalBase";
 
@@ -57,6 +57,14 @@ const GraphOptions = ({
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [datepickerVisible, setDatepickerVisible] = useState<boolean>(false);
 
+  useEffect(() => {
+    // Set the default selected graph option based on the provided options type
+    setSelectedOptions({
+      ...selectedOptions,
+      selectedGraph: getOptions(optionsType)[0].option,
+    });
+  }, []);
+
   /**
    * Retrieves the available graph options based on the provided type.
    *
@@ -74,8 +82,8 @@ const GraphOptions = ({
    *                        - "DistanceOptions"
    * @returns {{ label: string; option: string; }[]} An array of objects, each containing a label and an option key.
    */
-  const getOptions = (type: string): { label: string; option: string }[] => {
-    const options: { [key: string]: { label: string; option: string }[] } = {
+  const getOptions = (type: string): { label: string; option: ExerciseGraphSelections }[] => {
+    const options: { [key: string]: { label: string; option: ExerciseGraphSelections }[] } = {
       WeightRepsOptions: [
         { label: "Estimated 1RM", option: "oneRepMax" },
         { label: "Max Weight", option: "maxWeight" },

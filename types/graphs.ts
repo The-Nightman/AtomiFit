@@ -1,21 +1,23 @@
 export interface LineGraphOptions {
-  selectedGraph:
-    | WeightRepsOptions
-    | DistanceTimeOptions
-    | WeightTimeOptions
-    | WeightDistanceOptions
-    | WeightOptions
-    | TimeOptions
-    | RepsTimeOptions
-    | RepsDistanceOptions
-    | RepsOptions
-    | DistanceOptions;
+  selectedGraph: ExerciseGraphSelections;
   startDate: "1M" | "3M" | "6M" | "1Y" | "ALL" | string;
   endDate: string;
   graphPoints: boolean;
   yAxisFromZero: boolean;
   trendline: boolean;
 }
+
+export type ExerciseGraphSelections =
+  | WeightRepsOptions
+  | DistanceTimeOptions
+  | WeightTimeOptions
+  | WeightDistanceOptions
+  | WeightOptions
+  | TimeOptions
+  | RepsTimeOptions
+  | RepsDistanceOptions
+  | RepsOptions
+  | DistanceOptions;
 
 type WeightRepsOptions =
   | "oneRepMax"
