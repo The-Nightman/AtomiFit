@@ -20,7 +20,6 @@ import { Set } from "@/types/sets";
 import { LineGraphOptions } from "@/types/graphs";
 import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatTime } from "@/utils/formatTime";
-import { distanceDisplay } from "@/utils/formatDistance";
 import ModalBase from "../modals/ModalBase";
 import { ScrollView } from "react-native-gesture-handler";
 
@@ -186,25 +185,58 @@ const ExerciseGraph = ({
     );
 
     /**
-     * Calculates the bottom value for the y-axis scale.
+     * Calculates an appropriate step size for a given range.
      *
-     * This function rounds down the minimum y extent to the nearest multiple of 50
-     * and subtracts 50 to create a buffer. If the `selectedOptions.yAxisFromZero`
-     * is true or the calculated buffer is less than or equal to 0, it returns 0.
-     * Otherwise, it returns the calculated buffer.
+     * The function determines the order of magnitude of the range and then
+     * selects a step size based on the range's size relative to this magnitude.
      *
-     * @returns {number} The bottom value for the y-axis scale.
+     * @param {number} range - The range of the domain for which to calculate the step size.
+     * @returns {number} The calculated step size.
      */
-    const yScaleBottom = (): number => {
-      // Round down to the nearest multiple of 50 and subtract 50 or add 50 to create a buffer
-      const buffer = Math.floor(yExtents[0]! / 50) * 50 - 50;
-      if (selectedOptions.yAxisFromZero || buffer <= 0) return 0;
-      return buffer;
+    const calculateStep = (range: number): number => {
+      // We use a base 10 logarithm to determine the order of magnitude of the range this
+      // gives us a scalable approach to determining the step size without hardcoding
+      const magnitude = Math.floor(Math.log10(range));
+      const baseStep = Math.pow(10, magnitude);
+
+      // Choose appropriate step size
+      if (range < baseStep * 2) return baseStep / 5; // e.g., 1, 10, 100
+      if (range < baseStep * 5) return baseStep / 2; // e.g., 2, 20, 200
+      return baseStep; // e.g., 5, 50, 500
+    };
+
+    // Calculate the tick step for the y-axis and store it here or we'll be calling the function half a dozen times
+    const tickStep: number =
+      calculateStep(yExtents[1]! - yExtents[0]!) < 1 // We dont want float ticks
+        ? 1
+        : calculateStep(yExtents[1]! - yExtents[0]!);
+
+    /**
+     * Calculates the domain for the y-axis based on the provided data extents and tick step.
+     *
+     * The lower bound is determined by the minimum extent, floored to the nearest tick step,
+     * and optionally set to zero if the `selectedOptions.yAxisFromZero` flag is true or if the
+     * calculated lower bound is less than or equal to zero.
+     *
+     * The upper bound is determined by the maximum extent, ceiled to the nearest tick step.
+     *
+     * @returns {number[]} An array containing the lower and upper bounds of the y-axis domain.
+     */
+    const yDomain = (): number[] => {
+      // We use the tickStep function to calculate the buffer area of the domain for
+      // the y-axis as this will be dynamic and scale for us as the data changes
+      const yBottom = Math.floor(yExtents[0]! / tickStep) * tickStep - tickStep;
+      const yTop = Math.ceil(yExtents[1]! / tickStep) * tickStep + tickStep;
+
+      return [
+        selectedOptions.yAxisFromZero || yBottom <= 0 ? 0 : yBottom, // We dont want to pass negative values but need to account for user settings
+        yTop,
+      ];
     };
 
     // Create a linear scale for the y-axis
     const yScale: d3.ScaleLinear<number, number> = d3.scaleLinear(
-      [yScaleBottom(), Math.ceil(yExtents[1]! / 50) * 50 + 50],
+      yDomain(),
       // graphSize.height - 16 and 16 are the top and bottom bounds of the SVG element respectively
       [graphSize.height - 16, 16]
     );
@@ -251,13 +283,8 @@ const ExerciseGraph = ({
     ];
 
     // Calculate the y-axis tick values, same rounding and buffer calculation as yScale
-    const yTicks: number[] = d3.ticks(
-      selectedOptions.yAxisFromZero
-        ? 0
-        : Math.floor(yExtents[0]! / 50) * 50 - 50,
-      Math.ceil(yExtents[1]! / 50) * 50 + 50,
-      7
-    );
+    // Using d3.range will give us more control but it is stop exclusive so we need to add a number to the end to get the stop
+    const yTicks: number[] = d3.range(yDomain()[0], yDomain()[1] + 1, tickStep);
 
     /**
      * Calculates the trend line for a given dataset.
@@ -425,22 +452,18 @@ const ExerciseGraph = ({
     maxDistance: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.distance! / 1000} </Text>
+          <Text style={styles.selectedTextBold}>{data.dataPoint!} </Text>
           KM -{" "}
-          <Text style={styles.selectedTextBold}>
-            {formatTime(data.dataPoint)}
-          </Text>
+          <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>
         </Text>
       );
     },
     maxTime: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.distance! / 1000} </Text>
+          <Text style={styles.selectedTextBold}>{data.distance!} </Text>
           KM -{" "}
-          <Text style={styles.selectedTextBold}>
-            {formatTime(data.dataPoint)}
-          </Text>
+          <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>
         </Text>
       );
     },
@@ -448,10 +471,7 @@ const ExerciseGraph = ({
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
-          KM/H (
-          <Text style={styles.selectedTextBold}>
-            {distanceDisplay(data.distance!)}{" "}
-          </Text>
+          KM/H (<Text style={styles.selectedTextBold}>{data.distance!} </Text>
           KM -{" "}
           <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>)
         </Text>
@@ -461,12 +481,9 @@ const ExerciseGraph = ({
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>
-            {formatTime(data.dataPoint)}{" "}
+            {formatTime(Math.floor(data.time! / data.distance!))}
           </Text>
-          /KM (
-          <Text style={styles.selectedTextBold}>
-            {distanceDisplay(data.distance!)}{" "}
-          </Text>
+          /KM (<Text style={styles.selectedTextBold}>{data.distance!} </Text>
           KM -{" "}
           <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>)
         </Text>
@@ -475,7 +492,7 @@ const ExerciseGraph = ({
     workoutDistance: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint / 1000} </Text>
+          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
           KM
         </Text>
       );
@@ -483,9 +500,7 @@ const ExerciseGraph = ({
     workoutTime: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>
-            {formatTime(data.dataPoint)}{" "}
-          </Text>
+          <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>
         </Text>
       );
     },
@@ -721,26 +736,32 @@ const ExerciseGraph = ({
           </G>
           {/* Y-axis ticks and grid lines */}
           <G>
-            {graph.yTicks.map((weight, _) => (
+            {graph.yTicks.map((tick, _) => (
               <SvgText
-                key={`text-${weight}`}
+                key={`text-${tick}`}
                 fill="white"
                 fontSize="11"
                 fontWeight="normal"
                 textAnchor="end"
-                x={26}
-                y={graph.yScale(weight) + 3}
+                x={28}
+                y={graph.yScale(tick) + 3}
               >
-                {weight}
+                {
+                  // This is a quick and dirty solution due to the inflexibility of SVG
+                  // elements responsiveness and larger ticks being cut off of the screen
+                  graph.yTicks[1] - graph.yTicks[0] > 500 && tick !== 0 // We dont want to append K to 0
+                    ? `${tick / 1000}K` // If the difference between the ticks is >500 then the step should safely be 1000 or more so we dont get 1.5K for example
+                    : tick
+                }
               </SvgText>
             ))}
-            {graph.yTicks.map((weight, _) => (
+            {graph.yTicks.map((tickLine, _) => (
               <Line
-                key={`line-${weight}`}
+                key={`line-${tickLine}`}
                 x1={32}
                 x2={graphSize.width - 16}
-                y1={graph.yScale(weight)}
-                y2={graph.yScale(weight)}
+                y1={graph.yScale(tickLine)}
+                y2={graph.yScale(tickLine)}
                 stroke={hexcodeLuminosity("#3F3C3C", 20)}
               />
             ))}
