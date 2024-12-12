@@ -71,9 +71,7 @@ const categories = (): JSX.Element => {
                 key={category.id}
                 onPress={() =>
                   router.push({
-                    // Type errors here pre expo-router ~3.5.23 because only half of a given route was typed
-                    // Fixed by updating from 3.5.20, THATS 3 MINOR VERSIONS
-                    pathname: "/exercisesSearch/[category]",
+                    pathname: "/exercises/[category]",
                     params: { category: category.id!, date: date },
                   })
                 }
