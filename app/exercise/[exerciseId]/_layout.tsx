@@ -56,7 +56,7 @@ const ExerciseLayout = (): JSX.Element => {
 
   return (
     <View style={UtilityStyles.flex1}>
-      <View style={[styles.headerContainer]}>
+      <View style={styles.headerContainer}>
         <View style={styles.headerIcon}>
           <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
         </View>
@@ -68,8 +68,8 @@ const ExerciseLayout = (): JSX.Element => {
             tabBarLabelStyle: { color: "white" },
             tabBarStyle: { backgroundColor: "#0F0F0F" },
             tabBarIndicatorStyle: { backgroundColor: "#60DD49" },
+            sceneStyle: { backgroundColor: "#0F0F0F" },
           }}
-          sceneContainerStyle={{ backgroundColor: "#0F0F0F" }}
         >
           <MaterialTopTabs.Screen
             name="track"
@@ -84,12 +84,16 @@ const ExerciseLayout = (): JSX.Element => {
             name="history"
             options={{ tabBarLabel: "History" }}
             initialParams={{
-              exerciseId
+              exerciseId,
             }}
           />
-          <MaterialTopTabs.Screen // This screen is not yet implemented
+          <MaterialTopTabs.Screen
             name="graph"
             options={{ tabBarLabel: "Graph" }}
+            initialParams={{
+              exerciseId,
+              type: exerciseInfo.type,
+            }}
           />
           <MaterialTopTabs.Screen // This screen is not yet implemented
             name="info"

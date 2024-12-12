@@ -30,7 +30,9 @@
     "plugins": [
       "expo-router",
       "expo-localization",
-      "expo-video"
+      "expo-video",
+      "expo-font",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
