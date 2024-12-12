@@ -98,6 +98,7 @@ const ExerciseGraph = ({
   const [graphSize, setGraphSize] = useState<{ width: number; height: number }>(
     { width: 0, height: 0 }
   );
+  const [tickLength, setTickLength] = useState<number>(0); // We need to store the tick length for the y axis so we can make the graph responsive
   // By using an object here instead we can manage both flat and nested arrays of data points
   const [selectedData, setSelectedData] = useState<{
     multiIndex: number | null;
@@ -180,8 +181,8 @@ const ExerciseGraph = ({
     // Create a time scale for the x-axis
     const xScale: d3.ScaleTime<number, number> = d3.scaleUtc(
       [new Date(xExtents[0]!), new Date(xExtents[1]!)],
-      // 32 and graphSize.width - 16 are the left and right bounds of the SVG element respectively
-      [32, graphSize.width - 16]
+      // tickLength + 6 and graphSize.width - 16 are the left and right bounds of the SVG element respectively
+      [tickLength + 6, graphSize.width - 16]
     );
 
     /**
@@ -278,7 +279,7 @@ const ExerciseGraph = ({
       {
         date: new Date(xExtents[0]!).toDateString(),
         textAnchor: "start",
-        xPos: 32,
+        xPos: tickLength + 6,
       },
     ];
 
@@ -344,6 +345,7 @@ const ExerciseGraph = ({
     [
       data,
       graphSize,
+      tickLength,
       selectedOptions.selectedGraph,
       selectedOptions.yAxisFromZero,
     ]
@@ -414,7 +416,7 @@ const ExerciseGraph = ({
     maxVolume: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          <Text style={styles.selectedTextBold}>{data.dataPoint.toLocaleString()} </Text> {/* We need to format large numbers to be more readable */}
           KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
           KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
@@ -433,7 +435,7 @@ const ExerciseGraph = ({
     workoutVolume: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
+          <Text style={styles.selectedTextBold}>{data.dataPoint.toLocaleString()} </Text> {/* We need to format large numbers to be more readable */}
           KG
         </Text>
       );
@@ -646,7 +648,7 @@ const ExerciseGraph = ({
       >
         {isData2D() && (
           <Pressable
-            style={styles.graphHintContainer}
+            style={[styles.graphHintContainer, { left: tickLength + 10 }]} // We need to position using the tick length to prevent overflow
             onPress={() =>
               setMultiSettings((prevState) => ({
                 ...prevState,
@@ -711,9 +713,9 @@ const ExerciseGraph = ({
           </Defs>
           {/* Graph Box */}
           <Rect
-            x={32}
+            x={tickLength + 6} // + 6 for padding between ticks and graph
             y={16}
-            width={graphSize.width - 48}
+            width={graphSize.width - tickLength - 22}
             height={graphSize.height - 32}
             fill="none"
             stroke={hexcodeLuminosity("#3F3C3C", 20)}
@@ -736,29 +738,35 @@ const ExerciseGraph = ({
           </G>
           {/* Y-axis ticks and grid lines */}
           <G>
-            {graph.yTicks.map((tick, _) => (
-              <SvgText
-                key={`text-${tick}`}
-                fill="white"
-                fontSize="11"
-                fontWeight="normal"
-                textAnchor="end"
-                x={28}
-                y={graph.yScale(tick) + 3}
-              >
-                {
-                  // This is a quick and dirty solution due to the inflexibility of SVG
-                  // elements responsiveness and larger ticks being cut off of the screen
-                  graph.yTicks[1] - graph.yTicks[0] > 500 && tick !== 0 // We dont want to append K to 0
-                    ? `${tick / 1000}K` // If the difference between the ticks is >500 then the step should safely be 1000 or more so we dont get 1.5K for example
-                    : tick
-                }
-              </SvgText>
-            ))}
+            {
+              // By using toReversed we can reverse the array and just use index 0 in our onLayout event, also we dont want mutations
+              graph.yTicks.toReversed().map((tick, i) => (
+                <SvgText
+                  key={`text-${tick}`}
+                  onLayout={(e) => {
+                    const { width } = e.nativeEvent.layout;
+                    if (i === 0) {
+                      // We only need to set the tick length once otherwise we will be rapidly changing state many times
+                      setTickLength(width + 11); // + 11 is a reasonable amount of padding between the ticks and the screen edge
+                    }
+                  }}
+                  fill="white"
+                  fontSize="11px"
+                  fontWeight="normal"
+                  textAnchor="end"
+                  x={tickLength}
+                  y={graph.yScale(tick) + 3}
+                >
+                  {
+                    tick.toLocaleString() // We need to do this so that large numbers are readable, same as the display variants
+                  }
+                </SvgText>
+              ))
+            }
             {graph.yTicks.map((tickLine, _) => (
               <Line
                 key={`line-${tickLine}`}
-                x1={32}
+                x1={tickLength + 6} // + 6 for padding between ticks and graph
                 x2={graphSize.width - 16}
                 y1={graph.yScale(tickLine)}
                 y2={graph.yScale(tickLine)}
@@ -1061,7 +1069,6 @@ const styles = StyleSheet.create({
   graphHintContainer: {
     position: "absolute",
     top: 20, // 16 is the top bound of the SVG element + 4 for "padding"
-    left: 36, // 32 is the left bound of the SVG element + 4 for "padding"
     zIndex: 10,
     minWidth: "15%",
     padding: 4,
