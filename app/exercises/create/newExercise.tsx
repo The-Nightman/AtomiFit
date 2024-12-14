@@ -104,6 +104,12 @@ const newExercise = (): JSX.Element => {
         message: "Exercise Saved",
         colour: "#388E3C",
       });
+      setFormData({
+        name: "",
+        notes: "",
+        category: 0,
+        type: "Weight And Reps",
+      });
     } catch (error) {
       setToastState({
         show: true,
@@ -235,7 +241,9 @@ const newExercise = (): JSX.Element => {
       <NewCategoryModal
         modalState={categoryModal}
         setModalState={setCategoryModal}
-        returnCategoryId={(id: number) => setFormData({ ...formData, category: id })}
+        returnCategoryId={(id: number) =>
+          setFormData({ ...formData, category: id })
+        }
       />
     </>
   );
