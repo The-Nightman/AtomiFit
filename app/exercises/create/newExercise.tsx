@@ -15,6 +15,7 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { MaterialIcons } from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
+import NewCategoryModal from "@/components/modals/NewCategoryModal";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -231,6 +232,11 @@ const newExercise = (): JSX.Element => {
           </View>
         </ScrollView>
       </View>
+      <NewCategoryModal
+        modalState={categoryModal}
+        setModalState={setCategoryModal}
+        returnCategoryId={(id: number) => setFormData({ ...formData, category: id })}
+      />
     </>
   );
 };
