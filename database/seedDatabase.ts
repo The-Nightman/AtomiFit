@@ -77,6 +77,13 @@ export const seedDatabase = async (
   // When in development mode we need to clear the database of any existing
   // workout data and seed the database with the test workout
   if (__DEV__) {
+    // During testing we may add or remove categories and exercises so we need to clear these too
+    await db.delete(schema.categories);
+    await db.delete(schema.exercises);
+
+    await db.insert(schema.categories).values(categoriesData);
+    await db.insert(schema.exercises).values(exercisesData);
+
     await db.delete(schema.setsData);
     await db
       .insert(schema.setsData)

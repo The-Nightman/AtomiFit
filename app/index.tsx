@@ -234,8 +234,8 @@ const index = () => {
                 style={styles.headerExercisesButton}
                 onPress={() =>
                   router.push({
-                    // /exercisesSearch/categories avoids trapping the query param in the layout
-                    pathname: "/exercisesSearch/categories",
+                    // /exercises/search/categories avoids trapping the query param in the layout
+                    pathname: "/exercises/search/categories",
                     params: { date: date },
                   })
                 }

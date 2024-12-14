@@ -1,12 +1,16 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Link, Stack } from "expo-router";
+import { Link, router, Stack } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 
 /**
- * ExercisesSearchLayout component.
- * 
+ * ExercisesLayout component.
+ *
  * This renders the layout for browsing exercises in both the categories screen and [category] dynamic route.
  * It includes a header with a close/back button, a title, and an add button.
  * The layout uses Stack navigator to navigate between categories and exercises by [category].
@@ -19,14 +23,34 @@ const ExercisesSearchLayout = (): JSX.Element => {
   return (
     <View style={UtilityStyles.flex1}>
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-        <Link href="../" asChild>
-          <MaterialIcons name="close" size={44} color="#292929" />
-        </Link>
+        <Pressable
+          onPress={() => {
+            router.back();
+          }}
+        >
+          {({ pressed }) => (
+            <MaterialIcons
+              name="close"
+              size={44}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+            />
+          )}
+        </Pressable>
         <Text style={{ fontSize: 28, fontWeight: "500" }}>
           Browse Exercises
         </Text>
-        <Pressable>
-          <MaterialIcons name="add" size={44} color="#292929" />
+        <Pressable
+          onPress={() => {
+            router.push("/exercises/create/newExercise");
+          }}
+        >
+          {({ pressed }) => (
+            <MaterialIcons
+              name="add"
+              size={44}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+            />
+          )}
         </Pressable>
       </View>
       <Stack

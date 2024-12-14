@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { SafeAreaView, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
@@ -9,6 +9,7 @@ import SearchBar from "@/components/SearchBar";
 import { Exercise } from "@/types/exercise";
 import { ScrollView } from "react-native-gesture-handler";
 import UtilityStyles from "@/constants/UtilityStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Dynamic route [category] component that displays a list of exercises for a given category.
@@ -21,6 +22,7 @@ import UtilityStyles from "@/constants/UtilityStyles";
  * @returns {JSX.Element} The rendered component.
  */
 const CategoryExercises = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   // One less state is declared here compared to categories.tsx as the list will only use one possible type and component.
   // This should reduce re-renders and improve net performance despite it being a small component.
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -72,6 +74,7 @@ const CategoryExercises = (): JSX.Element => {
   }, [search]);
 
   return (
+    
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
       <ScrollView>
