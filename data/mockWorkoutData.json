@@ -194,7 +194,7 @@
     {
       "date": "",
       "exercise_id": 55,
-      "distance": 4430,
+      "distance": 4.43,
       "time": 1500,
       "notes": "treadmill 4.43km 25min"
     }
@@ -394,7 +394,7 @@
     {
       "date": "",
       "exercise_id": 55,
-      "distance": 4430,
+      "distance": 4.43,
       "time": 1500,
       "notes": "treadmill 4.43km 25min"
     }
@@ -785,7 +785,7 @@
     {
       "date": "",
       "exercise_id": 55,
-      "distance": 4540,
+      "distance": 4.54,
       "time": 1800,
       "notes": "treadmill 4.54km 30min"
     }
@@ -985,7 +985,7 @@
     {
       "date": "",
       "exercise_id": 55,
-      "distance": 4350,
+      "distance": 4.35,
       "time": 1800,
       "notes": "treadmill 4.35km 30min"
     }
@@ -1376,7 +1376,7 @@
     {
       "date": "",
       "exercise_id": 55,
-      "distance": 4430,
+      "distance": 4.43,
       "time": 1800,
       "notes": "treadmill 4.43km 30min"
     }
@@ -1576,7 +1576,7 @@
     {
       "date": "",
       "exercise_id": 55,
-      "distance": 4670,
+      "distance": 4.67,
       "time": 1800,
       "notes": "treadmill 4.67km 30min"
     }
