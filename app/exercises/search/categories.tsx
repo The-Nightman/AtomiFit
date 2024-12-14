@@ -71,7 +71,7 @@ const categories = (): JSX.Element => {
                 key={category.id}
                 onPress={() =>
                   router.push({
-                    pathname: "/exercises/[category]",
+                    pathname: "/exercises/search/[category]",
                     params: { category: category.id!, date: date },
                   })
                 }
