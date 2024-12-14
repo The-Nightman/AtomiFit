@@ -34,7 +34,16 @@ interface NewCategoryModalProps {
  * @param {boolean} props.modalState - The state of the modal (open/closed).
  * @param {Function} props.setModalState - Function to set the state of the modal.
  * @param {Function} props.returnCategoryId - Function to return the ID of the newly created category.
+ * 
  * @returns {JSX.Element} The rendered NewCategoryModal component.
+ * 
+ * @example
+ * ```tsx
+ * <NewCategoryModal
+ *   modalState={modalState}
+ *   setModalState={setModalState}
+ *   returnCategoryId={(id) => console.log(id)}
+ * />
  */
 const NewCategoryModal = ({
   modalState,

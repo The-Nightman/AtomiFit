@@ -26,6 +26,15 @@ interface ColourPickerModalProps {
  * @param {Function} props.setColour - Function to set the selected color.
  *
  * @returns {JSX.Element} The ColourPickerModal component.
+ * 
+ * @example
+ * ```tsx
+ * <ColourPickerModal
+ *   modalState={modalState}
+ *   setModalState={setModalState}
+ *   defaultColour="#000000"
+ *   setColour={(colour) => console.log(colour)}
+ * />
  */
 const ColourPickerModal = ({
   modalState,

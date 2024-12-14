@@ -15,6 +15,7 @@ interface ToastProps {
  * The toast component makes use of react-native-reanimated to animate the toast on mount and dismount.
  * @remarks This components visibility should be controlled in the parent component by means of conditional rendering.
  *
+ * @component
  * @param {ToastProps} props - The props for the component.
  * @param {string} props.message - The message to display inside the toast.
  * @param {ColorValue} props.colour - The background color of the toast.
@@ -22,6 +23,10 @@ interface ToastProps {
  * @param {number} [props.autoDismissTime=3000] - (optional) Time in milliseconds before the toast is automatically dismissed.
  *
  * @returns {JSX.Element} The rendered toast component.
+ * @example
+ * ```tsx
+ * {showToast && <Toast message="This is a toast message" colour="#FF0000" />}
+ * ```
  */
 const Toast = ({
   message,
