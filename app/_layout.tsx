@@ -1,7 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { Entypo, MaterialIcons, AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Entypo,
+  MaterialIcons,
+  AntDesign,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import * as SplashScreen from "expo-splash-screen";
 import LottieSplashScreen from "@/components/Splash/LottieSplashScreen";
 import { DrizzleProvider, DrizzleContext } from "@/contexts/drizzleContext";
@@ -47,8 +52,14 @@ const RootLayoutNav = () => {
         >
           <Stack.Screen name="index" options={{ gestureEnabled: true }} />
           <Stack.Screen name="(calendar)" options={{ gestureEnabled: true }} />
-          <Stack.Screen name="exercises" options={{ gestureEnabled: true, presentation:"modal" }} />
-          <Stack.Screen name="exercise/[exerciseId]" options={{ gestureEnabled: true }} />
+          <Stack.Screen
+            name="exercises"
+            options={{ gestureEnabled: true, presentation: "modal" }}
+          />
+          <Stack.Screen
+            name="exercise/[exerciseId]"
+            options={{ gestureEnabled: true }}
+          />
         </Stack>
       </GestureHandlerRootView>
     </DrizzleProvider>

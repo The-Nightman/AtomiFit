@@ -123,8 +123,8 @@ const WorkoutView = ({
           <Pressable
             onPress={() =>
               router.push({
-                // /exercises/categories avoids trapping the query param in the layout
-                pathname: "/exercises/categories",
+                // /exercises/search/categories avoids trapping the query param in the layout
+                pathname: "/exercises/search/categories",
                 params: { date: date },
               })
             }
