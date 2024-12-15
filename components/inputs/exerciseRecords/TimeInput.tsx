@@ -12,6 +12,7 @@ import {
 import { TextInput } from "react-native-gesture-handler";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { formatTime } from "@/utils/formatTime";
+import ModalBase from "@/components/modals/ModalBase";
 
 interface TimeInputProps {
   value: number;
@@ -275,98 +276,95 @@ const TimeInput = ({
   return (
     <>
       <Pressable
-        style={[initialButtonStyle, modalState && focusStyle]}
+        // We need to cast focusStyle as ViewStyle to avoid type error, we know certain
+        // styles wont be applied and thats fine as long as the ones we want are
+        style={[initialButtonStyle, modalState && (focusStyle as ViewStyle)]}
         onPress={() => setModalState(true)}
       >
         <Text style={initialButtonTextStyle}>{formatTime(value)}</Text>
       </Pressable>
-      <Modal
-        visible={modalState}
-        animationType="fade"
-        transparent={true}
-        statusBarTranslucent={true}
-        onRequestClose={() => handleCancel()}
+      <ModalBase
+        modalState={modalState}
+        setModalState={() => handleCancel()}
+        onDismiss={() => handleCancel()}
       >
-        <Pressable style={styles.modalBackdrop} onPress={() => handleCancel()}>
-          {/* Modal body, pressable is needed to negate parent as pointerEvents is not working as required or stated */}
-          <Pressable style={styles.modalBody}>
-            <View style={styles.modalSubContainer}>
-              <Text style={styles.inputTitle}>TIME</Text>
-              {/* Input container */}
-              <View
+        <View style={styles.modalBody}>
+          <View style={styles.modalSubContainer}>
+            <Text style={styles.inputTitle}>TIME</Text>
+            {/* Input container */}
+            <View
+              style={[
+                styles.inputContainer,
+                handleContainerFocusStyle() && {
+                  backgroundColor: inputContainerFocusColour,
+                },
+              ]}
+            >
+              <TextInput
+                keyboardType="numeric"
+                value={state.inputHours}
+                onChangeText={(text) => handleChange(text, "hr")}
+                onFocus={() => handleFocus(hoursInputRef)}
+                onBlur={() => handleBlur()}
                 style={[
-                  styles.inputContainer,
-                  handleContainerFocusStyle() && {
-                    backgroundColor: inputContainerFocusColour,
-                  },
+                  inputStyle,
+                  hoursInputRef.current?.isFocused() && focusStyle,
                 ]}
-              >
-                <TextInput
-                  keyboardType="numeric"
-                  value={state.inputHours}
-                  onChangeText={(text) => handleChange(text, "hr")}
-                  onFocus={() => handleFocus(hoursInputRef)}
-                  onBlur={() => handleBlur()}
-                  style={[
-                    inputStyle,
-                    hoursInputRef.current?.isFocused() && focusStyle,
-                  ]}
-                  selectionColor={selectionColor}
-                  placeholder="HH"
-                  placeholderTextColor={"gray"}
-                  maxLength={2}
-                  ref={hoursInputRef}
-                />
-                <Text style={inputStyle}> : </Text>
-                <TextInput
-                  keyboardType="numeric"
-                  value={state.inputMinutes}
-                  onChangeText={(text) => handleChange(text, "m")}
-                  onFocus={() => handleFocus(minutesInputRef)}
-                  onBlur={() => handleBlur()}
-                  style={[
-                    inputStyle,
-                    minutesInputRef.current?.isFocused() && focusStyle,
-                  ]}
-                  selectionColor={selectionColor}
-                  placeholder="MM"
-                  placeholderTextColor={"gray"}
-                  maxLength={2}
-                  ref={minutesInputRef}
-                />
-                <Text style={inputStyle}> : </Text>
-                <TextInput
-                  keyboardType="numeric"
-                  value={state.inputSeconds}
-                  onChangeText={(text) => handleChange(text, "s")}
-                  onFocus={() => handleFocus(secondsInputRef)}
-                  onBlur={() => handleBlur()}
-                  style={[
-                    inputStyle,
-                    secondsInputRef.current?.isFocused() && focusStyle,
-                  ]}
-                  selectionColor={selectionColor}
-                  placeholder="SS"
-                  placeholderTextColor={"gray"}
-                  maxLength={2}
-                  ref={secondsInputRef}
-                />
-              </View>
+                selectionColor={selectionColor}
+                placeholder="HH"
+                placeholderTextColor={"gray"}
+                maxLength={2}
+                ref={hoursInputRef}
+              />
+              <Text style={[inputStyle, { flex: 0 }]}>:</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={state.inputMinutes}
+                onChangeText={(text) => handleChange(text, "m")}
+                onFocus={() => handleFocus(minutesInputRef)}
+                onBlur={() => handleBlur()}
+                style={[
+                  inputStyle,
+                  minutesInputRef.current?.isFocused() && focusStyle,
+                ]}
+                selectionColor={selectionColor}
+                placeholder="MM"
+                placeholderTextColor={"gray"}
+                maxLength={2}
+                ref={minutesInputRef}
+              />
+              <Text style={[inputStyle, { flex: 0 }]}>:</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={state.inputSeconds}
+                onChangeText={(text) => handleChange(text, "s")}
+                onFocus={() => handleFocus(secondsInputRef)}
+                onBlur={() => handleBlur()}
+                style={[
+                  inputStyle,
+                  secondsInputRef.current?.isFocused() && focusStyle,
+                ]}
+                selectionColor={selectionColor}
+                placeholder="SS"
+                placeholderTextColor={"gray"}
+                maxLength={2}
+                ref={secondsInputRef}
+              />
             </View>
-            <View style={styles.modalButtonContainer}>
-              <Pressable style={styles.saveButton} onPress={() => handleSave()}>
-                <Text style={styles.buttonText}>SAVE</Text>
-              </Pressable>
-              <Pressable
-                style={styles.cancelButton}
-                onPress={() => handleCancel()}
-              >
-                <Text style={styles.buttonText}>CANCEL</Text>
-              </Pressable>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+          <View style={styles.modalButtonContainer}>
+            <Pressable
+              style={styles.cancelButton}
+              onPress={() => handleCancel()}
+            >
+              <Text style={styles.buttonText}>CANCEL</Text>
+            </Pressable>
+            <Pressable style={styles.saveButton} onPress={() => handleSave()}>
+              <Text style={styles.buttonText}>SAVE</Text>
+            </Pressable>
+          </View>
+        </View>
+      </ModalBase>
     </>
   );
 };
@@ -374,15 +372,8 @@ const TimeInput = ({
 export default TimeInput;
 
 const styles = StyleSheet.create({
-  modalBackdrop: {
-    backgroundColor: "#00000066",
-    height: "100%",
-    width: "auto",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   modalBody: {
-    width: "80%",
+    width: "90%",
     minHeight: "30%",
     maxHeight: "70%",
     backgroundColor: "#292929",
