@@ -1,3 +1,5 @@
+import { Unit } from "./units";
+
 export interface Set {
   id?: number;
   date: string;
@@ -7,4 +9,5 @@ export interface Set {
   distance: number | null;
   time: number | null;
   notes: string | null;
+  unit: Unit;
 }
