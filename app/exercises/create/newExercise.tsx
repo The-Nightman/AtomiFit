@@ -16,6 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
 import NewCategoryModal from "@/components/modals/NewCategoryModal";
+import { DistanceUnit, Unit, WeightUnit } from "@/types/units";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -31,13 +32,13 @@ const newExercise = (): JSX.Element => {
     notes: string;
     category: number;
     type: string;
-    // unit: string; not yet implemented
+    unit: Unit;
   }>({
     name: "",
     notes: "",
     category: 0,
     type: "Weight And Reps",
-    // unit: "", not yet implemented
+    unit: null,
   });
   const [toastState, setToastState] = useState<{
     show: boolean;
@@ -74,6 +75,22 @@ const newExercise = (): JSX.Element => {
     "Time",
   ];
 
+  const units: {
+    weight: { label: string; value: WeightUnit }[];
+    distance: { label: string; value: DistanceUnit }[];
+  } = {
+    weight: [
+      { label: "Metric (Kilogram) - Kg", value: "Kg" },
+      { label: "Imperial (Pounds) - Lbs", value: "Lbs" },
+    ],
+    distance: [
+      { label: "Kilometres - Km", value: "Km" },
+      { label: "Miles - Mi", value: "Mi" },
+      { label: "Metres - M", value: "M" },
+      { label: "Feet - Ft", value: "Ft" },
+    ],
+  };
+
   const handleSaveExercise = async () => {
     if (formData.name === "") {
       setToastState({
@@ -98,6 +115,7 @@ const newExercise = (): JSX.Element => {
         notes: formData.notes,
         type: formData.type,
         category_id: formData.category,
+        unit: formData.unit,
       });
       setToastState({
         show: true,
@@ -109,6 +127,7 @@ const newExercise = (): JSX.Element => {
         notes: "",
         category: 0,
         type: "Weight And Reps",
+        unit: null,
       });
     } catch (error) {
       setToastState({
@@ -232,10 +251,60 @@ const newExercise = (): JSX.Element => {
               ))}
             </Picker>
           </View>
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>UNIT</Text>
-            <Text style={{ color: "white" }}>not yet implemented</Text>
-          </View>
+          {/weight/i.test(formData.type) && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>WEIGHT UNIT</Text>
+              <Picker
+                mode="dropdown"
+                style={[
+                  styles.picker,
+                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
+                ]}
+                itemStyle={styles.pickerItemIos}
+                selectedValue={formData.unit}
+                onValueChange={(itemValue: Unit) =>
+                  setFormData({ ...formData, unit: itemValue })
+                }
+              >
+                {/weight/i.test(formData.type) &&
+                  units.weight.map((unit) => (
+                    <Picker.Item
+                      key={unit.value}
+                      style={styles.pickerItemAndroid}
+                      label={unit.label}
+                      value={unit.value}
+                    />
+                  ))}
+              </Picker>
+            </View>
+          )}
+          {/distance/i.test(formData.type) && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>DISTANCE UNIT</Text>
+              <Picker
+                mode="dropdown"
+                style={[
+                  styles.picker,
+                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
+                ]}
+                itemStyle={styles.pickerItemIos}
+                selectedValue={formData.unit}
+                onValueChange={(itemValue: Unit) =>
+                  setFormData({ ...formData, unit: itemValue })
+                }
+              >
+                {/distance/i.test(formData.type) &&
+                  units.distance.map((unit) => (
+                    <Picker.Item
+                      key={unit.value}
+                      style={styles.pickerItemAndroid}
+                      label={unit.label}
+                      value={unit.value}
+                    />
+                  ))}
+              </Picker>
+            </View>
+          )}
         </ScrollView>
       </View>
       <NewCategoryModal
