@@ -1,6 +1,5 @@
 import {
   ColorValue,
-  Modal,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 import SelectTextInput from "../SelectTextInput";
 import { useEffect, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
+import ModalBase from "@/components/modals/ModalBase";
 
 // Accepted distance unit strings, used for state, props interface and function params
 type DistanceUnit = "Km" | "M" | "Mi" | "Ft";
@@ -40,7 +40,7 @@ interface DistanceInputProps {
  * value in the parent component when saved. The component uses the SelectTextInput component for the
  * distance input field to avoid the need to add extra state and handling compared to TimeInput component.
  * The user can enter a decimal number for the distance and select a unit of measurement.
- * The distance value is saved in meters for easier caluclations and conversions elsewhere such as analytics.
+ * The distance value is saved raw with the distance unit saved in the set data for conversions elsewhere such as analytics.
  * The component uses a controlled component approach to manage the input states.
  * When the save button is pressed, the distance value is saved to the database by a DistanceInput specific
  * handling function in the parent and the modal is closed. When the cancel button or backdrop is pressed,
@@ -177,69 +177,84 @@ const DistanceInput = ({
   return (
     <>
       <Pressable
-        style={[initialButtonStyle, modalState && focusStyle]}
+        // We need to cast focusStyle as ViewStyle to avoid type error, we know certain
+        // styles wont be applied and thats fine as long as the ones we want are
+        style={[initialButtonStyle, modalState && (focusStyle as ViewStyle)]}
         onPress={() => setModalState(true)}
       >
         <Text style={initialButtonTextStyle}>
           {value} {suffix}
         </Text>
       </Pressable>
-      <Modal
-        visible={modalState}
-        animationType="fade"
-        transparent={true}
-        statusBarTranslucent={true}
-        onRequestClose={() => handleCancel()}
+      <ModalBase
+        modalState={modalState}
+        setModalState={() => handleCancel()}
+        onDismiss={() => handleCancel()}
       >
-        <Pressable style={styles.modalBackdrop} onPress={() => handleCancel()}>
-          {/* Modal body, pressable is needed to negate parent as pointerEvents is not working as required or stated */}
-          <Pressable style={styles.modalBody}>
-            <View style={styles.inputContainer}>
-              {/* Distance */}
-              <View>
-                <Text style={styles.inputTitle}>DISTANCE</Text>
-                <SelectTextInput
-                  inputType={"decimal"}
-                  value={state.distance.toString()}
-                  validation={validation}
-                  onChangeFunc={(val) => distanceOnChangeFunc(val)}
-                  onBlurFunc={distanceOnBlurFunc}
-                  style={inputStyle}
-                  focusStyle={focusStyle}
-                  selectionColor={selectionColor}
-                />
-              </View>
-              {/* Distance Unit */}
-              <View>
-                <Text style={styles.inputTitle}>UNIT</Text>
-                <Picker
-                  style={inputStyle}
-                  selectedValue={state.distanceUnit}
-                  onValueChange={(value) =>
-                    setState({ ...state, distanceUnit: value })
-                  }
-                >
-                  <Picker.Item label="Kilometres - Km" value="Km" />
-                  <Picker.Item label="Metres - M" value="M" />
-                  <Picker.Item label="Miles - Mi" value="Mi" />
-                  <Picker.Item label="Feet - Ft" value="Ft" />
-                </Picker>
-              </View>
+        {/* Modal body, pressable is needed to negate parent as pointerEvents is not working as required or stated */}
+        <View style={styles.modalBody}>
+          <View style={styles.inputContainer}>
+            {/* Distance */}
+            <View>
+              <Text style={styles.inputTitle}>DISTANCE</Text>
+              <SelectTextInput
+                inputType={"decimal"}
+                value={state.distance.toString()}
+                validation={validation}
+                onChangeFunc={(val) => distanceOnChangeFunc(val)}
+                onBlurFunc={distanceOnBlurFunc}
+                style={inputStyle}
+                focusStyle={focusStyle}
+                selectionColor={selectionColor}
+              />
             </View>
-            <View style={styles.modalButtonContainer}>
-              <Pressable style={styles.saveButton} onPress={() => handleSave()}>
-                <Text style={styles.buttonText}>SAVE</Text>
-              </Pressable>
-              <Pressable
-                style={styles.cancelButton}
-                onPress={() => handleCancel()}
+            {/* Distance Unit */}
+            <View>
+              <Text style={styles.inputTitle}>UNIT</Text>
+              <Picker
+                style={[inputStyle, { borderColor: "#3F3C3C" }]}
+                itemStyle={styles.pickerItemIos}
+                selectedValue={state.distanceUnit}
+                onValueChange={(value) =>
+                  setState({ ...state, distanceUnit: value })
+                }
               >
-                <Text style={styles.buttonText}>CANCEL</Text>
-              </Pressable>
+                <Picker.Item
+                  style={styles.pickerItemAndroid}
+                  label="Kilometres - Km"
+                  value="Km"
+                />
+                <Picker.Item
+                  style={styles.pickerItemAndroid}
+                  label="Metres - M"
+                  value="M"
+                />
+                <Picker.Item
+                  style={styles.pickerItemAndroid}
+                  label="Miles - Mi"
+                  value="Mi"
+                />
+                <Picker.Item
+                  style={styles.pickerItemAndroid}
+                  label="Feet - Ft"
+                  value="Ft"
+                />
+              </Picker>
             </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+          <View style={styles.modalButtonContainer}>
+            <Pressable style={styles.saveButton} onPress={() => handleSave()}>
+              <Text style={styles.buttonText}>SAVE</Text>
+            </Pressable>
+            <Pressable
+              style={styles.cancelButton}
+              onPress={() => handleCancel()}
+            >
+              <Text style={styles.buttonText}>CANCEL</Text>
+            </Pressable>
+          </View>
+        </View>
+      </ModalBase>
     </>
   );
 };
@@ -247,14 +262,8 @@ const DistanceInput = ({
 export default DistanceInput;
 
 const styles = StyleSheet.create({
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "#00000066",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   modalBody: {
-    width: "80%",
+    width: "85%",
     minHeight: "35%",
     maxHeight: "70%",
     backgroundColor: "#292929",
@@ -292,5 +301,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: "center",
   },
+  pickerItemIos: { color: "white" },
+  pickerItemAndroid: { color: "white", backgroundColor: "#3F3C3C" },
   buttonText: { fontSize: 20, fontWeight: "bold", color: "white" },
 });
