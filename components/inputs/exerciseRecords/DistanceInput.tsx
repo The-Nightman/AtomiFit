@@ -191,7 +191,6 @@ const DistanceInput = ({
         setModalState={() => handleCancel()}
         onDismiss={() => handleCancel()}
       >
-        {/* Modal body, pressable is needed to negate parent as pointerEvents is not working as required or stated */}
         <View style={styles.modalBody}>
           <View style={styles.inputContainer}>
             {/* Distance */}
@@ -243,14 +242,14 @@ const DistanceInput = ({
             </View>
           </View>
           <View style={styles.modalButtonContainer}>
-            <Pressable style={styles.saveButton} onPress={() => handleSave()}>
-              <Text style={styles.buttonText}>SAVE</Text>
-            </Pressable>
             <Pressable
               style={styles.cancelButton}
               onPress={() => handleCancel()}
             >
               <Text style={styles.buttonText}>CANCEL</Text>
+            </Pressable>
+            <Pressable style={styles.saveButton} onPress={() => handleSave()}>
+              <Text style={styles.buttonText}>SAVE</Text>
             </Pressable>
           </View>
         </View>
