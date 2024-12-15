@@ -5,189 +5,216 @@
       "exercise_id": 78,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 50,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 5,
-      "notes": "1st set squats"
+      "notes": "1st set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 5,
-      "notes": "2nd set squats"
+      "notes": "2nd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 5,
-      "notes": "3rd set squats"
+      "notes": "3rd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 50,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 60,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 5,
-      "notes": "1st set bench press"
+      "notes": "1st set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 5,
-      "notes": "2nd set bench press"
+      "notes": "2nd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 6,
-      "notes": "3rd set bench press"
+      "notes": "3rd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 70,
       "reps": 12,
-      "notes": "1st set romanian deadlift"
+      "notes": "1st set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 70,
       "reps": 12,
-      "notes": "2nd set romanian deadlift"
+      "notes": "2nd set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 70,
       "reps": 12,
-      "notes": "3rd set romanian deadlift"
+      "notes": "3rd set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 8,
-      "notes": "1st set tricep dips"
+      "notes": "1st set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 8,
-      "notes": "2nd set tricep dips"
+      "notes": "2nd set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 8,
-      "notes": "3rd set tricep dips"
+      "notes": "3rd set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 10,
-      "notes": "1st set seated incline curl"
+      "notes": "1st set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 10,
-      "notes": "2nd set seated incline curl"
+      "notes": "2nd set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 10,
-      "notes": "3rd set seated incline curl"
+      "notes": "3rd set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 12,
-      "notes": "1st set standing calf raise"
+      "notes": "1st set standing calf raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 12,
-      "notes": "2nd set standing calf raise"
+      "notes": "2nd set standing calf raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 12,
-      "notes": "3rd set standing calf raise"
+      "notes": "3rd set standing calf raise",
+      "unit": "kg"
     }
   ],
   [
@@ -196,7 +223,8 @@
       "exercise_id": 55,
       "distance": 4.43,
       "time": 1500,
-      "notes": "treadmill 4.43km 25min"
+      "notes": "treadmill 4.43km 25min",
+      "unit": "km"
     }
   ],
   [
@@ -205,189 +233,216 @@
       "exercise_id": 19,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 70,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 100,
       "reps": 3,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 140,
       "reps": 5,
-      "notes": "deadlift top set"
+      "notes": "deadlift top set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 20,
       "reps": 8,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 40,
       "reps": 6,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 45,
       "reps": 5,
-      "notes": "1st set overhead press"
+      "notes": "1st set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 45,
       "reps": 5,
-      "notes": "2nd set overhead press"
+      "notes": "2nd set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 45,
       "reps": 6,
-      "notes": "3rd set overhead press"
+      "notes": "3rd set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 40,
       "reps": 10,
-      "notes": "1st set low row"
+      "notes": "1st set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 40,
       "reps": 10,
-      "notes": "2nd set low row"
+      "notes": "2nd set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 40,
       "reps": 10,
-      "notes": "3rd set low row"
+      "notes": "3rd set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 10,
-      "notes": "1st set leg extension"
+      "notes": "1st set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 10,
-      "notes": "2nd set leg extension"
+      "notes": "2nd set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 10,
-      "notes": "3rd set leg extension"
+      "notes": "3rd set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 10,
-      "notes": "1st set cable fly"
+      "notes": "1st set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 10,
-      "notes": "2nd set cable fly"
+      "notes": "2nd set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 10,
-      "notes": "3rd set cable fly"
+      "notes": "3rd set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 10,
-      "notes": "1st set overhead cable tricep extension"
+      "notes": "1st set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 10,
-      "notes": "2nd set overhead cable tricep extension"
+      "notes": "2nd set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 10,
-      "notes": "3rd set overhead cable tricep extension"
+      "notes": "3rd set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 10,
-      "notes": "1st set hammer curl"
+      "notes": "1st set hammer curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 10,
-      "notes": "2nd set hammer curl"
+      "notes": "2nd set hammer curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 10,
-      "notes": "3rd set hammer curl"
+      "notes": "3rd set hammer curl",
+      "unit": "kg"
     }
   ],
   [
@@ -396,7 +451,8 @@
       "exercise_id": 55,
       "distance": 4.43,
       "time": 1500,
-      "notes": "treadmill 4.43km 25min"
+      "notes": "treadmill 4.43km 25min",
+      "unit": "km"
     }
   ],
   [
@@ -405,189 +461,216 @@
       "exercise_id": 78,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 50,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 5,
-      "notes": "1st set squats"
+      "notes": "1st set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 5,
-      "notes": "2nd set squats"
+      "notes": "2nd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 5,
-      "notes": "3rd set squats"
+      "notes": "3rd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 50,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 60,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 5,
-      "notes": "1st set bench press"
+      "notes": "1st set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 5,
-      "notes": "2nd set bench press"
+      "notes": "2nd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 6,
-      "notes": "3rd set bench press"
+      "notes": "3rd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 9,
-      "notes": "1st set hip thrust"
+      "notes": "1st set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 9,
-      "notes": "2nd set hip thrust"
+      "notes": "2nd set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 9,
-      "notes": "3rd set hip thrust"
+      "notes": "3rd set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 15,
-      "notes": "1st set cable face pull"
+      "notes": "1st set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 15,
-      "notes": "2nd set cable face pull"
+      "notes": "2nd set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 15,
-      "notes": "3rd set cable face pull"
+      "notes": "3rd set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 8,
       "reps": 10,
-      "notes": "1st set lateral raise"
+      "notes": "1st set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 8,
       "reps": 10,
-      "notes": "2nd set lateral raise"
+      "notes": "2nd set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 8,
       "reps": 10,
-      "notes": "3rd set lateral raise"
+      "notes": "3rd set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 52.5,
       "reps": 10,
-      "notes": "1st set lying leg curl"
+      "notes": "1st set lying leg curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 52.5,
       "reps": 10,
-      "notes": "2nd set lying leg curl"
+      "notes": "2nd set lying leg curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 52.5,
       "reps": 10,
-      "notes": "3rd set lying leg curl"
+      "notes": "3rd set lying leg curl",
+      "unit": "kg"
     }
   ],
   [
@@ -596,189 +679,216 @@
       "exercise_id": 78,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 50,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 6,
-      "notes": "1st set squats"
+      "notes": "1st set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 6,
-      "notes": "2nd set squats"
+      "notes": "2nd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 55,
       "reps": 6,
-      "notes": "3rd set squats"
+      "notes": "3rd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 50,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 60,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 6,
-      "notes": "1st set bench press"
+      "notes": "1st set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 6,
-      "notes": "2nd set bench press"
+      "notes": "2nd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 82.5,
       "reps": 6,
-      "notes": "3rd set bench press"
+      "notes": "3rd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 72.5,
       "reps": 10,
-      "notes": "1st set romanian deadlift"
+      "notes": "1st set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 72.5,
       "reps": 10,
-      "notes": "2nd set romanian deadlift"
+      "notes": "2nd set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 72.5,
       "reps": 10,
-      "notes": "3rd set romanian deadlift"
+      "notes": "3rd set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 9,
-      "notes": "1st set tricep dips"
+      "notes": "1st set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 9,
-      "notes": "2nd set tricep dips"
+      "notes": "2nd set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 9,
-      "notes": "3rd set tricep dips"
+      "notes": "3rd set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 11,
-      "notes": "1st set seated incline curl"
+      "notes": "1st set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 11,
-      "notes": "2nd set seated incline curl"
+      "notes": "2nd set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 11,
-      "notes": "3rd set seated incline curl"
+      "notes": "3rd set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 13,
-      "notes": "1st set standing calf raise"
+      "notes": "1st set standing calf raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 13,
-      "notes": "2nd set standing calf raise"
+      "notes": "2nd set standing calf raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 13,
-      "notes": "3rd set standing calf raise"
+      "notes": "3rd set standing calf raise",
+      "unit": "kg"
     }
   ],
   [
@@ -787,7 +897,8 @@
       "exercise_id": 55,
       "distance": 4.54,
       "time": 1800,
-      "notes": "treadmill 4.54km 30min"
+      "notes": "treadmill 4.54km 30min",
+      "unit": "km"
     }
   ],
   [
@@ -796,189 +907,216 @@
       "exercise_id": 19,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 70,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 100,
       "reps": 3,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 140,
       "reps": 6,
-      "notes": "deadlift top set"
+      "notes": "deadlift top set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 20,
       "reps": 8,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 40,
       "reps": 6,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 45,
       "reps": 6,
-      "notes": "1st set overhead press"
+      "notes": "1st set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 45,
       "reps": 6,
-      "notes": "2nd set overhead press"
+      "notes": "2nd set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 45,
       "reps": 6,
-      "notes": "3rd set overhead press"
+      "notes": "3rd set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 42.5,
       "reps": 10,
-      "notes": "1st set low row"
+      "notes": "1st set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 42.5,
       "reps": 10,
-      "notes": "2nd set low row"
+      "notes": "2nd set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 42.5,
       "reps": 10,
-      "notes": "3rd set low row"
+      "notes": "3rd set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 11,
-      "notes": "1st set leg extension"
+      "notes": "1st set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 11,
-      "notes": "2nd set leg extension"
+      "notes": "2nd set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 11,
-      "notes": "3rd set leg extension"
+      "notes": "3rd set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 12,
-      "notes": "1st set cable fly"
+      "notes": "1st set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 12,
-      "notes": "2nd set cable fly"
+      "notes": "2nd set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 12,
-      "notes": "3rd set cable fly"
+      "notes": "3rd set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 11,
-      "notes": "1st set overhead cable tricep extension"
+      "notes": "1st set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 11,
-      "notes": "2nd set overhead cable tricep extension"
+      "notes": "2nd set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 11,
-      "notes": "3rd set overhead cable tricep extension"
+      "notes": "3rd set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 11,
-      "notes": "1st set hammer curl"
+      "notes": "1st set hammer curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 11,
-      "notes": "2nd set hammer curl"
+      "notes": "2nd set hammer curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 11,
-      "notes": "3rd set hammer curl"
+      "notes": "3rd set hammer curl",
+      "unit": "kg"
     }
   ],
   [
@@ -987,7 +1125,8 @@
       "exercise_id": 55,
       "distance": 4.35,
       "time": 1800,
-      "notes": "treadmill 4.35km 30min"
+      "notes": "treadmill 4.35km 30min",
+      "unit": "km"
     }
   ],
   [
@@ -996,189 +1135,216 @@
       "exercise_id": 78,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 50,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 57.5,
       "reps": 5,
-      "notes": "1st set squats"
+      "notes": "1st set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 57.5,
       "reps": 5,
-      "notes": "2nd set squats"
+      "notes": "2nd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 57.5,
       "reps": 5,
-      "notes": "3rd set squats"
+      "notes": "3rd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 50,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 60,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 85,
       "reps": 5,
-      "notes": "1st set bench press"
+      "notes": "1st set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 85,
       "reps": 5,
-      "notes": "2nd set bench press"
+      "notes": "2nd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 85,
       "reps": 6,
-      "notes": "3rd set bench press"
+      "notes": "3rd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 10,
-      "notes": "1st set hip thrust"
+      "notes": "1st set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 10,
-      "notes": "2nd set hip thrust"
+      "notes": "2nd set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 10,
-      "notes": "3rd set hip thrust"
+      "notes": "3rd set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 16,
-      "notes": "1st set cable face pull"
+      "notes": "1st set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 16,
-      "notes": "2nd set cable face pull"
+      "notes": "2nd set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 16,
-      "notes": "3rd set cable face pull"
+      "notes": "3rd set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 8,
       "reps": 11,
-      "notes": "1st set lateral raise"
+      "notes": "1st set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 8,
       "reps": 11,
-      "notes": "2nd set lateral raise"
+      "notes": "2nd set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 8,
       "reps": 11,
-      "notes": "3rd set lateral raise"
+      "notes": "3rd set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 52.5,
       "reps": 12,
-      "notes": "1st set lying leg curl"
+      "notes": "1st set lying leg curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 52.5,
       "reps": 12,
-      "notes": "2nd set lying leg curl"
+      "notes": "2nd set lying leg curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 52.5,
       "reps": 12,
-      "notes": "3rd set lying leg curl"
+      "notes": "3rd set lying leg curl",
+      "unit": "kg"
     }
   ],
   [
@@ -1187,189 +1353,216 @@
       "exercise_id": 78,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 50,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 57.5,
       "reps": 6,
-      "notes": "1st set squats"
+      "notes": "1st set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 57.5,
       "reps": 6,
-      "notes": "2nd set squats"
+      "notes": "2nd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 57.5,
       "reps": 6,
-      "notes": "3rd set squats"
+      "notes": "3rd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 50,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 60,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 85,
       "reps": 6,
-      "notes": "1st set bench press"
+      "notes": "1st set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 85,
       "reps": 6,
-      "notes": "2nd set bench press"
+      "notes": "2nd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 85,
       "reps": 6,
-      "notes": "3rd set bench press"
+      "notes": "3rd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 72.5,
       "reps": 11,
-      "notes": "1st set romanian deadlift"
+      "notes": "1st set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 72.5,
       "reps": 11,
-      "notes": "2nd set romanian deadlift"
+      "notes": "2nd set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 92,
       "weight": 72.5,
       "reps": 11,
-      "notes": "3rd set romanian deadlift"
+      "notes": "3rd set romanian deadlift",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 10,
-      "notes": "1st set tricep dips"
+      "notes": "1st set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 10,
-      "notes": "2nd set tricep dips"
+      "notes": "2nd set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 128,
       "weight": 10,
       "reps": 10,
-      "notes": "3rd set tricep dips"
+      "notes": "3rd set tricep dips",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 12,
-      "notes": "1st set seated incline curl"
+      "notes": "1st set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 12,
-      "notes": "2nd set seated incline curl"
+      "notes": "2nd set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 49,
       "weight": 12,
       "reps": 12,
-      "notes": "3rd set seated incline curl"
+      "notes": "3rd set seated incline curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 14,
-      "notes": "1st set standing calf raise"
+      "notes": "1st set standing calf raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 14,
-      "notes": "2nd set standing calf raise"
+      "notes": "2nd set standing calf raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 94,
       "weight": 60,
       "reps": 14,
-      "notes": "3rd set standing calf raise"
+      "notes": "3rd set standing calf raise",
+      "unit": "kg"
     }
   ],
   [
@@ -1378,7 +1571,8 @@
       "exercise_id": 55,
       "distance": 4.43,
       "time": 1800,
-      "notes": "treadmill 4.43km 30min"
+      "notes": "treadmill 4.43km 30min",
+      "unit": "km"
     }
   ],
   [
@@ -1387,189 +1581,216 @@
       "exercise_id": 19,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 70,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 100,
       "reps": 3,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 19,
       "weight": 145,
       "reps": 5,
-      "notes": "deadlift top set"
+      "notes": "deadlift top set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 20,
       "reps": 8,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 40,
       "reps": 6,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 47.5,
       "reps": 5,
-      "notes": "1st set overhead press"
+      "notes": "1st set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 47.5,
       "reps": 5,
-      "notes": "2nd set overhead press"
+      "notes": "2nd set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 108,
       "weight": 47.5,
       "reps": 5,
-      "notes": "3rd set overhead press"
+      "notes": "3rd set overhead press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 42.5,
       "reps": 12,
-      "notes": "1st set low row"
+      "notes": "1st set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 42.5,
       "reps": 12,
-      "notes": "2nd set low row"
+      "notes": "2nd set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 28,
       "weight": 42.5,
       "reps": 12,
-      "notes": "3rd set low row"
+      "notes": "3rd set low row",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 12,
-      "notes": "1st set leg extension"
+      "notes": "1st set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 12,
-      "notes": "2nd set leg extension"
+      "notes": "2nd set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 88,
       "weight": 50,
       "reps": 12,
-      "notes": "3rd set leg extension"
+      "notes": "3rd set leg extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 13,
-      "notes": "1st set cable fly"
+      "notes": "1st set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 13,
-      "notes": "2nd set cable fly"
+      "notes": "2nd set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 60,
       "weight": 12.5,
       "reps": 13,
-      "notes": "3rd set cable fly"
+      "notes": "3rd set cable fly",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 12,
-      "notes": "1st set overhead cable tricep extension"
+      "notes": "1st set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 12,
-      "notes": "2nd set overhead cable tricep extension"
+      "notes": "2nd set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 117,
       "weight": 22.5,
       "reps": 13,
-      "notes": "3rd set overhead cable tricep extension"
+      "notes": "3rd set overhead cable tricep extension",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 12,
-      "notes": "1st set hammer curl"
+      "notes": "1st set hammer curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 12,
-      "notes": "2nd set hammer curl"
+      "notes": "2nd set hammer curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 45,
       "weight": 12,
       "reps": 12,
-      "notes": "3rd set hammer curl"
+      "notes": "3rd set hammer curl",
+      "unit": "kg"
     }
   ],
   [
@@ -1578,7 +1799,8 @@
       "exercise_id": 55,
       "distance": 4.67,
       "time": 1800,
-      "notes": "treadmill 4.67km 30min"
+      "notes": "treadmill 4.67km 30min",
+      "unit": "km"
     }
   ],
   [
@@ -1587,189 +1809,216 @@
       "exercise_id": 78,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 40,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 50,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 60,
       "reps": 5,
-      "notes": "1st set squats"
+      "notes": "1st set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 60,
       "reps": 5,
-      "notes": "2nd set squats"
+      "notes": "2nd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 78,
       "weight": 60,
       "reps": 5,
-      "notes": "3rd set squats"
+      "notes": "3rd set squats",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 20,
       "reps": 6,
-      "notes": "warmup set bar"
+      "notes": "warmup set bar",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 50,
       "reps": 5,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 60,
       "reps": 4,
-      "notes": "warmup set"
+      "notes": "warmup set",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 87.5,
       "reps": 5,
-      "notes": "1st set bench press"
+      "notes": "1st set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 87.5,
       "reps": 5,
-      "notes": "2nd set bench press"
+      "notes": "2nd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 75,
       "weight": 87.5,
       "reps": 6,
-      "notes": "3rd set bench press"
+      "notes": "3rd set bench press",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 9,
-      "notes": "1st set pullups"
+      "notes": "1st set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 8,
-      "notes": "2nd set pullups"
+      "notes": "2nd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 34,
       "weight": 0,
       "reps": 7,
-      "notes": "3rd set pullups"
+      "notes": "3rd set pullups",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 11,
-      "notes": "1st set hip thrust"
+      "notes": "1st set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 11,
-      "notes": "2nd set hip thrust"
+      "notes": "2nd set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 81,
       "weight": 50,
       "reps": 11,
-      "notes": "3rd set hip thrust"
+      "notes": "3rd set hip thrust",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 17,
-      "notes": "1st set cable face pull"
+      "notes": "1st set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 17,
-      "notes": "2nd set cable face pull"
+      "notes": "2nd set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 101,
       "weight": 17.5,
       "reps": 17,
-      "notes": "3rd set cable face pull"
+      "notes": "3rd set cable face pull",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 10,
       "reps": 10,
-      "notes": "1st set lateral raise"
+      "notes": "1st set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 10,
       "reps": 10,
-      "notes": "2nd set lateral raise"
+      "notes": "2nd set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 105,
       "weight": 10,
       "reps": 10,
-      "notes": "3rd set lateral raise"
+      "notes": "3rd set lateral raise",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 55,
       "reps": 10,
-      "notes": "1st set lying leg curl"
+      "notes": "1st set lying leg curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 55,
       "reps": 10,
-      "notes": "2nd set lying leg curl"
+      "notes": "2nd set lying leg curl",
+      "unit": "kg"
     },
     {
       "date": "",
       "exercise_id": 90,
       "weight": 55,
       "reps": 10,
-      "notes": "3rd set lying leg curl"
+      "notes": "3rd set lying leg curl",
+      "unit": "kg"
     }
   ]
 ]
