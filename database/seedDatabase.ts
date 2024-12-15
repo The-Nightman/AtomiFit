@@ -4,13 +4,14 @@ import categoriesData from "../data/categoriesData.json";
 import exercisesData from "../data/exercisesData.json";
 import workoutsTestData from "../data/mockWorkoutData.json";
 import { Set } from "@/types/sets";
+import { Unit } from "@/types/units";
 
 interface JsonExercise {
   name: string;
   type: string;
   notes: string;
   category_id: number;
-  unit?: null | "kg" | "lbs" | "km" | "mi" | "m" | "f";
+  unit?: Unit;
 }
 
 /**
@@ -75,10 +76,10 @@ const addUnitsToExercises = (): JsonExercise[] => {
   return (exercisesData as JsonExercise[]).reduce(
     (acc: JsonExercise[], exercise: JsonExercise) => {
       if (/weight/i.test(exercise.type)) {
-        return [...acc, { ...exercise, unit: "kg" } as JsonExercise];
+        return [...acc, { ...exercise, unit: "Kg" } as JsonExercise];
       }
       if (/distance/i.test(exercise.type)) {
-        return [...acc, { ...exercise, unit: "km" } as JsonExercise];
+        return [...acc, { ...exercise, unit: "Km" } as JsonExercise];
       }
 
       return [...acc, exercise as JsonExercise];

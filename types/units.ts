@@ -1,1 +1,1 @@
-export type Unit = null | "kg" | "lbs" | "km" | "mi" | "m" | "f";
+export type Unit = null | "Kg" | "Lbs" | "Km" | "Mi" | "M" | "Ft";
