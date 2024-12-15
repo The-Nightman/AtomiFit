@@ -1,5 +1,6 @@
 import { ColorValue, StyleProp, TextStyle } from "react-native";
 import SelectTextInput from "../SelectTextInput";
+import { WeightUnit } from "@/types/units";
 
 interface WeightInputProps {
   value: string;
@@ -8,7 +9,7 @@ interface WeightInputProps {
   style: StyleProp<TextStyle>;
   focusStyle: StyleProp<TextStyle>;
   selectionColor: ColorValue;
-  suffix: string;
+  suffix: WeightUnit;
 }
 
 /**
@@ -40,7 +41,7 @@ interface WeightInputProps {
  *  style={styles.input}
  *  focusStyle={styles.inputFocused}
  *  selectionColor="#000"
- *  suffix=" kg"
+ *  suffix="Kg"
  * />
  */
 const WeightInput = ({
@@ -63,7 +64,7 @@ const WeightInput = ({
       style={style}
       focusStyle={focusStyle}
       selectionColor={selectionColor}
-      suffix={suffix} // This will be pulled from database later
+      suffix={` ${suffix}`}
     />
   );
 };
