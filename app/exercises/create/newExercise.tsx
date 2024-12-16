@@ -16,7 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
 import NewCategoryModal from "@/components/modals/NewCategoryModal";
-import { DistanceUnit, Unit, WeightUnit } from "@/types/units";
+import { DistanceUnit, WeightUnit } from "@/types/units";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -32,13 +32,13 @@ const newExercise = (): JSX.Element => {
     notes: string;
     category: number;
     type: string;
-    unit: Unit;
+    weight_unit: WeightUnit;
   }>({
     name: "",
     notes: "",
     category: 0,
     type: "Weight And Reps",
-    unit: null,
+    weight_unit: null,
   });
   const [toastState, setToastState] = useState<{
     show: boolean;
@@ -61,6 +61,19 @@ const newExercise = (): JSX.Element => {
       eventEmitter.off("createExercise", handleSaveExercise);
     };
   }, [formData]); // handleSaveExercise is dependent on formData, if we leave this blank we are passing initial state
+
+  // Whenever we change types we want to automatically set and reset the units
+  // to guarantee the user does not submit an exercise with incorrect units
+  useEffect(() => {
+    // Batching state could be redundant but it makes sure the changes properly take effect, originally weight_unit was
+    // going to be implemented but has since been evaluated as unnecessary fluff for exercises so they are limited to sets
+    if (!/weight/i.test(formData.type) && formData.weight_unit) {
+      setFormData((prevState) => ({ ...prevState, weight_unit: null }));
+    }
+    if (/weight/i.test(formData.type) && !formData.weight_unit) {
+      setFormData((prevState) => ({ ...prevState, weight_unit: "Kg" }));
+    }
+  }, [formData.type]);
 
   const types = [
     "Weight And Reps",
@@ -115,7 +128,7 @@ const newExercise = (): JSX.Element => {
         notes: formData.notes,
         type: formData.type,
         category_id: formData.category,
-        unit: formData.unit,
+        weight_unit: formData.weight_unit,
       });
       setToastState({
         show: true,
@@ -127,7 +140,7 @@ const newExercise = (): JSX.Element => {
         notes: "",
         category: 0,
         type: "Weight And Reps",
-        unit: null,
+        weight_unit: null,
       });
     } catch (error) {
       setToastState({
@@ -261,47 +274,19 @@ const newExercise = (): JSX.Element => {
                   Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
                 ]}
                 itemStyle={styles.pickerItemIos}
-                selectedValue={formData.unit}
-                onValueChange={(itemValue: Unit) =>
-                  setFormData({ ...formData, unit: itemValue })
+                selectedValue={formData.weight_unit}
+                onValueChange={(itemValue: WeightUnit) =>
+                  setFormData({ ...formData, weight_unit: itemValue })
                 }
               >
-                {/weight/i.test(formData.type) &&
-                  units.weight.map((unit) => (
-                    <Picker.Item
-                      key={unit.value}
-                      style={styles.pickerItemAndroid}
-                      label={unit.label}
-                      value={unit.value}
-                    />
-                  ))}
-              </Picker>
-            </View>
-          )}
-          {/distance/i.test(formData.type) && (
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>DISTANCE UNIT</Text>
-              <Picker
-                mode="dropdown"
-                style={[
-                  styles.picker,
-                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-                ]}
-                itemStyle={styles.pickerItemIos}
-                selectedValue={formData.unit}
-                onValueChange={(itemValue: Unit) =>
-                  setFormData({ ...formData, unit: itemValue })
-                }
-              >
-                {/distance/i.test(formData.type) &&
-                  units.distance.map((unit) => (
-                    <Picker.Item
-                      key={unit.value}
-                      style={styles.pickerItemAndroid}
-                      label={unit.label}
-                      value={unit.value}
-                    />
-                  ))}
+                {units.weight.map((unit) => (
+                  <Picker.Item
+                    key={unit.value}
+                    style={styles.pickerItemAndroid}
+                    label={unit.label}
+                    value={unit.value}
+                  />
+                ))}
               </Picker>
             </View>
           )}

@@ -16,7 +16,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { Unit } from "@/types/units";
 
 /**
  * Track component.
@@ -37,10 +36,10 @@ const Track = (): JSX.Element => {
     pos: { x: 0, y: 0 },
     currentSelectedId: null,
   });
-  const { exerciseId, exerciseType, unit, date } = useLocalSearchParams<{
+  const { exerciseId, exerciseType, weight_unit, date } = useLocalSearchParams<{
     exerciseId: string;
     exerciseType: string;
-    unit: string; // see @/types/units, we must cast as string here due to being url params so we will cast as Unit later
+    weight_unit: "null" | "Kg" | "Lbs"; // see WeightUnit @/types/units, we we need to cast due to being a string url param
     date: string;
   }>();
   const { db } = useContext(DrizzleContext);
@@ -132,7 +131,8 @@ const Track = (): JSX.Element => {
         date: date,
         ...setTemplates[exerciseType],
         notes: "",
-        unit: unit === "null" ? null : unit as Unit,
+        weight_unit: weight_unit === "null" ? null : weight_unit,
+        distance_unit: /distance/i.test(exerciseType) ? "Km" : null,
       };
 
       // Insert the new set

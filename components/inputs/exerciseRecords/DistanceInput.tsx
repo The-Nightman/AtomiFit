@@ -12,9 +12,7 @@ import SelectTextInput from "../SelectTextInput";
 import { useEffect, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
 import ModalBase from "@/components/modals/ModalBase";
-
-// Accepted distance unit strings, used for state, props interface and function params
-type DistanceUnit = "Km" | "M" | "Mi" | "Ft";
+import { DistanceUnit } from "@/types/units";
 
 interface DistanceInputProps {
   value: string;
@@ -92,14 +90,14 @@ const DistanceInput = ({
   const [modalState, setModalState] = useState<boolean>(false);
   const [state, setState] = useState<{
     distance: string;
-    distanceUnit: DistanceUnit | "";
-  }>({ distance: "", distanceUnit: "" });
+    distanceUnit: DistanceUnit;
+  }>({ distance: value, distanceUnit: suffix });
 
   // Set the state to the initial distance and unit values, when they change update the state with latest
   useEffect(() => {
     setState({
       distance: value,
-      distanceUnit: suffix, // Set the distance unit to the suffix prop, this will be pulled from database
+      distanceUnit: suffix, // Set the suffix prop to the distance unit, this is either pulled from database or set templates
     });
   }, [value, suffix]);
 

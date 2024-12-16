@@ -152,7 +152,7 @@ const TrackSetListItem = ({
     const updatedState = {
       ...setData,
       distance: distanceObj.distance,
-      unit: distanceObj.unit,
+      distance_unit: distanceObj.unit,
     };
     if (typeof updatedState.id === "number") {
       // Database returns are always arrays, so we need to destructure the first element
@@ -224,7 +224,7 @@ const TrackSetListItem = ({
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={setData.unit as WeightUnit}
+          suffix={setData.weight_unit}
         />
         <RepsInput
           value={setData.reps!.toString()}
@@ -248,7 +248,7 @@ const TrackSetListItem = ({
           initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={setData.unit as DistanceUnit}
+          suffix={setData.distance_unit}
         />
         <TimeInput
           value={setData.time!}
@@ -271,7 +271,7 @@ const TrackSetListItem = ({
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={setData.unit as WeightUnit}
+          suffix={setData.weight_unit}
         />
         <DistanceInput
           value={setData.distance!.toString()}
@@ -282,7 +282,7 @@ const TrackSetListItem = ({
           initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={setData.unit as DistanceUnit}
+          suffix={setData.distance_unit}
         />
       </>
     ),
@@ -295,7 +295,7 @@ const TrackSetListItem = ({
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={setData.unit as WeightUnit}
+          suffix={setData.weight_unit}
         />
         <TimeInput
           value={setData.time!}
@@ -329,7 +329,7 @@ const TrackSetListItem = ({
           initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={setData.unit as DistanceUnit}
+          suffix={setData.distance_unit}
         />
       </>
     ),
@@ -364,7 +364,7 @@ const TrackSetListItem = ({
         style={styles.inputStyles}
         focusStyle={styles.inputFocusStyles}
         selectionColor={"white"}
-        suffix={setData.unit as WeightUnit}
+        suffix={setData.weight_unit}
       />
     ),
     reps: () => (
@@ -388,7 +388,7 @@ const TrackSetListItem = ({
         initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
         focusStyle={styles.inputFocusStyles}
         selectionColor={"white"}
-        suffix={setData.unit as DistanceUnit}
+        suffix={setData.distance_unit}
       />
     ),
     time: () => (
