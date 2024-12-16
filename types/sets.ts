@@ -1,4 +1,4 @@
-import { Unit } from "./units";
+import { DistanceUnit, WeightUnit } from "./units";
 
 export interface Set {
   id?: number;
@@ -9,5 +9,6 @@ export interface Set {
   distance: number | null;
   time: number | null;
   notes: string | null;
-  unit: Unit;
+  weight_unit: WeightUnit;
+  distance_unit: DistanceUnit;
 }

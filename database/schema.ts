@@ -25,7 +25,7 @@ export const exercises = sqliteTable(
     name: text("name").notNull(),
     notes: text("notes").notNull(),
     type: text("type").notNull(),
-    unit: text("unit", { enum: ["Kg", "Lbs", "Km", "Mi", "M", "Ft"] }),
+    weight_unit: text("weight_unit", { enum: ["Kg", "Lbs"] }),
     category_id: integer("category_id")
       .references(() => categories.id)
       .notNull(),
@@ -47,5 +47,6 @@ export const setsData = sqliteTable("sets_data", {
   distance: real("distance"),
   time: integer("time"),
   notes: text("notes"),
-  unit: text("unit", { enum: ["Kg", "Lbs", "Km", "Mi", "M", "Ft"] }),
+  weight_unit: text("weight_unit", { enum: ["Kg", "Lbs"] }),
+  distance_unit: text("distance_unit", { enum: ["Km", "Mi", "M", "Ft"] }),
 });

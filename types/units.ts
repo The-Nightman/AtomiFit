@@ -1,5 +1,3 @@
-export type Unit = null | WeightUnit | DistanceUnit;
+export type WeightUnit = null | "Kg" | "Lbs";
 
-export type WeightUnit = "Kg" | "Lbs";
-
-export type DistanceUnit = "Km" | "Mi" | "M" | "Ft";
+export type DistanceUnit = null | "Km" | "Mi" | "M" | "Ft";

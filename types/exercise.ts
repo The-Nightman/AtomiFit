@@ -1,4 +1,4 @@
-import { Unit } from "./units";
+import { WeightUnit } from "./units";
 
 export interface Exercise {
   category_id: number;
@@ -6,5 +6,5 @@ export interface Exercise {
   name: string;
   notes: string;
   type: string;
-  unit: Unit;
+  weight_unit: WeightUnit;
 }

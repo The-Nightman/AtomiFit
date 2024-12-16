@@ -4,14 +4,14 @@ import categoriesData from "../data/categoriesData.json";
 import exercisesData from "../data/exercisesData.json";
 import workoutsTestData from "../data/mockWorkoutData.json";
 import { Set } from "@/types/sets";
-import { Unit } from "@/types/units";
+import { WeightUnit } from "@/types/units";
 
 interface JsonExercise {
   name: string;
   type: string;
   notes: string;
   category_id: number;
-  unit?: Unit;
+  weight_unit?: WeightUnit;
 }
 
 /**
@@ -65,10 +65,9 @@ const processWorkoutData = (workoutData: Set[][]): Set[] => {
  *
  * This function iterates over an array of exercises and adds a unit property
  * to each exercise object based on its type. If the exercise type includes
- * "weight" (case insensitive), the unit "kg" is added. If the exercise type
- * includes "distance" (case insensitive), the unit "km" is added. If the
- * exercise type does not match either condition, the exercise object is
- * returned unchanged.
+ * "weight" (case insensitive), the unit "kg" is added. If the
+ * exercise type does not match the condition, the exercise object is
+ * returned unchanged to use a null value by default.
  *
  * @returns {JsonExercise[]} An array of exercises with units added where applicable.
  */
@@ -76,10 +75,7 @@ const addUnitsToExercises = (): JsonExercise[] => {
   return (exercisesData as JsonExercise[]).reduce(
     (acc: JsonExercise[], exercise: JsonExercise) => {
       if (/weight/i.test(exercise.type)) {
-        return [...acc, { ...exercise, unit: "Kg" } as JsonExercise];
-      }
-      if (/distance/i.test(exercise.type)) {
-        return [...acc, { ...exercise, unit: "Km" } as JsonExercise];
+        return [...acc, { ...exercise, weight_unit: "Kg" } as JsonExercise];
       }
 
       return [...acc, exercise as JsonExercise];
