@@ -1,7 +1,9 @@
 import { Exercise } from "@/types/exercise";
+import { eventEmitter } from "@/utils/eventEmitter";
 import { Entypo } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Text, Pressable, StyleSheet } from "react-native";
+import { useRef } from "react";
+import { Text, Pressable, StyleSheet, View } from "react-native";
 
 interface ExerciseListItemProps {
   exercise: Exercise;
@@ -25,6 +27,8 @@ const ExerciseListItem = ({
   search,
   date,
 }: ExerciseListItemProps): JSX.Element => {
+  const ListItemRef = useRef<View>(null);
+
   /**
    * Highlights occurrences of a specified substring within a given string.
    *
@@ -53,11 +57,40 @@ const ExerciseListItem = ({
     );
   };
 
+  /**
+   * Retrieves the position of the ListItemRef component.
+   *
+   * This function measures the position and dimensions of the ListItemRef component
+   * and returns a Promise that resolves with an object containing the x and y coordinates
+   * and an offset value. The offset value is half the height of the component, which is used
+   * to properly offset the menu so that it does not begin halfway down the component.
+   *
+   * @returns {Promise<{ x: number, y: number, offset: number }>} A promise that resolves with an object containing the x and y coordinates and the offset value.
+   */
+  const getPositon = (): Promise<{ x: number; y: number; offset: number }> => {
+    return new Promise((resolve) => {
+      ListItemRef.current?.measure(
+        (
+          x: number,
+          _y: number,
+          _width: number,
+          height: number,
+          _pageX: number,
+          pageY: number
+        ) => {
+          // We want to half the height of the component so we can properly offset
+          // the menu otherwise the menu will begin halfway down the component
+          resolve({ x: x - 20, y: pageY, offset: height / 2 });
+        }
+      );
+    });
+  };
+
   return (
     <Pressable
       onPress={() =>
         router.push({
-          pathname: "/exercise/[exerciseId]",
+          pathname: "/exercise/[exerciseId]/track",
           params: { exerciseId: exercise.id, date: date },
         })
       }
@@ -65,9 +98,15 @@ const ExerciseListItem = ({
         styles.exerciseListItem,
         pressed && { backgroundColor: "#595555" },
       ]}
+      ref={ListItemRef}
     >
       {getHighlightedText(exercise.name, search)}
-      <Pressable>
+      <Pressable
+        onPress={async () => {
+          const position = await getPositon();
+          eventEmitter.emit("exerciseMenu", exercise.id, position);
+        }}
+      >
         <Entypo name="dots-three-vertical" size={28} color="#60DD49" />
       </Pressable>
     </Pressable>
