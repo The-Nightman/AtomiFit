@@ -212,6 +212,25 @@ const index = () => {
             </>
           ) : (
             <>
+              {
+                //! Testing and Debug ONLY, remove befor prod
+              }
+              <Pressable
+                style={styles.headerCalendarButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "/welcome",
+                  })
+                }
+              >
+                {({ pressed }) => (
+                  <Entypo
+                    name="bug"
+                    size={32}
+                    color={pressed ? "red" : "red"}
+                  />
+                )}
+              </Pressable>
               {/* Calendar button */}
               <Pressable
                 style={styles.headerCalendarButton}
