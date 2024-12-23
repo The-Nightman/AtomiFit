@@ -7,6 +7,7 @@ import { ListWorkout, ListWorkoutExercise } from "@/types/listView";
 import { FlatList } from "react-native-gesture-handler";
 import ListViewItem from "@/components/ListViewItem";
 import { getToday } from "@/utils/getToday";
+import { DistanceUnit, WeightUnit } from "@/types/units";
 
 interface QueryResult {
   id: number;
@@ -19,6 +20,9 @@ interface QueryResult {
   distance: number | null;
   time: number | null;
   notes: string | null;
+  weight_unit: WeightUnit;
+  distance_unit: DistanceUnit;
+  exercise_id: number;
 }
 
 /**
@@ -57,6 +61,9 @@ const ListView = (): JSX.Element => {
           distance: schema.setsData.distance,
           time: schema.setsData.time,
           notes: schema.setsData.notes,
+          weight_unit: schema.setsData.weight_unit,
+          distance_unit: schema.setsData.distance_unit,
+          exercise_id: schema.setsData.exercise_id,
         })
         .from(schema.setsData)
         .leftJoin(
@@ -89,6 +96,10 @@ const ListView = (): JSX.Element => {
               distance: item.distance,
               time: item.time,
               notes: item.notes,
+              weight_unit: item.weight_unit,
+              distance_unit: item.distance_unit,
+              date: item.date,
+              exercise_id: item.exercise_id,
             });
             // If exercise group does not exist, create a new exercise group and add the set
           } else {
@@ -104,6 +115,10 @@ const ListView = (): JSX.Element => {
                   distance: item.distance,
                   time: item.time,
                   notes: item.notes,
+                  weight_unit: item.weight_unit,
+                  distance_unit: item.distance_unit,
+                  date: item.date,
+                  exercise_id: item.exercise_id,
                 },
               ],
             });
@@ -127,6 +142,10 @@ const ListView = (): JSX.Element => {
                     distance: item.distance,
                     time: item.time,
                     notes: item.notes,
+                    weight_unit: item.weight_unit,
+                    distance_unit: item.distance_unit,
+                    date: item.date,
+                    exercise_id: item.exercise_id,
                   },
                 ],
               },
