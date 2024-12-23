@@ -79,7 +79,7 @@ const RootLayoutNav = () => {
             />
             <Stack.Screen
               name="exercises"
-              options={{ gestureEnabled: true, presentation: "modal" }}
+              options={{ gestureEnabled: true, gestureDirection:"vertical", animation: "slide_from_bottom" }}
             />
             <Stack.Screen
               name="exercise/[exerciseId]"
