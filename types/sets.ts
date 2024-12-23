@@ -1,3 +1,5 @@
+import { DistanceUnit, WeightUnit } from "./units";
+
 export interface Set {
   id?: number;
   date: string;
@@ -7,4 +9,6 @@ export interface Set {
   distance: number | null;
   time: number | null;
   notes: string | null;
+  weight_unit: WeightUnit;
+  distance_unit: DistanceUnit;
 }

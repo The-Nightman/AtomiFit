@@ -33,7 +33,7 @@ interface SelectTextInputProps {
  * @param {StyleProp<TextStyle>} props.style - The style to apply to the text input.
  * @param {StyleProp<TextStyle>} props.focusStyle - The style to apply to the text input when it is focused, optional.
  * @param {ColorValue} props.selectionColor - The color of the text selection, optional.
- * @param {string} props.suffix - The suffix to append to the text input value when unfocused, directly applied without post-declared whitespace, optional.
+ * @param {string} props.suffix - The suffix to append to the text input value when unfocused, optional.
  *
  * @returns {JSX.Element} The rendered text input component.
  *
@@ -48,7 +48,7 @@ interface SelectTextInputProps {
  *  style={styles.input}
  *  focusStyle={styles.inputFocused}
  *  selectionColor="#000"
- *  suffix=" kg"
+ *  suffix="Kg"
  * />
  */
 const SelectTextInput = memo(
@@ -83,10 +83,19 @@ const SelectTextInput = memo(
       }
     }, []);
 
+    // We need this effect to guarantee the selection works properly, due to state change
+    // removing suffix on iOS the selection is never able to happen unless we do it as a side effect
+    useEffect(() => {
+      // We could also check the platform OS is iOS but we can do it this way to make sure it works
+      // on all platforms to account for possible differences in behavior between android versions
+      if (textInputRef.current) {
+        textInputRef.current.setSelection(0, state.val.length);
+      }
+    }, [state.focused]);
+
     /**
      * Handles the focus event on the text input.
      * Updates the component's state to indicate that the input is focused.
-     * Additionally, it sets the selection range of the text input to highlight the entire text.
      * If a suffix is provided, it will be removed from the input value.
      *
      * @returns {void}
@@ -96,9 +105,6 @@ const SelectTextInput = memo(
         setState({ val: state.val.replace(suffix, ""), focused: true });
       } else {
         setState({ ...state, focused: true });
-      }
-      if (textInputRef.current) {
-        textInputRef.current.setSelection(0, state.val.length);
       }
     };
 
@@ -156,6 +162,7 @@ const SelectTextInput = memo(
         style={[style, state.focused && focusStyle]}
         selectionColor={selectionColor}
         ref={textInputRef}
+        selectTextOnFocus
       />
     );
   }

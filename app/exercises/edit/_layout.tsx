@@ -1,21 +1,22 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { router, Stack } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import UtilityStyles from "@/constants/UtilityStyles";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { eventEmitter } from "@/utils/eventEmitter";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
-import ExerciseMenu from "@/components/modals/ExerciseMenu";
 
 /**
- * ExercisesLayout component.
- *
- * This renders the layout for browsing exercises in both the categories screen and [category] dynamic route.
- * It includes a header with a close/back button, a title, and an add button.
- * The layout uses Stack navigator to navigate between categories and exercises by [category].
+ * ExerciseCreateLayout component renders the layout for creating a new exercise.
+ * It includes a header with a close button, a title, and a check/confirm button.
+ * The main content is displayed within a Stack navigator.
  *
  * @returns {JSX.Element} The rendered component.
  */
-const ExercisesSearchLayout = (): JSX.Element => {
+const ExerciseEditLayout = (): JSX.Element => {
+  const { exerciseId } = useLocalSearchParams<{
+    exerciseId: string;
+  }>();
   const insets = useSafeAreaInsets();
 
   return (
@@ -34,17 +35,11 @@ const ExercisesSearchLayout = (): JSX.Element => {
             />
           )}
         </Pressable>
-        <Text style={{ fontSize: 28, fontWeight: "500" }}>
-          Browse Exercises
-        </Text>
-        <Pressable
-          onPress={() => {
-            router.push("/exercises/create/newExercise");
-          }}
-        >
+        <Text style={{ fontSize: 28, fontWeight: "500" }}>Edit Exercise</Text>
+        <Pressable onPress={() => eventEmitter.emit("updateExercise")}>
           {({ pressed }) => (
             <MaterialIcons
-              name="add"
+              name="check"
               size={44}
               color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
             />
@@ -57,17 +52,17 @@ const ExercisesSearchLayout = (): JSX.Element => {
           contentStyle: { backgroundColor: "#0F0F0F" },
         }}
       >
-        <Stack.Screen name="categories" options={{ gestureEnabled: true }} />
-        <Stack.Screen name="[category]" options={{ gestureEnabled: true }} />
+        <Stack.Screen
+          name="[exerciseId]"
+          options={{ gestureEnabled: true }}
+          initialParams={{ exerciseId }}
+        />
       </Stack>
-      {/* We can just declare this here, this will display on both screens as long as its
-      declared here or in the categories screen but this will be better for maintainability */}
-      <ExerciseMenu />
     </View>
   );
 };
 
-export default ExercisesSearchLayout;
+export default ExerciseEditLayout;
 
 const styles = StyleSheet.create({
   headerContainer: {

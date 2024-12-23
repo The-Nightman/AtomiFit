@@ -11,6 +11,8 @@ import { getToday } from "@/utils/getToday";
 import GraphOptions from "@/components/graphs/GraphOptions";
 import { LineGraphOptions } from "@/types/graphs";
 import UtilityStyles from "@/constants/UtilityStyles";
+import { convertDistanceUnits } from "@/utils/convertDistanceUnits";
+import { getMostUsedUnit } from "@/utils/getMostUsedUnit";
 
 interface GraphDataSet extends Set {
   dataPoint: number;
@@ -162,6 +164,9 @@ const graph = (): JSX.Element => {
    * @returns {GraphDataSet[] | GraphDataSet[][]} - The processed graph dataset.
    */
   const processData = (data: Set[]): GraphDataSet[] | GraphDataSet[][] => {
+    const prevelantUnit = !Array.isArray(data[0])
+      ? getMostUsedUnit(data as GraphDataSet[])
+      : null;
     const graphTypes = {
       // Epley formula: w * ( 1 + r/30 ) assuming r > 1.
       // https://en.wikipedia.org/wiki/One-repetition_maximum#cite_ref-6
@@ -305,11 +310,11 @@ const graph = (): JSX.Element => {
           }, {} as { [reps: string]: { [date: string]: GraphDataSet } })
         );
 
-        const flattenedResults: GraphDataSet[][] = filteredResults.map(
+        const multiDimensionalResults: GraphDataSet[][] = filteredResults.map(
           (dataset) => Object.values(dataset) // Right now we have an array of objects so we can just use Object.values to map a 2D array
         );
 
-        return flattenedResults;
+        return multiDimensionalResults;
       },
 
       // weight * reps all sets
@@ -375,11 +380,18 @@ const graph = (): JSX.Element => {
       maxDistance: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
+            const convertedDistance = convertDistanceUnits(
+              set.distance!,
+              set.distance_unit!,
+              prevelantUnit!
+            );
+
             // If the date is not in acc or the datapoint is lower than the current sets distance
-            if (!acc[set.date] || acc[set.date].dataPoint < set.distance!) {
+            if (!acc[set.date] || acc[set.date].dataPoint < convertedDistance) {
               acc[set.date] = {
                 ...set,
-                dataPoint: set.distance!,
+                // We need to convert between units depending on the most prevelant unit in the data
+                dataPoint: convertedDistance,
               };
             }
             return acc;
@@ -413,8 +425,14 @@ const graph = (): JSX.Element => {
       maxSpeed: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
-            // Speed formula (km/h): (distance * 1000) / time * 3.6, we do this for now until the units are implemented
-            const speed: number = (set.distance! * 1000 * 3.6) / set.time!;
+            // Speed formula (unit agnostic): distance (prevelantUnit) / time (seconds / 3600 = hours) = speed (unit per hour)
+            const speed: number =
+              convertDistanceUnits(
+                set.distance!,
+                set.distance_unit!,
+                prevelantUnit === "M" || prevelantUnit === "Km" ? "Km" : "Mi"
+              ) /
+              (set.time! / 3600);
             // If the date is not in acc or the datapoint is lower than the current sets speed
             if (!acc[set.date] || acc[set.date].dataPoint < speed) {
               // Add the date as a property and the current set as the best set for the date
@@ -434,8 +452,15 @@ const graph = (): JSX.Element => {
       maxPace: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
-            // Pace formula: time (minutes) / distance
-            const pace: number = set.time! / 60 / set.distance!;
+            // Pace formula (unit agnostic): time (minutes) / distance (prevelantUnit) = pace (minutes per unit)
+            const pace: number =
+              set.time! /
+              60 /
+              convertDistanceUnits(
+                set.distance!,
+                set.distance_unit!,
+                prevelantUnit === "M" || prevelantUnit === "Km" ? "Km" : "Mi"
+              );
             // If the date is not in acc or the datapoint is lower than the current sets pace
             if (!acc[set.date] || acc[set.date].dataPoint > pace) {
               // Add the date as a property and the current set as the best set for the date
@@ -455,18 +480,27 @@ const graph = (): JSX.Element => {
       workoutDistance: (data: Set[]): GraphDataSet[] => {
         const filteredResults: GraphDataSet[] = Object.values(
           data.reduce((acc, set) => {
+            const convertedDistance = convertDistanceUnits(
+              set.distance!,
+              set.distance_unit!,
+              prevelantUnit!
+            );
             if (acc[set.date]) {
               // If the date datapoint is in acc, add the current set's distance to the existing datapoint
               if (acc[set.date].hasOwnProperty("dataPoint")) {
-                acc[set.date].dataPoint += set.distance!;
+                acc[set.date].dataPoint += convertedDistance;
               } else {
                 // Edge case if date key present but no datapoint property
                 // Add the current set as the best set for the date
-                acc[set.date] = { ...set, dataPoint: set.distance! };
+                acc[set.date] = { ...set, dataPoint: convertedDistance };
               }
             } else {
               // If the date is not in acc, add the current set as the starting point
-              acc[set.date] = { ...set, dataPoint: set.distance! };
+              acc[set.date] = {
+                ...set,
+                dataPoint: convertedDistance,
+                distance_unit: prevelantUnit,
+              };
             }
 
             return acc;

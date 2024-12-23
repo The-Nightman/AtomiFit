@@ -7,6 +7,7 @@ import { View, Text, StyleSheet } from "react-native";
 import * as schema from "@/database/schema";
 import { eq } from "drizzle-orm";
 import UtilityStyles from "@/constants/UtilityStyles";
+import { WeightUnit } from "@/types/units";
 
 /**
  * ExerciseLayout component.
@@ -21,9 +22,11 @@ const ExerciseLayout = (): JSX.Element => {
   const [exerciseInfo, setExerciseInfo] = useState<{
     name: string;
     type: string;
+    weight_unit: WeightUnit;
   }>({
     name: "",
     type: "",
+    weight_unit: null,
   });
   const [loading, setLoading] = useState(true);
   const { exerciseId, date } = useLocalSearchParams<{
@@ -39,9 +42,14 @@ const ExerciseLayout = (): JSX.Element => {
         | {
             name: string;
             type: string;
+            weight_unit: WeightUnit;
           }[]
         | undefined = await db
-        .select({ name: schema.exercises.name, type: schema.exercises.type })
+        .select({
+          name: schema.exercises.name,
+          type: schema.exercises.type,
+          weight_unit: schema.exercises.weight_unit,
+        })
         .from(schema.exercises)
         .where(eq(schema.exercises.id, Number(exerciseId)));
 
@@ -77,6 +85,7 @@ const ExerciseLayout = (): JSX.Element => {
             initialParams={{
               exerciseId,
               exerciseType: exerciseInfo.type,
+              weight_unit: exerciseInfo.weight_unit, //! URL params are accessed as type string, if we pass null it will be a string "null"
               date: date,
             }}
           />

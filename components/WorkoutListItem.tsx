@@ -56,13 +56,12 @@ const WorkoutListItem = ({
   handleEditMode,
   selected,
 }: WorkoutListItemProps): React.JSX.Element => {
-
   // Dictionary of display variants based on the keys of the set object
   const displayVariants: Record<string, (set: Set) => React.JSX.Element> = {
     weight_reps: (set: Set) => (
       <>
         <Text style={styles.setData}>
-          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+          {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
         </Text>
         <Text style={styles.setData}>
           {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
@@ -73,7 +72,7 @@ const WorkoutListItem = ({
       <>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>Km</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
@@ -81,18 +80,18 @@ const WorkoutListItem = ({
     weight_distance: (set: Set) => (
       <>
         <Text style={styles.setData}>
-          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+          {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
         </Text>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>Km</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
       </>
     ),
     weight_time: (set: Set) => (
       <>
         <Text style={styles.setData}>
-          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+          {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
         </Text>
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
@@ -104,7 +103,7 @@ const WorkoutListItem = ({
         </Text>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>Km</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
       </>
     ),
@@ -118,7 +117,7 @@ const WorkoutListItem = ({
     ),
     weight: (set: Set) => (
       <Text style={styles.setData}>
-        {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+        {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
       </Text>
     ),
     reps: (set: Set) => (
@@ -129,7 +128,7 @@ const WorkoutListItem = ({
     distance: (set: Set) => (
       <Text style={styles.setData}>
         {set.distance}
-        <Text style={styles.setDataUnit}>Km</Text>
+        <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
       </Text>
     ),
     time: (set: Set) => (
@@ -156,7 +155,7 @@ const WorkoutListItem = ({
         }
         // Else allow navigation to the exercise screen
         router.push({
-          pathname: "/exercise/[exerciseId]",
+          pathname: "/exercise/[exerciseId]/track",
           params: { exerciseId: exercise.exerciseId, date: date },
         });
       }}

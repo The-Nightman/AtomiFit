@@ -48,7 +48,7 @@ const History = (): React.JSX.Element => {
     weight_reps: (set: Set) => (
       <>
         <Text style={styles.setData}>
-          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+          {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
         </Text>
         <Text style={styles.setData}>
           {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
@@ -59,7 +59,7 @@ const History = (): React.JSX.Element => {
       <>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>Km</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
@@ -67,18 +67,18 @@ const History = (): React.JSX.Element => {
     weight_distance: (set: Set) => (
       <>
         <Text style={styles.setData}>
-          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+          {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
         </Text>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>Km</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
       </>
     ),
     weight_time: (set: Set) => (
       <>
         <Text style={styles.setData}>
-          {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+          {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
         </Text>
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
@@ -90,7 +90,7 @@ const History = (): React.JSX.Element => {
         </Text>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>Km</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
       </>
     ),
@@ -104,7 +104,7 @@ const History = (): React.JSX.Element => {
     ),
     weight: (set: Set) => (
       <Text style={styles.setData}>
-        {set.weight} <Text style={styles.setDataUnit}>Kg</Text>
+        {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
       </Text>
     ),
     reps: (set: Set) => (
@@ -115,7 +115,7 @@ const History = (): React.JSX.Element => {
     distance: (set: Set) => (
       <Text style={styles.setData}>
         {set.distance}
-        <Text style={styles.setDataUnit}>Km</Text>
+        <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
       </Text>
     ),
     time: (set: Set) => (

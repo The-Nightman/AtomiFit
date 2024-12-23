@@ -15,6 +15,7 @@ import RepsInput from "./inputs/exerciseRecords/RepsInput";
 import DistanceInput from "./inputs/exerciseRecords/DistanceInput";
 import TimeInput from "./inputs/exerciseRecords/TimeInput";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
+import { DistanceUnit, WeightUnit } from "@/types/units";
 
 interface TrackSetListItemProps {
   set: Set;
@@ -140,15 +141,19 @@ const TrackSetListItem = ({
    * @async
    * @param {Object} distanceObj - An object containing the distance value and its unit.
    * @param {number} distanceObj.distance - The distance value to be saved.
-   * @param {"Km" | "M" | "Mi" | "Ft"} distanceObj.unit - The unit of the distance, which can be "Km", "M", "Mi", or "Ft".
+   * @param {DistanceUnit} distanceObj.unit - The unit of the distance, which can be "Km", "M", "Mi", or "Ft".
    *
    * @returns {Promise<void>} A promise that resolves to void.
    */
   const handleDistanceSave = async (distanceObj: {
     distance: number;
-    unit: "Km" | "M" | "Mi" | "Ft";
+    unit: DistanceUnit;
   }): Promise<void> => {
-    const updatedState = { ...setData, distance: distanceObj.distance };
+    const updatedState = {
+      ...setData,
+      distance: distanceObj.distance,
+      distance_unit: distanceObj.unit,
+    };
     if (typeof updatedState.id === "number") {
       // Database returns are always arrays, so we need to destructure the first element
       const [updatedSet]: Set[] = await db
@@ -219,7 +224,7 @@ const TrackSetListItem = ({
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={" Kg"}
+          suffix={setData.weight_unit}
         />
         <RepsInput
           value={setData.reps!.toString()}
@@ -243,7 +248,7 @@ const TrackSetListItem = ({
           initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={"Km"}
+          suffix={setData.distance_unit}
         />
         <TimeInput
           value={setData.time!}
@@ -266,7 +271,7 @@ const TrackSetListItem = ({
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={" Kg"}
+          suffix={setData.weight_unit}
         />
         <DistanceInput
           value={setData.distance!.toString()}
@@ -277,7 +282,7 @@ const TrackSetListItem = ({
           initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={"Km"}
+          suffix={setData.distance_unit}
         />
       </>
     ),
@@ -290,7 +295,7 @@ const TrackSetListItem = ({
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={" Kg"}
+          suffix={setData.weight_unit}
         />
         <TimeInput
           value={setData.time!}
@@ -324,7 +329,7 @@ const TrackSetListItem = ({
           initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
-          suffix={"Km"}
+          suffix={setData.distance_unit}
         />
       </>
     ),
@@ -359,7 +364,7 @@ const TrackSetListItem = ({
         style={styles.inputStyles}
         focusStyle={styles.inputFocusStyles}
         selectionColor={"white"}
-        suffix={" Kg"}
+        suffix={setData.weight_unit}
       />
     ),
     reps: () => (
@@ -383,7 +388,7 @@ const TrackSetListItem = ({
         initialButtonTextStyle={styles.timeInputInitialButtonTextStyle}
         focusStyle={styles.inputFocusStyles}
         selectionColor={"white"}
-        suffix={"Km"}
+        suffix={setData.distance_unit}
       />
     ),
     time: () => (

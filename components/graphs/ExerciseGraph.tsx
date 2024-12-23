@@ -22,6 +22,7 @@ import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatTime } from "@/utils/formatTime";
 import ModalBase from "../modals/ModalBase";
 import { ScrollView } from "react-native-gesture-handler";
+import { getMostUsedUnit } from "@/utils/getMostUsedUnit";
 
 interface ExerciseGraphComponentProps {
   selectedOptions: LineGraphOptions;
@@ -145,6 +146,11 @@ const ExerciseGraph = ({
    * @returns {boolean} `true` if the data is a 2D array, otherwise `false`.
    */
   const isData2D = (): boolean => Array.isArray(data[0]); // We need to make quick checks to see if the data is 2D or not
+
+  // We assign the prevelant unit on render so we can use it later in our display variants
+  const prevelantUnit: string | null = !isData2D()
+    ? getMostUsedUnit(data as GraphDataSet[])
+    : null;
 
   /**
    * Generates a graph configuration based on the provided data.
@@ -387,8 +393,10 @@ const ExerciseGraph = ({
           <Text style={styles.selectedTextBold}>
             {data.dataPoint.toFixed(2)}{" "}
           </Text>
-          KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
-          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          {data.weight_unit!.toUpperCase()} (
+          <Text style={styles.selectedTextBold}>{data.weight} </Text>
+          {data.weight_unit!.toUpperCase()} x{" "}
+          <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
         </Text>
       );
@@ -397,8 +405,10 @@ const ExerciseGraph = ({
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
-          KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
-          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          {data.weight_unit!.toUpperCase()} (
+          <Text style={styles.selectedTextBold}>{data.weight} </Text>
+          {data.weight_unit!.toUpperCase()} x{" "}
+          <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
         </Text>
       );
@@ -408,7 +418,8 @@ const ExerciseGraph = ({
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
           REPS (<Text style={styles.selectedTextBold}>{data.weight} </Text>
-          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          {data.weight_unit!.toUpperCase()} x{" "}
+          <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
         </Text>
       );
@@ -416,9 +427,13 @@ const ExerciseGraph = ({
     maxVolume: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint.toLocaleString()} </Text> {/* We need to format large numbers to be more readable */}
-          KG (<Text style={styles.selectedTextBold}>{data.weight} </Text>
-          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          <Text style={styles.selectedTextBold}>
+            {data.dataPoint.toFixed(2)}{" "}
+          </Text>{" "}
+          {data.weight_unit!.toUpperCase()} (
+          <Text style={styles.selectedTextBold}>{data.weight} </Text>
+          {data.weight_unit!.toUpperCase()} x{" "}
+          <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS)
         </Text>
       );
@@ -427,7 +442,8 @@ const ExerciseGraph = ({
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.weight} </Text>
-          KG x <Text style={styles.selectedTextBold}>{data.reps} </Text>
+          {data.weight_unit!.toUpperCase()} x{" "}
+          <Text style={styles.selectedTextBold}>{data.reps} </Text>
           REPS
         </Text>
       );
@@ -435,8 +451,10 @@ const ExerciseGraph = ({
     workoutVolume: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint.toLocaleString()} </Text> {/* We need to format large numbers to be more readable */}
-          KG
+          <Text style={styles.selectedTextBold}>
+            {data.dataPoint.toFixed(2)}{" "}
+          </Text>{" "}
+          {data.weight_unit!.toUpperCase()}
         </Text>
       );
     },
@@ -454,9 +472,30 @@ const ExerciseGraph = ({
     maxDistance: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint!} </Text>
-          KM -{" "}
-          <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>
+          {data.distance_unit! === prevelantUnit ? (
+            <>
+              <Text style={styles.selectedTextBold}>{data.dataPoint!} </Text>
+              {data.distance_unit!.toUpperCase()} -{" "}
+              <Text style={styles.selectedTextBold}>
+                {formatTime(data.time!)}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.selectedTextBold}>
+                {data.dataPoint!.toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                })}{" "}
+              </Text>
+              {prevelantUnit!.toUpperCase()} (
+              {/* We dont need to format the distance as this is raw user input limited to 2 decimal points through validation */}
+              <Text style={styles.selectedTextBold}>{data.distance!} </Text>{" "}
+              {data.distance_unit!.toUpperCase()}) -{" "}
+              <Text style={styles.selectedTextBold}>
+                {formatTime(data.time!)}
+              </Text>
+            </>
+          )}
         </Text>
       );
     },
@@ -464,7 +503,7 @@ const ExerciseGraph = ({
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>{data.distance!} </Text>
-          KM -{" "}
+          {data.distance_unit!.toUpperCase()} -{" "}
           <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>
         </Text>
       );
@@ -472,9 +511,14 @@ const ExerciseGraph = ({
     maxSpeed: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
-          KM/H (<Text style={styles.selectedTextBold}>{data.distance!} </Text>
-          KM -{" "}
+          <Text style={styles.selectedTextBold}>
+            {data.dataPoint.toLocaleString(undefined, {
+              maximumFractionDigits: 2,
+            })}{" "}
+          </Text>
+          {prevelantUnit!.toUpperCase()}/H (
+          <Text style={styles.selectedTextBold}>{data.distance!} </Text>
+          {data.distance_unit!.toUpperCase()} -{" "}
           <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>)
         </Text>
       );
@@ -483,10 +527,12 @@ const ExerciseGraph = ({
       return (
         <Text style={styles.selectedText}>
           <Text style={styles.selectedTextBold}>
-            {formatTime(Math.floor(data.time! / data.distance!))}
+            {/* We divide by 60 to get unit/Hour in parent screen algorithm so we can just perform * 60 and floor for a flat int */}
+            {formatTime(Math.floor(data.dataPoint * 60))}
           </Text>
-          /KM (<Text style={styles.selectedTextBold}>{data.distance!} </Text>
-          KM -{" "}
+          /{prevelantUnit!.toUpperCase()} (
+          <Text style={styles.selectedTextBold}>{data.distance!} </Text>
+          {data.distance_unit!.toUpperCase()} -{" "}
           <Text style={styles.selectedTextBold}>{formatTime(data.time!)}</Text>)
         </Text>
       );
@@ -494,8 +540,12 @@ const ExerciseGraph = ({
     workoutDistance: (data: GraphDataSet): React.JSX.Element => {
       return (
         <Text style={styles.selectedText}>
-          <Text style={styles.selectedTextBold}>{data.dataPoint} </Text>
-          KM
+          <Text style={styles.selectedTextBold}>
+            {data.dataPoint.toLocaleString(undefined, {
+              maximumFractionDigits: 2,
+            })}{" "}
+          </Text>
+          {data.distance_unit!.toUpperCase()}
         </Text>
       );
     },

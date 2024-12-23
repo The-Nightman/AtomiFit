@@ -1,7 +1,6 @@
 import { ListWorkout } from "@/types/listView";
 import { Set } from "@/types/sets";
 import { displayDate } from "@/utils/displayDate";
-import { distanceDisplay } from "@/utils/formatDistance";
 import { formatTime } from "@/utils/formatTime";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { memo } from "react";
@@ -28,31 +27,34 @@ const ListViewItem = memo(
     const displayVariants: Record<string, (set: Set) => React.JSX.Element> = {
       weight_reps: (set: Set) => (
         <Text style={styles.text}>
-          {set.weight} KG x {set.reps} REPS
+          {set.weight} {set.weight_unit!.toUpperCase()} x {set.reps} REPS
           {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
       distance_time: (set: Set) => (
         <Text style={styles.text}>
-          {distanceDisplay(set.distance!)} - {formatTime(set.time!)}
+          {set.distance} {set.distance_unit!.toUpperCase()} -{" "}
+          {formatTime(set.time!)}
           {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
       weight_distance: (set: Set) => (
         <Text style={styles.text}>
-          {set.weight} KG - {distanceDisplay(set.distance!)}
+          {set.weight} {set.weight_unit!.toUpperCase()} - {set.distance}{" "}
+          {set.distance_unit!.toUpperCase()}
           {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
       weight_time: (set: Set) => (
         <Text style={styles.text}>
-          {set.weight} KG - {formatTime(set.time!)}
+          {set.weight} {set.weight_unit!.toUpperCase()} -{" "}
+          {formatTime(set.time!)}
           {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
       reps_distance: (set: Set) => (
         <Text style={styles.text}>
-          {set.reps} REPS - {distanceDisplay(set.distance!)}
+          {set.reps} REPS - {set.distance} {set.distance_unit!.toUpperCase()}
           {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
@@ -64,7 +66,8 @@ const ListViewItem = memo(
       ),
       weight: (set: Set) => (
         <Text style={styles.text}>
-          {set.weight} KG{set.notes && `  -  ${set.notes}`}
+          {set.weight} {set.weight_unit!.toUpperCase()}
+          {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
       reps: (set: Set) => (
@@ -74,7 +77,7 @@ const ListViewItem = memo(
       ),
       distance: (set: Set) => (
         <Text style={styles.text}>
-          {distanceDisplay(set.distance!)}
+          {set.distance} {set.distance_unit!.toUpperCase()}
           {set.notes && `  -  ${set.notes}`}
         </Text>
       ),
@@ -123,7 +126,7 @@ const ListViewItem = memo(
                       // set maxWidth to the width of the screen minus margins
                       // and paddings (44) + extra for safety and readability
                       //! Test this on a smaller screen in android studio before merging into dev
-                      <View key={set.id} style={{maxWidth:(width-64)}}>
+                      <View key={set.id} style={{ maxWidth: width - 64 }}>
                         {setDisplayVariant(set, displayVariants)}
                       </View>
                     ))}

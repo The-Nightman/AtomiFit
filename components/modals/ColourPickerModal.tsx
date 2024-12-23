@@ -97,7 +97,7 @@ const ColourPickerModal = ({
             style={[styles.buttonBase, styles.saveButton]}
             onPress={() => {
               setModalState(false);
-              setColour(selectedColour);
+              setColour((selectedColour as string).slice(0, 7));
             }}
           >
             <Text style={styles.buttonText}>SAVE</Text>

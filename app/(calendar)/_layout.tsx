@@ -1,4 +1,4 @@
-import { Link, Stack, usePathname } from "expo-router";
+import { Link, router, Stack, usePathname } from "expo-router";
 import { useState } from "react";
 import {
   Dimensions,
@@ -114,42 +114,50 @@ const CalendarLayout = (): JSX.Element => {
               width={svgDimensions}
             />
             <View>
-              <Link href="/calendar" asChild replace>
-                <Pressable style={styles.sideButton}>
-                  <MaterialIcons
-                    name="calendar-month"
-                    size={28}
-                    color={path === "/calendar" ? "#60DD49" : "white"}
-                  />
-                  <Text
-                    style={
-                      path === "/calendar"
-                        ? styles.sideButtonTextActive
-                        : styles.sideButtonText
-                    }
-                  >
-                    Calendar View
-                  </Text>
-                </Pressable>
-              </Link>
-              <Link href="/listView" asChild replace>
-                <Pressable style={styles.sideButton}>
-                  <MaterialIcons
-                    name="format-list-bulleted"
-                    size={28}
-                    color={path === "/listView" ? "#60DD49" : "white"}
-                  />
-                  <Text
-                    style={
-                      path === "/listView"
-                        ? styles.sideButtonTextActive
-                        : styles.sideButtonText
-                    }
-                  >
-                    List View
-                  </Text>
-                </Pressable>
-              </Link>
+              <Pressable
+                onPress={() => {
+                  if (path === "/calendar") return;
+                  router.replace("/calendar");
+                }}
+                style={styles.sideButton}
+              >
+                <MaterialIcons
+                  name="calendar-month"
+                  size={28}
+                  color={path === "/calendar" ? "#60DD49" : "white"}
+                />
+                <Text
+                  style={
+                    path === "/calendar"
+                      ? styles.sideButtonTextActive
+                      : styles.sideButtonText
+                  }
+                >
+                  Calendar View
+                </Text>
+              </Pressable>
+              <Pressable
+                style={styles.sideButton}
+                onPress={() => {
+                  if (path === "/listView") return;
+                  router.replace("/listView");
+                }}
+              >
+                <MaterialIcons
+                  name="format-list-bulleted"
+                  size={28}
+                  color={path === "/listView" ? "#60DD49" : "white"}
+                />
+                <Text
+                  style={
+                    path === "/listView"
+                      ? styles.sideButtonTextActive
+                      : styles.sideButtonText
+                  }
+                >
+                  List View
+                </Text>
+              </Pressable>
             </View>
           </View>
           <Pressable

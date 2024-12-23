@@ -4,6 +4,15 @@ import categoriesData from "../data/categoriesData.json";
 import exercisesData from "../data/exercisesData.json";
 import workoutsTestData from "../data/mockWorkoutData.json";
 import { Set } from "@/types/sets";
+import { WeightUnit } from "@/types/units";
+
+interface JsonExercise {
+  name: string;
+  type: string;
+  notes: string;
+  category_id: number;
+  weight_unit?: WeightUnit;
+}
 
 /**
  * Processes workout data by assigning dates to each set of exercises to dynamically seed test data over a perioud of 3 weeks prior to the current week.
@@ -17,11 +26,10 @@ import { Set } from "@/types/sets";
  * - Saturday: Rest
  * - Sunday: Rest
  *
- * @async
  * @param {Set[][]} workoutData - The workout data to process, represented as an array of sets of exercises.
- * @returns {Promise<Set[]>} - A promise that resolves to an array of sets with assigned dates.
+ * @returns {Set[]} - An array of sets with assigned dates.
  */
-const processWorkoutData = async (workoutData: Set[][]): Promise<Set[]> => {
+const processWorkoutData = (workoutData: Set[][]): Set[] => {
   // Set the start date for the data to be 3 weeks before the current day and at the start of the week
   // This will let us dynamically generate the dates for the workout data so we dont have to scroll back months or constantly update the data
   const today = new Date();
@@ -54,8 +62,9 @@ const processWorkoutData = async (workoutData: Set[][]): Promise<Set[]> => {
 
 /**
  * Seeds the database with categories and exercises if they don't exist.
- * If in development mode, also seeds the database with test workout data.
- * 
+ * If in development mode, also resets exercises and categories and
+ * seeds the database with test workout data.
+ *
  * @async
  * @param {ExpoSQLiteDatabase<Record<string, never>>} db - The database to seed.
  * @returns {Promise<void>} A promise that resolves when the database is seeded.
@@ -63,6 +72,21 @@ const processWorkoutData = async (workoutData: Set[][]): Promise<Set[]> => {
 export const seedDatabase = async (
   db: ExpoSQLiteDatabase<Record<string, never>>
 ): Promise<void> => {
+  // When in development mode we need to clear the database of any existing
+  // workout data and seed the database with the test workout
+  if (__DEV__) {
+    // During testing we may add or remove categories and exercises so we need to clear these too
+    await db.delete(schema.categories);
+    await db.delete(schema.exercises);
+
+    // We will be reseeding the exercises and categories next, any ops here will be redundant
+
+    await db.delete(schema.setsData);
+    await db
+      .insert(schema.setsData)
+      .values(processWorkoutData(workoutsTestData as unknown as Set[][]));
+  }
+
   const categories = db.select().from(schema.categories).all();
   const exercises = db.select().from(schema.exercises).all();
 
@@ -72,21 +96,5 @@ export const seedDatabase = async (
 
   if (exercises.length === 0) {
     await db.insert(schema.exercises).values(exercisesData);
-  }
-
-  // When in development mode we need to clear the database of any existing
-  // workout data and seed the database with the test workout
-  if (__DEV__) {
-    // During testing we may add or remove categories and exercises so we need to clear these too
-    await db.delete(schema.categories);
-    await db.delete(schema.exercises);
-
-    await db.insert(schema.categories).values(categoriesData);
-    await db.insert(schema.exercises).values(exercisesData);
-
-    await db.delete(schema.setsData);
-    await db
-      .insert(schema.setsData)
-      .values(await processWorkoutData(workoutsTestData as unknown as Set[][]));
   }
 };

@@ -36,9 +36,10 @@ const Track = (): JSX.Element => {
     pos: { x: 0, y: 0 },
     currentSelectedId: null,
   });
-  const { exerciseId, exerciseType, date } = useLocalSearchParams<{
+  const { exerciseId, exerciseType, weight_unit, date } = useLocalSearchParams<{
     exerciseId: string;
     exerciseType: string;
+    weight_unit: "null" | "Kg" | "Lbs"; // see WeightUnit @/types/units, we we need to cast due to being a string url param
     date: string;
   }>();
   const { db } = useContext(DrizzleContext);
@@ -130,6 +131,8 @@ const Track = (): JSX.Element => {
         date: date,
         ...setTemplates[exerciseType],
         notes: "",
+        weight_unit: weight_unit === "null" ? null : weight_unit,
+        distance_unit: /distance/i.test(exerciseType) ? "Km" : null,
       };
 
       // Insert the new set
