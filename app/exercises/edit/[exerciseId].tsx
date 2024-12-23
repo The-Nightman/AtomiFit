@@ -522,7 +522,7 @@ const editExercise = (): JSX.Element => {
               style={[
                 styles.buttonBase,
                 styles.saveButton,
-                { opacity: unitConfirm ? 1 : 0.5 },
+                { opacity: unitConfirm.operation ? 1 : 0.5 },
               ]}
             >
               <Text style={styles.buttonText}>SAVE</Text>
