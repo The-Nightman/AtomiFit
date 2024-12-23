@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import SearchBar from "@/components/SearchBar";
@@ -41,6 +41,24 @@ const categories = (): JSX.Element => {
       : db.select().from(schema.exercises).limit(0),
     [search]
   );
+
+  useEffect(() => {
+    const onBackPress = () => {
+      if (search) {
+        // We want to clear the search results when the back button is pressed for android users, sometimes this is the expected behavior
+        setSearch("");
+        return true; // Prevent default back button behavior
+      } else {
+        return false; // Let the default back button behavior take over, not necessary but good semantics
+      }
+    };
+
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    };
+  }, [search]); // We need to add the search as a dep or else the listener will only have an image of the initial render state
 
   return (
     <View style={UtilityStyles.flex1}>
@@ -121,25 +139,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-// exerciseListItem: {
-//   minHeight: 44,
-//   flexDirection: "row",
-//   justifyContent: "space-between",
-//   gap: 14,
-//   borderColor: "#3F3C3C",
-//   borderBottomWidth: 1,
-//   paddingLeft: 12,
-// },
-// exerciseText: {
-//   flex: 1,
-//   alignSelf: "center",
-//   color: "white",
-//   fontSize: 20,
-// },
-// highlightedText: { fontWeight: "bold" },
-// menuButton: {
-//   minWidth: 44,
-//   justifyContent: "center",
-//   alignItems: "center",
-// },
