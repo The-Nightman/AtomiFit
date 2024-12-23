@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import SearchBar from "@/components/SearchBar";
@@ -12,6 +12,8 @@ import { Exercise } from "@/types/exercise";
 import ExerciseListItem from "@/components/ExerciseListItem";
 import { router, useLocalSearchParams } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import ExerciseMenu from "@/components/modals/ExerciseMenu";
 
 /**
  * Categories component that displays a list of exercise categories.
@@ -23,41 +25,28 @@ import UtilityStyles from "@/constants/UtilityStyles";
  * @returns {JSX.Element} The rendered Categories component.
  */
 const categories = (): JSX.Element => {
-  const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<Exercise[]>([]);
   const { db } = useContext(DrizzleContext);
   const { date } = useLocalSearchParams<{ date: string }>();
 
-  // Fetch categories from the database on mount
-  useEffect(() => {
-    const data: Category[] = db.select().from(schema.categories).all();
-    setCategories(data);
-  }, []);
-
-  // Filter exercises based on the search
-  useEffect(() => {
-    // If search is empty, reset search results to show categories again and return early
-    if (!search) {
-      setSearchResults([]);
-      return;
-    }
-
-    // Query database for exercises LIKE search term, use %search% to match any part of the name for better UX
-    const results: Exercise[] = db
-      .select()
-      .from(schema.exercises)
-      .where(like(schema.exercises.name, `%${search}%`))
-      .all();
-
-    setSearchResults(results);
-  }, [search]);
+  const { data: categories } = useLiveQuery(
+    db.select().from(schema.categories)
+  );
+  const { data: searchResults } = useLiveQuery(
+    search
+      ? db
+          .select()
+          .from(schema.exercises)
+          .where(like(schema.exercises.name, `%${search}%`))
+      : db.select().from(schema.exercises).limit(0),
+    [search]
+  );
 
   return (
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
       <ScrollView>
-        {searchResults.length // If search results exist, display them, otherwise display categories
+        {searchResults.length
           ? searchResults.map((exercise: Exercise) => (
               <ExerciseListItem
                 key={exercise.id}
@@ -91,7 +80,7 @@ const categories = (): JSX.Element => {
                   ]}
                 />
                 <Text style={styles.categoryText}>{category.name}</Text>
-                <Pressable>
+                <Pressable style={styles.menuButton}>
                   <Entypo
                     name="dots-three-vertical"
                     size={28}
@@ -101,6 +90,7 @@ const categories = (): JSX.Element => {
               </Pressable>
             ))}
       </ScrollView>
+      <ExerciseMenu />
     </View>
   );
 };
@@ -111,19 +101,45 @@ const styles = StyleSheet.create({
   categoryListItem: {
     minHeight: 44,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
     gap: 14,
     borderColor: "#3F3C3C",
     borderBottomWidth: 1,
     paddingLeft: 12,
-    paddingRight: 8,
   },
   categoryIndicator: {
     height: 22,
     width: 22,
+    alignSelf: "center",
     borderRadius: 11,
     borderWidth: 1.5,
   },
-  categoryText: { flex: 1, color: "white", fontSize: 20 },
+  categoryText: { flex: 1, color: "white", fontSize: 20, alignSelf: "center" },
+  menuButton: {
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
+
+// exerciseListItem: {
+//   minHeight: 44,
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   gap: 14,
+//   borderColor: "#3F3C3C",
+//   borderBottomWidth: 1,
+//   paddingLeft: 12,
+// },
+// exerciseText: {
+//   flex: 1,
+//   alignSelf: "center",
+//   color: "white",
+//   fontSize: 20,
+// },
+// highlightedText: { fontWeight: "bold" },
+// menuButton: {
+//   minWidth: 44,
+//   justifyContent: "center",
+//   alignItems: "center",
+// },
