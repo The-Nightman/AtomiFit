@@ -12,7 +12,7 @@ import AtomiFitFullLogoSVG from "@/components/Svg/AtomiFitFullLogoSVG";
 import { Picker } from "@react-native-picker/picker";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
-import { like } from "drizzle-orm";
+import { inArray, like } from "drizzle-orm";
 import { useSettings } from "@/contexts/settingsContext";
 import { AppSettingsValue } from "@/types/settings";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
@@ -62,16 +62,70 @@ const index = (): JSX.Element => {
    */
   const handleSetup = async (): Promise<void> => {
     if (formData.unitSystem === "metric") {
-      await db
-        .update(schema.exercises)
-        .set({ weight_unit: "Kg" })
-        .where(like(schema.exercises.type, "Weight%"));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(schema.exercises)
+          .set({ weight_unit: "Kg" })
+          .where(like(schema.exercises.type, "Weight%"));
+        //! This is temporary just to convert existing data for testers who currently have a build
+        await tx
+          .update(schema.setsData)
+          .set({ weight_unit: "Kg" })
+          .where(
+            inArray(
+              schema.setsData.exercise_id,
+              tx
+                .select({ id: schema.exercises.id })
+                .from(schema.exercises)
+                .where(like(schema.exercises.type, "Weight%"))
+            )
+          );
+        await tx
+          .update(schema.setsData)
+          .set({ distance_unit: "Km" })
+          .where(
+            inArray(
+              schema.setsData.exercise_id,
+              tx
+                .select({ id: schema.exercises.id })
+                .from(schema.exercises)
+                .where(like(schema.exercises.type, "%Distance%"))
+            )
+          );
+      });
     }
     if (formData.unitSystem === "imperial") {
-      await db
-        .update(schema.exercises)
-        .set({ weight_unit: "Lbs" })
-        .where(like(schema.exercises.type, "Weight%"));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(schema.exercises)
+          .set({ weight_unit: "Lbs" })
+          .where(like(schema.exercises.type, "Weight%"));
+        //! This is temporary just to convert existing data for testers who currently have a build
+        await tx
+          .update(schema.setsData)
+          .set({ weight_unit: "Lbs" })
+          .where(
+            inArray(
+              schema.setsData.exercise_id,
+              tx
+                .select({ id: schema.exercises.id })
+                .from(schema.exercises)
+                .where(like(schema.exercises.type, "Weight%"))
+            )
+          );
+        await tx
+          .update(schema.setsData)
+          .set({ distance_unit: "Mi" })
+          .where(
+            inArray(
+              schema.setsData.exercise_id,
+              tx
+                .select({ id: schema.exercises.id })
+                .from(schema.exercises)
+                .where(like(schema.exercises.type, "%Distance%"))
+            )
+          );
+      });
     }
 
     for (const [key, value] of Object.entries(formData)) {
@@ -190,7 +244,9 @@ const index = (): JSX.Element => {
               styles.button,
               pressed && { backgroundColor: hexcodeLuminosity("#60DD49", -60) },
             ]}
-            onPress={() => handleSetup()}
+            onPress={async () => {
+              await handleSetup();
+            }}
           >
             <Text style={styles.buttonText}>Continue</Text>
           </Pressable>
