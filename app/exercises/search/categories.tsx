@@ -1,19 +1,20 @@
-import { BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
+import { BackHandler, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import Entypo from "@expo/vector-icons/Entypo";
 import SearchBar from "@/components/SearchBar";
 import * as schema from "@/database/schema";
-import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { Category } from "@/types/categories";
 import { like } from "drizzle-orm";
 import { Exercise } from "@/types/exercise";
 import ExerciseListItem from "@/components/ExerciseListItem";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import ExerciseMenu from "@/components/modals/ExerciseMenu";
+import CategoryListItem from "@/components/CategoryListItem";
+import CategoryMenu from "@/components/modals/CategoryMenu";
+import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
 
 /**
  * Categories component that displays a list of exercise categories.
@@ -74,68 +75,18 @@ const categories = (): JSX.Element => {
               />
             ))
           : categories.map((category: Category) => (
-              <Pressable
+              <CategoryListItem
                 key={category.id}
-                onPress={() =>
-                  router.push({
-                    pathname: "/exercises/search/[category]",
-                    params: { category: category.id!, date: date },
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.categoryListItem,
-                  pressed && { backgroundColor: "#595555" },
-                ]}
-              >
-                {/* indicator */}
-                <View
-                  style={[
-                    styles.categoryIndicator,
-                    {
-                      backgroundColor: category.colour,
-                      borderColor: hexcodeLuminosity(category.colour, 40),
-                    },
-                  ]}
-                />
-                <Text style={styles.categoryText}>{category.name}</Text>
-                <Pressable style={styles.menuButton}>
-                  <Entypo
-                    name="dots-three-vertical"
-                    size={28}
-                    color="#60DD49"
-                  />
-                </Pressable>
-              </Pressable>
+                category={category}
+                date={date}
+              />
             ))}
       </ScrollView>
+      <UpdateCategoryModal />
+      <CategoryMenu />
       <ExerciseMenu />
     </View>
   );
 };
 
 export default categories;
-
-const styles = StyleSheet.create({
-  categoryListItem: {
-    minHeight: 44,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 14,
-    borderColor: "#3F3C3C",
-    borderBottomWidth: 1,
-    paddingLeft: 12,
-  },
-  categoryIndicator: {
-    height: 22,
-    width: 22,
-    alignSelf: "center",
-    borderRadius: 11,
-    borderWidth: 1.5,
-  },
-  categoryText: { flex: 1, color: "white", fontSize: 20, alignSelf: "center" },
-  menuButton: {
-    minWidth: 44,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
