@@ -59,7 +59,7 @@ const History = (): React.JSX.Element => {
       <>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>{set.distance_unit}</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
@@ -71,7 +71,7 @@ const History = (): React.JSX.Element => {
         </Text>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>{set.distance_unit}</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
       </>
     ),
@@ -90,7 +90,7 @@ const History = (): React.JSX.Element => {
         </Text>
         <Text style={styles.setData}>
           {set.distance}
-          <Text style={styles.setDataUnit}>{set.distance_unit}</Text>
+          <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
         </Text>
       </>
     ),
@@ -115,7 +115,7 @@ const History = (): React.JSX.Element => {
     distance: (set: Set) => (
       <Text style={styles.setData}>
         {set.distance}
-        <Text style={styles.setDataUnit}>{set.distance_unit}</Text>
+        <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
       </Text>
     ),
     time: (set: Set) => (
