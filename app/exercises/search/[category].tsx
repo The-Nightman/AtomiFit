@@ -1,15 +1,16 @@
-import { SafeAreaView, View } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { and, eq, like } from "drizzle-orm";
 import ExerciseListItem from "@/components/ExerciseListItem";
 import SearchBar from "@/components/SearchBar";
-import { Exercise } from "@/types/exercise";
 import { ScrollView } from "react-native-gesture-handler";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import ExerciseMenu from "@/components/modals/ExerciseMenu";
 
 /**
  * Dynamic route [category] component that displays a list of exercises for a given category.
@@ -23,9 +24,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  */
 const CategoryExercises = (): JSX.Element => {
   const insets = useSafeAreaInsets();
-  // One less state is declared here compared to categories.tsx as the list will only use one possible type and component.
-  // This should reduce re-renders and improve net performance despite it being a small component.
-  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [search, setSearch] = useState<string>("");
   const { category, date } = useLocalSearchParams<{
     category: string;
@@ -33,52 +31,24 @@ const CategoryExercises = (): JSX.Element => {
   }>();
   const { db } = useContext(DrizzleContext);
 
-  // Fetch exercises from the database based on the category ID provided in the route
-  useEffect(() => {
-    const data: Exercise[] = db
-      .select()
-      .from(schema.exercises)
-      .where(eq(schema.exercises.category_id, Number(category)))
-      .all();
-
-    setExercises(data);
-  }, []);
-
-  // Filter exercises based on the search
-  useEffect(() => {
-    // If search is empty, reset exercises to show all exercises in the category and return early
-    if (!search) {
-      const data: Exercise[] = db
-        .select()
-        .from(schema.exercises)
-        .where(eq(schema.exercises.category_id, Number(category)))
-        .all();
-
-      setExercises(data);
-      return;
-    }
-
-    // Query database for exercises LIKE search term, use % wildcards to match any part of the name for better UX
-    const results: Exercise[] = db
+  const { data } = useLiveQuery(
+    db
       .select()
       .from(schema.exercises)
       .where(
         and(
-          like(schema.exercises.name, `%${search}%`),
+          like(schema.exercises.name, `%${search}%`), // if the search term is empty this will return all exercises in the category
           eq(schema.exercises.category_id, Number(category))
         )
-      )
-      .all();
-
-    setExercises(results);
-  }, [search]);
+      ),
+    [search]
+  );
 
   return (
-    
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
       <ScrollView>
-        {exercises.map((exercise) => (
+        {data.map((exercise) => (
           <ExerciseListItem
             key={exercise.id}
             exercise={exercise}
@@ -87,6 +57,7 @@ const CategoryExercises = (): JSX.Element => {
           />
         ))}
       </ScrollView>
+      <ExerciseMenu />
     </View>
   );
 };
