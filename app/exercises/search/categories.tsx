@@ -11,7 +11,6 @@ import ExerciseListItem from "@/components/ExerciseListItem";
 import { useLocalSearchParams } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import ExerciseMenu from "@/components/modals/ExerciseMenu";
 import CategoryListItem from "@/components/CategoryListItem";
 import CategoryMenu from "@/components/modals/CategoryMenu";
 import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
@@ -82,9 +81,10 @@ const categories = (): JSX.Element => {
               />
             ))}
       </ScrollView>
+      {/* These modals are specific to this screen so we will just declare them here,
+       however they will still render throughout the stack on their respective events */}
       <UpdateCategoryModal />
       <CategoryMenu />
-      <ExerciseMenu />
     </View>
   );
 };

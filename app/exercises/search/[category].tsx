@@ -10,7 +10,6 @@ import { ScrollView } from "react-native-gesture-handler";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import ExerciseMenu from "@/components/modals/ExerciseMenu";
 
 /**
  * Dynamic route [category] component that displays a list of exercises for a given category.
@@ -57,7 +56,6 @@ const CategoryExercises = (): JSX.Element => {
           />
         ))}
       </ScrollView>
-      <ExerciseMenu />
     </View>
   );
 };

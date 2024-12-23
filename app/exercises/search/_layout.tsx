@@ -1,12 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Link, router, Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import ExerciseMenu from "@/components/modals/ExerciseMenu";
 
 /**
  * ExercisesLayout component.
@@ -62,6 +60,9 @@ const ExercisesSearchLayout = (): JSX.Element => {
         <Stack.Screen name="categories" options={{ gestureEnabled: true }} />
         <Stack.Screen name="[category]" options={{ gestureEnabled: true }} />
       </Stack>
+      {/* We can just declare this here, this will display on both screens as long as its
+      declared here or in the categories screen but this will be better for maintainability */}
+      <ExerciseMenu />
     </View>
   );
 };
