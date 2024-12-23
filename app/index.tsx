@@ -58,6 +58,13 @@ const index = () => {
     }
   }, [editMode.selectedExercises]);
 
+  // We need to reset the edit mode when the date changes i.e. user swipes to a new day
+  useEffect(() => {
+    if (editMode.edit) {
+      setEditMode({ edit: false, selectedExercises: [] });
+    }
+  }, [date]);
+
   /**
    * Toggles the edit mode the screen when exercises are present and handles the selection of exercises.
    *
