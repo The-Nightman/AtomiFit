@@ -9,11 +9,11 @@ export const hexcodeLuminosity = (
   hexColour: string,
   magnitude: number
 ): string => {
-  hexColour = hexColour.replace(`#`, ``);
+  const hexcode = hexColour.replace(`#`, ``);
   // Check if the hex colour is a 6-character string
-  if (hexColour.length === 6) {
+  if (hexcode.length === 6) {
     // Convert the hex colour to a 16-bit decimal
-    const decimalColour = parseInt(hexColour, 16);
+    const decimalColour = parseInt(hexcode, 16);
     // Extract the RGB components and adjust them by the magnitude
     // Extract red with a 16-bit right shift and adjust
     let r: number = (decimalColour >> 16) + magnitude;
