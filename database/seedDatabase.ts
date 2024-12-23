@@ -61,30 +61,6 @@ const processWorkoutData = (workoutData: Set[][]): Set[] => {
 };
 
 /**
- * Adds units to exercises based on their type.
- *
- * This function iterates over an array of exercises and adds a unit property
- * to each exercise object based on its type. If the exercise type includes
- * "weight" (case insensitive), the unit "kg" is added. If the
- * exercise type does not match the condition, the exercise object is
- * returned unchanged to use a null value by default.
- *
- * @returns {JsonExercise[]} An array of exercises with units added where applicable.
- */
-const addUnitsToExercises = (): JsonExercise[] => {
-  return (exercisesData as JsonExercise[]).reduce(
-    (acc: JsonExercise[], exercise: JsonExercise) => {
-      if (/weight/i.test(exercise.type)) {
-        return [...acc, { ...exercise, weight_unit: "Kg" } as JsonExercise];
-      }
-
-      return [...acc, exercise as JsonExercise];
-    },
-    [] as JsonExercise[]
-  );
-};
-
-/**
  * Seeds the database with categories and exercises if they don't exist.
  * If in development mode, also resets exercises and categories and
  * seeds the database with test workout data.
@@ -119,6 +95,6 @@ export const seedDatabase = async (
   }
 
   if (exercises.length === 0) {
-    await db.insert(schema.exercises).values(addUnitsToExercises());
+    await db.insert(schema.exercises).values(exercisesData);
   }
 };
