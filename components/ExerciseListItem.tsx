@@ -102,12 +102,17 @@ const ExerciseListItem = ({
     >
       {getHighlightedText(exercise.name, search)}
       <Pressable
+        style={styles.menuButton}
         onPress={async () => {
           const position = await getPositon();
           eventEmitter.emit("exerciseMenu", exercise.id, position);
         }}
       >
-        <Entypo name="dots-three-vertical" size={28} color="#60DD49" />
+        <Entypo
+          name="dots-three-vertical"
+          size={28}
+          color="#60DD49"
+        />
       </Pressable>
     </Pressable>
   );
@@ -119,14 +124,22 @@ const styles = StyleSheet.create({
   exerciseListItem: {
     minHeight: 44,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
     gap: 14,
     borderColor: "#3F3C3C",
     borderBottomWidth: 1,
     paddingLeft: 12,
-    paddingRight: 8,
   },
-  exerciseText: { flex: 1, color: "white", fontSize: 20 },
+  exerciseText: {
+    flex: 1,
+    alignSelf: "center",
+    color: "white",
+    fontSize: 20,
+  },
   highlightedText: { fontWeight: "bold" },
+  menuButton: {
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
