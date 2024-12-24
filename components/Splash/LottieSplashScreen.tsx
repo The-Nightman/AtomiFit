@@ -14,7 +14,9 @@ interface LottieSplashScreenProps {
  * @param {React.Dispatch<React.SetStateAction<boolean>>} props.setComplete - setState from parent component to manage rendering state based on animation status.
  * @returns {JSX.Element} The rendered Lottie animated splash screen component.
  */
-const LottieSplashScreen = ({ setComplete }: LottieSplashScreenProps) => {
+const LottieSplashScreen = ({
+  setComplete,
+}: LottieSplashScreenProps): JSX.Element => {
   const animation = useRef<LottieView>(null);
 
   return (
@@ -26,6 +28,10 @@ const LottieSplashScreen = ({ setComplete }: LottieSplashScreenProps) => {
         loop={false}
         speed={1}
         onAnimationFinish={() => setComplete(true)}
+        // These are saved here for future reference
+        // colorFilters={[{ keypath: "Group Layer 1", color: "red" },{ keypath: "Masked Group 1", color: "red" }]}
+        //! We need to use SOFTWARE rendering due to an issue with the animation svg in iOS that causes paths to be filled and freezes on the last frame
+        renderMode="SOFTWARE"
         style={styles.lottieViewStyle}
       />
     </View>
