@@ -17,6 +17,7 @@ import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
 import NewCategoryModal from "@/components/modals/NewCategoryModal";
 import { DistanceUnit, WeightUnit } from "@/types/units";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -27,6 +28,7 @@ import { DistanceUnit, WeightUnit } from "@/types/units";
  * @returns {JSX.Element} The rendered NewExercise Screen.
  */
 const newExercise = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState<{
     name: string;
     notes: string;
@@ -163,7 +165,12 @@ const newExercise = (): JSX.Element => {
             }
           />
         )}
-        <ScrollView contentContainerStyle={styles.scrollviewContainer}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollviewContainer,
+            { paddingBottom: insets.bottom },
+          ]}
+        >
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>NAME</Text>
             <TextInput
