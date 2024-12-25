@@ -13,13 +13,19 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
  *
  * @returns {JSX.Element} The rendered component.
  */
-const ExerciseCreateLayout = () => {
+const ExerciseCreateLayout = (): JSX.Element => {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={UtilityStyles.flex1}>
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
           onPress={() => {
             router.back();
           }}
@@ -28,19 +34,27 @@ const ExerciseCreateLayout = () => {
             <MaterialIcons
               name="close"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
         <Text style={{ fontSize: 28, fontWeight: "500" }}>
           Add New Exercise
         </Text>
-        <Pressable onPress={() => eventEmitter.emit("createExercise")}>
+        <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
+          onPress={() => eventEmitter.emit("createExercise")}
+        >
           {({ pressed }) => (
             <MaterialIcons
               name="check"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
