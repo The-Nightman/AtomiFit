@@ -23,6 +23,12 @@ const ExerciseEditLayout = (): JSX.Element => {
     <View style={UtilityStyles.flex1}>
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
           onPress={() => {
             router.back();
           }}
@@ -31,17 +37,25 @@ const ExerciseEditLayout = (): JSX.Element => {
             <MaterialIcons
               name="close"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
         <Text style={{ fontSize: 28, fontWeight: "500" }}>Edit Exercise</Text>
-        <Pressable onPress={() => eventEmitter.emit("updateExercise")}>
+        <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
+          onPress={() => eventEmitter.emit("updateExercise")}
+        >
           {({ pressed }) => (
             <MaterialIcons
               name="check"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
