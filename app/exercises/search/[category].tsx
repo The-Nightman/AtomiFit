@@ -46,7 +46,11 @@ const CategoryExercises = (): JSX.Element => {
   return (
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
+      >
         {data.map((exercise) => (
           <ExerciseListItem
             key={exercise.id}

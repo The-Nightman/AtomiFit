@@ -14,6 +14,7 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import CategoryListItem from "@/components/CategoryListItem";
 import CategoryMenu from "@/components/modals/CategoryMenu";
 import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Categories component that displays a list of exercise categories.
@@ -25,6 +26,7 @@ import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
  * @returns {JSX.Element} The rendered Categories component.
  */
 const categories = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState<string>("");
   const { db } = useContext(DrizzleContext);
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -63,7 +65,11 @@ const categories = (): JSX.Element => {
   return (
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
+      >
         {searchResults.length
           ? searchResults.map((exercise: Exercise) => (
               <ExerciseListItem

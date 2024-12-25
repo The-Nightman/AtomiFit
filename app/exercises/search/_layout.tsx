@@ -22,6 +22,12 @@ const ExercisesSearchLayout = (): JSX.Element => {
     <View style={UtilityStyles.flex1}>
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
           onPress={() => {
             router.back();
           }}
@@ -30,7 +36,7 @@ const ExercisesSearchLayout = (): JSX.Element => {
             <MaterialIcons
               name="close"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
@@ -38,6 +44,12 @@ const ExercisesSearchLayout = (): JSX.Element => {
           Browse Exercises
         </Text>
         <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
           onPress={() => {
             router.push("/exercises/create/newExercise");
           }}
@@ -46,7 +58,7 @@ const ExercisesSearchLayout = (): JSX.Element => {
             <MaterialIcons
               name="add"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
