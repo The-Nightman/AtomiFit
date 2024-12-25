@@ -13,6 +13,8 @@ interface ExerciseListItemProps {
 
 /**
  * Component representing a single item in an exercise list on the browse screens.
+ * 
+ * The component navigates to the exercise screen via the replace method on press.
  *
  * @component
  * @param {ExerciseListItemProps} props - The properties for the component.
@@ -89,7 +91,8 @@ const ExerciseListItem = ({
   return (
     <Pressable
       onPress={() =>
-        router.push({
+        // We need to use replace for the navigation behavior we want, for some reason certain router methods are not available?
+        router.replace({
           pathname: "/exercise/[exerciseId]/track",
           params: { exerciseId: exercise.id, date: date },
         })
@@ -108,11 +111,7 @@ const ExerciseListItem = ({
           eventEmitter.emit("exerciseMenu", exercise.id, position);
         }}
       >
-        <Entypo
-          name="dots-three-vertical"
-          size={28}
-          color="#60DD49"
-        />
+        <Entypo name="dots-three-vertical" size={28} color="#60DD49" />
       </Pressable>
     </Pressable>
   );
