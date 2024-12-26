@@ -21,6 +21,7 @@ import { useLocalSearchParams } from "expo-router";
 import { eq } from "drizzle-orm";
 import ModalBase from "@/components/modals/ModalBase";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import { convertWeightUnits } from "@/utils/convertWeightUnits";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -221,8 +222,62 @@ const editExercise = (): JSX.Element => {
    */
   const handleUnitChange = async (): Promise<void> => {
     if (unitConfirm.operation === "convert") {
-      // Convert the existing sets
-      // Not implemented
+      try {
+        await db.transaction(async (tx) => {
+
+          // We need to pull the saved sets and convert them in memory as there is no supported method for this in SQLite
+          const savedSets = await tx
+            .select()
+            .from(schema.setsData)
+            .where(eq(schema.setsData.exercise_id, Number(exerciseId)));
+
+          const convertedSets = savedSets.map((set) => {
+            return {
+              ...set,
+              weight: convertWeightUnits(
+                set.weight!,
+                formData.currentSavedUnit!,
+                formData.weight_unit!
+              ),
+            };
+          });
+
+          // SQLite does not support batch updates so we need to loop through each set and update it one by one
+          for (const set of convertedSets) { // We use a for loop for performance since it is a lower level operation with less overhead
+            await tx
+              .update(schema.setsData)
+              .set({ weight: set.weight, weight_unit: formData.weight_unit })
+              .where(eq(schema.setsData.id, set.id));
+          }
+
+          await tx
+            .update(schema.exercises)
+            .set({
+              name: formData.name,
+              notes: formData.notes,
+              type: formData.type,
+              category_id: formData.category,
+              weight_unit: formData.weight_unit,
+            })
+            .where(eq(schema.exercises.id, Number(exerciseId)));
+        });
+
+        setFormData((prevState) => ({
+          ...prevState,
+          currentSavedUnit: formData.weight_unit,
+        }));
+        setToastState({
+          show: true,
+          message: "Exercise Saved",
+          colour: "#388E3C",
+        });
+      } catch (error) {
+        setToastState({
+          show: true,
+          message: "An Error Occurred, Could Not Change Units",
+          colour: "#C0392B",
+        });
+      }
     }
 
     if (unitConfirm.operation === "switch") {
@@ -308,9 +363,7 @@ const editExercise = (): JSX.Element => {
           </View>
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>CATEGORY</Text>
-            <View
-              style={styles.categorySubcontainer}
-            >
+            <View style={styles.categorySubcontainer}>
               <Picker
                 mode="dropdown"
                 style={[
@@ -445,13 +498,12 @@ const editExercise = (): JSX.Element => {
                 }
               >
                 <View>
-                  <Text
-                    style={styles.modalOptionName}
-                  >
+                  <Text style={styles.modalOptionName}>
                     Convert Existing Sets
                   </Text>
                   <Text style={styles.modalText}>
-                    not yet implemented
+                    30 {formData.currentSavedUnit} will become 30{" "}
+                    {formData.weight_unit}
                   </Text>
                 </View>
                 {unitConfirm.operation === "convert" ? (
@@ -480,11 +532,7 @@ const editExercise = (): JSX.Element => {
                 }
               >
                 <View>
-                  <Text
-                    style={styles.modalOptionName}
-                  >
-                    Only Change Unit
-                  </Text>
+                  <Text style={styles.modalOptionName}>Only Change Unit</Text>
                   <Text style={styles.modalText}>
                     30 {formData.currentSavedUnit} will become 30{" "}
                     {formData.weight_unit}
@@ -551,7 +599,7 @@ const styles = StyleSheet.create({
   typePicker: {
     flex: 1,
   },
-  categorySubcontainer:{
+  categorySubcontainer: {
     width: "95%",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -609,7 +657,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingVertical: 8,
   },
-  modalOptionName:{ color: "white", fontSize: 20, fontWeight: "500" },
+  modalOptionName: { color: "white", fontSize: 20, fontWeight: "500" },
   modalButtonContainer: { flexDirection: "row", gap: 16 },
   buttonBase: {
     flex: 1,
