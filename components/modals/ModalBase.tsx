@@ -1,5 +1,5 @@
 import { ModalAnimationProps } from "@/types/modal";
-import { ColorValue, StyleSheet } from "react-native";
+import { ColorValue, Dimensions, StyleSheet } from "react-native";
 import Modal from "react-native-modal";
 
 interface BackdropStyle {
@@ -18,7 +18,7 @@ interface ModalBaseProps {
 
 /**
  * ModalBase component that provides a base structure for modals.
- * 
+ *
  * @remarks
  * On iOS devices the modal backdrop must be set with an opacity of 0.011 or higher for onBackdropPress to work.
  * However, an alternative is setting the backdropOpacity to 1 and setting backdropColor to a HexCode color value
@@ -57,6 +57,10 @@ const ModalBase = ({
   backdropStyle,
   children,
 }: ModalBaseProps): JSX.Element => {
+  // We need the screen height for Android devices to prevent a gap at
+  //  the bottom of the backdrop with a translucent status bar
+  const { height } = Dimensions.get("screen");
+
   /**
    * Handles the dismissal of the modal.
    * If an `onDismiss` callback is provided, it will be called.
@@ -71,6 +75,8 @@ const ModalBase = ({
 
   return (
     <Modal
+      statusBarTranslucent={true}
+      deviceHeight={height} // Required for Android or else the backdrop will have a gap at the bottom
       isVisible={modalState}
       animationIn={animationProps?.animationIn ?? "zoomIn"}
       animationOut={animationProps?.animationOut ?? "zoomOut"}
@@ -98,5 +104,5 @@ const ModalBase = ({
 export default ModalBase;
 
 const styles = StyleSheet.create({
-  modalBase: { alignItems: "center", justifyContent: "center", height: "100%" },
+  modalBase: { alignItems: "center", justifyContent: "center" },
 });
