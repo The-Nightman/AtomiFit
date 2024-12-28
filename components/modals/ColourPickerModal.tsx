@@ -2,8 +2,8 @@ import { ColorValue, Pressable, StyleSheet, Text, View } from "react-native";
 import ModalBase from "./ModalBase";
 import ColorPicker, {
   HueCircular,
+  InputWidget,
   Panel1,
-  Preview,
   Swatches,
 } from "reanimated-color-picker";
 import { useState } from "react";
@@ -26,7 +26,7 @@ interface ColourPickerModalProps {
  * @param {Function} props.setColour - Function to set the selected color.
  *
  * @returns {JSX.Element} The ColourPickerModal component.
- * 
+ *
  * @example
  * ```tsx
  * <ColourPickerModal
@@ -45,6 +45,7 @@ const ColourPickerModal = ({
   const [selectedColour, setSelectedColour] = useState<ColorValue | string>(
     defaultColour ?? "#000000"
   );
+  const [panelDimensions, setPanelDimensions] = useState(0);
 
   /**
    * Handles the selection of a color and updates the selected color state.
@@ -62,25 +63,39 @@ const ColourPickerModal = ({
       modalState={modalState}
       setModalState={() => setModalState(false)}
     >
-      <View style={styles.modalBody}>
+      <View
+        style={styles.modalBody}
+        onLayout={(e) => setPanelDimensions(e.nativeEvent.layout.width)}
+      >
         <ColorPicker
           style={styles.colourPicker}
-          value={defaultColour as string}
+          value={selectedColour as string}
           onComplete={onSelectColor}
         >
-          <Preview
-            textStyle={{ textTransform: "uppercase" }}
-            disableOpacityTexture={true}
-          />
           <HueCircular
+            thumbShape="circle"
             style={{ width: "100%" }}
             containerStyle={[
               styles.hueCircleContainer,
               { backgroundColor: "#292929" },
             ]}
           >
-            <Panel1 style={styles.panelStyle} />
+            <Panel1
+              // We need to do this to prevent an error caused by layout sizing on iOS or else the colour picker will break
+              style={{
+                width: panelDimensions * 0.55,
+                height: panelDimensions * 0.55,
+              }}
+            />
           </HueCircular>
+          <InputWidget
+            inputStyle={{
+              backgroundColor: selectedColour as string,
+              textTransform: "uppercase",
+            }}
+            formats={["HEX"]}
+            inputTitleStyle={{ display: "none" }}
+          />
           <Swatches />
         </ColorPicker>
         <View style={styles.modalButtonContainer}>
