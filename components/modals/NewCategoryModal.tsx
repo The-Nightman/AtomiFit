@@ -9,11 +9,12 @@ import {
 import ModalBase from "./ModalBase";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useContext, useEffect, useState } from "react";
-import ColourPickerModal from "./ColourPickerModal";
-import { randomHexcode } from "@/utils/randomHexcode";
 import Toast from "../ux/Toast";
 import * as schema from "@/database/schema";
 import { DrizzleContext } from "@/contexts/drizzleContext";
+import { colorKit } from "reanimated-color-picker";
+import ColourPickerCircular from "../inputs/pickers/ColourPickerCircular";
+import { DrizzleError } from "drizzle-orm";
 
 interface NewCategoryModalProps {
   modalState: boolean;
@@ -34,9 +35,9 @@ interface NewCategoryModalProps {
  * @param {boolean} props.modalState - The state of the modal (open/closed).
  * @param {Function} props.setModalState - Function to set the state of the modal.
  * @param {Function} props.returnCategoryId - Function to return the ID of the newly created category.
- * 
+ *
  * @returns {JSX.Element} The rendered NewCategoryModal component.
- * 
+ *
  * @example
  * ```tsx
  * <NewCategoryModal
@@ -55,7 +56,7 @@ const NewCategoryModal = ({
     colour: ColorValue;
   }>({
     name: "",
-    colour: "",
+    colour: colorKit.randomRgbColor().hex(),
   });
   const [colourPickerModal, setColourPickerModal] = useState(false);
   const [toastState, setToastState] = useState<{
@@ -70,7 +71,8 @@ const NewCategoryModal = ({
   const { db } = useContext(DrizzleContext);
 
   useEffect(() => {
-    if (modalState) setFormData({ name: "", colour: randomHexcode() }); // We don't want unnecessary state changes when closing the modal
+    if (modalState)
+      setFormData({ name: "", colour: colorKit.randomRgbColor().hex() }); // We don't want unnecessary state changes when closing the modal
   }, [modalState]); // We don't need to but we can set this just for the user, let them have some fun generating random colours
 
   /**
@@ -109,6 +111,17 @@ const NewCategoryModal = ({
       returnCategoryId(category[0].id); // We return the id to the parent so it will automatically be selected
       setModalState(false);
     } catch (error) {
+      if (
+        (error as DrizzleError).message.includes("UNIQUE constraint failed")
+      ) {
+        setToastState({
+          show: true,
+          colour: "#C0392B",
+          message: "Category name must be unique",
+        });
+        return;
+      }
+
       setToastState({
         show: true,
         colour: "#C0392B",
@@ -131,54 +144,63 @@ const NewCategoryModal = ({
       <ModalBase
         modalState={modalState}
         setModalState={() => setModalState(false)}
+        onDismiss={() => setColourPickerModal(false)}
       >
-        <View style={styles.modalBody}>
-          <Text style={styles.modalTitle}>NEW CATEGORY</Text>
-          <View style={styles.categoryInputContainer}>
-            <Pressable
-              style={{
-                backgroundColor: formData.colour,
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                borderColor: hexcodeLuminosity(formData.colour as string, 40),
-                borderWidth: 1,
+        {!colourPickerModal ? (
+          // iOS cannot handle multiple modals at once unlike Android so we need to conditionally render the colour picker as modal content in here
+          <View style={styles.modalBody}>
+            <Text style={styles.modalTitle}>NEW CATEGORY</Text>
+            <View style={styles.categoryInputContainer}>
+              <Pressable
+                style={{
+                  backgroundColor: formData.colour,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderColor: hexcodeLuminosity(formData.colour as string, 40),
+                  borderWidth: 1,
+                }}
+                onPress={() => setColourPickerModal(true)}
+              />
+              <TextInput
+                autoCapitalize="words"
+                value={formData.name}
+                style={styles.inputText}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.nativeEvent.text })
+                }
+              />
+            </View>
+            <View style={styles.modalButtonContainer}>
+              <Pressable
+                onPress={() => {
+                  setModalState(false);
+                }}
+                style={[styles.buttonBase, styles.cancelButton]}
+              >
+                <Text style={styles.buttonText}>CANCEL</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleSaveCategory()}
+                style={[styles.buttonBase, styles.saveButton]}
+              >
+                <Text style={styles.buttonText}>SAVE</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.modalBody}>
+            <ColourPickerCircular
+              defaultColour={formData.colour}
+              setColour={(colour: ColorValue) => {
+                setFormData({ ...formData, colour });
+                setColourPickerModal(false);
               }}
-              onPress={() => setColourPickerModal(true)}
-            />
-            <TextInput
-              autoCapitalize="words"
-              style={styles.inputText}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.nativeEvent.text })
-              }
+              onCancel={() => setColourPickerModal(false)}
             />
           </View>
-          <View style={styles.modalButtonContainer}>
-            <Pressable
-              onPress={() => {
-                setFormData({ name: "", colour: "#60DD49" });
-                setModalState(false);
-              }}
-              style={[styles.buttonBase, styles.cancelButton]}
-            >
-              <Text style={styles.buttonText}>CANCEL</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => handleSaveCategory()}
-              style={[styles.buttonBase, styles.saveButton]}
-            >
-              <Text style={styles.buttonText}>SAVE</Text>
-            </Pressable>
-          </View>
-        </View>
+        )}
       </ModalBase>
-      <ColourPickerModal
-        modalState={colourPickerModal}
-        setModalState={setColourPickerModal}
-        defaultColour={formData.colour}
-        setColour={(colour: ColorValue) => setFormData({ ...formData, colour })}
-      />
     </>
   );
 };
@@ -211,6 +233,7 @@ const styles = StyleSheet.create({
   },
   inputText: {
     flex: 1,
+    minHeight: 44,
     color: "white",
     fontSize: 20,
     borderBottomColor: "white",
