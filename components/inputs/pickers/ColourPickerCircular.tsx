@@ -1,4 +1,4 @@
-import { ColorValue, Pressable, StyleSheet, Text, View } from "react-native";
+import { ColorValue, StyleSheet, View } from "react-native";
 import ColorPicker, {
   HueCircular,
   InputWidget,
@@ -6,15 +6,16 @@ import ColorPicker, {
   Swatches,
 } from "reanimated-color-picker";
 import { useState } from "react";
+import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import { getContrastTextColour } from "@/utils/getContrastTextColour";
 
 interface ColourPickerCircularProps {
   defaultColour?: ColorValue | string;
   setColour: (colour: ColorValue | string) => void;
-  onCancel: () => void;
 }
 
 /**
- * ColourPickerCircular component allows users to pick a color from a color picker modal.
+ * ColourPickerCircular component allows users to pick a color using the reanimated color picker.
  *
  * @component
  * @param {ColourPickerCircularProps} props - The properties object.
@@ -22,25 +23,25 @@ interface ColourPickerCircularProps {
  * @param {Function} props.setColour - Function to set the selected color.
  * @param {Function} props.onCancel - Function to handle the cancel event.
  *
- * @returns {JSX.Element} The ColourPickerModal component.
+ * @returns {JSX.Element} The ColourPickerCircular component.
  *
  * @example
  * ```tsx
- * <ColourPickerModal
+ * <ColourPickerCircular
  *   defaultColour="#000000"
  *   setColour={(colour) => console.log(colour)}
- *   onCancel={() => console.log("Cancelled")}
  * />
  */
 const ColourPickerCircular = ({
   defaultColour = "#000000",
   setColour,
-  onCancel,
 }: ColourPickerCircularProps): JSX.Element => {
-  const [selectedColour, setSelectedColour] = useState<ColorValue | string>(
-    defaultColour
-  );
   const [panelDimensions, setPanelDimensions] = useState(0);
+  // These reanimated properties are so we can animate the style where appropriate and prevent errors from improper value access
+  const animatedColour = useSharedValue(defaultColour as string);
+  const backgroundAnimCol = useAnimatedStyle(() => ({
+    backgroundColor: animatedColour.value,
+  }));
 
   /**
    * Handles the selection of a color and updates the selected color state.
@@ -50,22 +51,25 @@ const ColourPickerCircular = ({
    * @returns {void}
    */
   const onSelectColor = ({ hex }: { hex: string }): void => {
-    setSelectedColour(hex);
+    setColour(hex);
   };
 
   return (
     <View onLayout={(e) => setPanelDimensions(e.nativeEvent.layout.width)}>
       <ColorPicker
         style={styles.colourPicker}
-        value={selectedColour as string}
+        value={defaultColour as string}
         onComplete={onSelectColor}
+        onChange={(color) => {
+          animatedColour.value = color.hex;
+        }}
       >
         <HueCircular
           thumbShape="circle"
           style={{ width: "100%" }}
           containerStyle={[
             styles.hueCircleContainer,
-            { backgroundColor: "#292929" },
+            { backgroundColor: "#0F0F0F" },
           ]}
         >
           <Panel1
@@ -77,29 +81,18 @@ const ColourPickerCircular = ({
           />
         </HueCircular>
         <InputWidget
-          inputStyle={{
-            backgroundColor: selectedColour as string,
-            textTransform: "uppercase",
-          }}
+          inputStyle={[
+            {
+              color: getContrastTextColour(defaultColour as string),
+              textTransform: "uppercase",
+            },
+            backgroundAnimCol,
+          ]}
           formats={["HEX"]}
           inputTitleStyle={{ display: "none" }}
         />
         <Swatches />
       </ColorPicker>
-      <View style={styles.modalButtonContainer}>
-        <Pressable
-          onPress={() => onCancel()}
-          style={[styles.buttonBase, styles.cancelButton]}
-        >
-          <Text style={styles.buttonText}>CANCEL</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.buttonBase, styles.saveButton]}
-          onPress={() => setColour((selectedColour as string).slice(0, 7))}
-        >
-          <Text style={styles.buttonText}>SAVE</Text>
-        </Pressable>
-      </View>
     </View>
   );
 };
@@ -112,18 +105,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalButtonContainer: { flexDirection: "row", gap: 16 },
-  buttonBase: {
-    flex: 1,
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-  },
-  saveButton: {
-    backgroundColor: "#60DD49",
-  },
-  cancelButton: {
-    backgroundColor: "#CD2C2C",
-  },
-  buttonText: { fontSize: 20, fontWeight: "bold", color: "white" },
 });
