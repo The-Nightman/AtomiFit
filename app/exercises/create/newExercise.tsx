@@ -15,13 +15,13 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { MaterialIcons } from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
-import NewCategoryModal from "@/components/modals/NewCategoryModal";
 import { DistanceUnit, WeightUnit } from "@/types/units";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheetPickeriOS from "@/components/inputs/pickers/BottomSheetPickeriOS";
 import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { DrizzleError } from "drizzle-orm";
+import { router } from "expo-router";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -42,7 +42,7 @@ const newExercise = (): JSX.Element => {
   }>({
     name: "",
     notes: "",
-    category: 0,
+    category: -1, // -1 is a placeholder for no category selected, see category picker below for more info
     type: "Weight And Reps",
     weight_unit: null,
   });
@@ -55,7 +55,6 @@ const newExercise = (): JSX.Element => {
     colour: "",
     message: "",
   });
-  const [categoryModal, setCategoryModal] = useState<boolean>(false);
   const { db } = useContext(DrizzleContext);
 
   const { data } = useLiveQuery(db.select().from(schema.categories));
@@ -63,8 +62,14 @@ const newExercise = (): JSX.Element => {
   // We use this because of the button being positioned in the header inside the layout
   useEffect(() => {
     eventEmitter.on("createExercise", handleSaveExercise);
+    eventEmitter.on("selectNewCategory", (id: number) =>
+      setFormData({ ...formData, category: id })
+    );
     return () => {
       eventEmitter.off("createExercise", handleSaveExercise);
+      eventEmitter.off("selectNewCategory", (id: number) =>
+        setFormData({ ...formData, category: id })
+      );
     };
   }, [formData]); // handleSaveExercise is dependent on formData, if we leave this blank we are passing initial state
 
@@ -224,22 +229,20 @@ const newExercise = (): JSX.Element => {
               {Platform.OS === "ios" ? (
                 <>
                   <View
-                    style={{
-                      width: 36,
-                      height: 36,
-                      alignSelf: "center",
-                      borderRadius: 18,
-                      borderWidth: 1,
-                      borderColor: hexcodeLuminosity(
-                        (data.find(
+                    style={[
+                      styles.categoryIndicator,
+                      {
+                        borderColor: hexcodeLuminosity(
+                          (data.find(
+                            (category) => category.id === formData.category
+                          )?.colour as string) ?? "#000000",
+                          40
+                        ),
+                        backgroundColor: data.find(
                           (category) => category.id === formData.category
-                        )?.colour as string) ?? "#000000",
-                        40
-                      ),
-                      backgroundColor: data.find(
-                        (category) => category.id === formData.category
-                      )?.colour,
-                    }}
+                        )?.colour,
+                      },
+                    ]}
                   />
                   <View style={{ flex: 1 }}>
                     <PickeriOSButton
@@ -253,29 +256,49 @@ const newExercise = (): JSX.Element => {
                   </View>
                 </>
               ) : (
-                <Picker
-                  mode="dropdown"
-                  style={styles.picker}
-                  selectedValue={formData.category}
-                  onValueChange={(itemValue: number) =>
-                    setFormData({ ...formData, category: itemValue })
-                  }
-                >
-                  {[{ name: "None Selected", id: 0 }, ...data].map(
-                    (category) => (
+                <>
+                  <View
+                    style={[
+                      styles.categoryIndicator,
+                      {
+                        borderColor: hexcodeLuminosity(
+                          (data.find(
+                            (category) => category.id === formData.category
+                          )?.colour as string) ?? "#000000",
+                          40
+                        ),
+                        backgroundColor: data.find(
+                          (category) => category.id === formData.category
+                        )?.colour,
+                      },
+                    ]}
+                  />
+                  <Picker
+                    mode="dropdown"
+                    style={styles.picker}
+                    selectedValue={formData.category}
+                    onValueChange={(itemValue: number) =>
+                      setFormData({ ...formData, category: itemValue })
+                    }
+                  >
+                    {[
+                      // We use -1 for no cat. selected as 0 seems to not trigger onValueChange and thus no state update, mostly an android issue
+                      { name: "None Selected", id: -1 },
+                      ...data,
+                    ].map((category) => (
                       <Picker.Item
                         key={category.id}
                         style={styles.pickerItemAndroid}
                         label={category.name}
                         value={category.id}
                       />
-                    )
-                  )}
-                </Picker>
+                    ))}
+                  </Picker>
+                </>
               )}
               <Pressable
                 style={{ justifyContent: "center" }}
-                onPress={() => setCategoryModal(true)}
+                onPress={() => router.navigate("/exercises/create/newCategory")}
               >
                 {({ pressed }) => (
                   <MaterialIcons
@@ -400,13 +423,6 @@ const newExercise = (): JSX.Element => {
           />
         </>
       )}
-      <NewCategoryModal
-        modalState={categoryModal}
-        setModalState={setCategoryModal}
-        returnCategoryId={(id: number) =>
-          setFormData({ ...formData, category: id })
-        }
-      />
     </>
   );
 };
@@ -456,5 +472,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     borderBottomColor: "white",
     borderBottomWidth: 1,
+  },
+  categoryIndicator: {
+    width: 36,
+    height: 36,
+    alignSelf: "center",
+    borderRadius: 18,
+    borderWidth: 2,
   },
 });
