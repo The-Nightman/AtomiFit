@@ -130,8 +130,8 @@ const ExerciseMenu = (): JSX.Element => {
           style={styles.menuPressable}
           onPress={() => {
             if (modalState.exerciseId)
-              router.push({
-                pathname: "/exercises/edit/[exerciseId]",
+              router.navigate({
+                pathname: "/exercises/edit/exercise/[exerciseId]",
                 params: { exerciseId: modalState.exerciseId },
               });
             setModalState({ ...modalState, state: false, exerciseId: null });
