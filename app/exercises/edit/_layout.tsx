@@ -1,7 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import UtilityStyles from "@/constants/UtilityStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { eventEmitter } from "@/utils/eventEmitter";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
@@ -14,13 +13,25 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
  * @returns {JSX.Element} The rendered component.
  */
 const ExerciseEditLayout = (): JSX.Element => {
-  const { exerciseId } = useLocalSearchParams<{
-    exerciseId: string;
-  }>();
   const insets = useSafeAreaInsets();
+  //! Either one of these will be undefined depending on the route, this shouldnt be an issue but we cant accurately type it
+  const { exerciseId, categoryId } = useLocalSearchParams<{
+    exerciseId: string;
+    categoryId: string;
+  }>();
 
-  return (
-    <View style={UtilityStyles.flex1}>
+  /**
+   * Renders the header component for the create exercise/category screen.
+   *
+   * The header includes:
+   * - A close button that navigates back to the previous screen.
+   * - A title that dynamically displays "Edit Exercise" or "Edit Category" based on the `exerciseId` or `categoryId` prop.
+   * - A check button that triggers the creation of a new exercise or category based on the `exerciseId` or `categoryId` prop.
+   *
+   * @returns {JSX.Element} The header component.
+   */
+  const header = (): JSX.Element => {
+    return (
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Pressable
           style={({ pressed }) => [
@@ -41,7 +52,10 @@ const ExerciseEditLayout = (): JSX.Element => {
             />
           )}
         </Pressable>
-        <Text style={{ fontSize: 28, fontWeight: "500" }}>Edit Exercise</Text>
+        <Text style={{ fontSize: 28, fontWeight: "500" }}>
+          Edit {exerciseId && "Exercise"}
+          {categoryId && "Category"}
+        </Text>
         <Pressable
           style={({ pressed }) => [
             { borderRadius: 22 },
@@ -60,19 +74,27 @@ const ExerciseEditLayout = (): JSX.Element => {
           )}
         </Pressable>
       </View>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: "#0F0F0F" },
-        }}
-      >
-        <Stack.Screen
-          name="[exerciseId]"
-          options={{ gestureEnabled: true }}
-          initialParams={{ exerciseId }}
-        />
-      </Stack>
-    </View>
+    );
+  };
+
+  return (
+    <Stack
+      screenOptions={{
+        header: () => header(),
+        contentStyle: { backgroundColor: "#0F0F0F" },
+      }}
+    >
+      <Stack.Screen
+        name="[exerciseId]"
+        options={{ gestureEnabled: true }}
+        initialParams={{ exerciseId }}
+      />
+      <Stack.Screen
+        name="category/[categoryId]"
+        options={{ gestureEnabled: true }}
+        initialParams={{ categoryId }}
+      />
+    </Stack>
   );
 };
 
