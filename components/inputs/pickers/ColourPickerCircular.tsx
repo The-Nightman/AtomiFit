@@ -5,7 +5,7 @@ import ColorPicker, {
   Panel1,
   Swatches,
 } from "reanimated-color-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { getContrastTextColour } from "@/utils/getContrastTextColour";
 
@@ -42,6 +42,10 @@ const ColourPickerCircular = ({
   const backgroundAnimCol = useAnimatedStyle(() => ({
     backgroundColor: animatedColour.value,
   }));
+
+  useEffect(() => {
+    animatedColour.value = defaultColour as string;
+  }, [defaultColour]);
 
   /**
    * Handles the selection of a color and updates the selected color state.
