@@ -1,18 +1,18 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { router, Stack, useLocalSearchParams, usePathname } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { eventEmitter } from "@/utils/eventEmitter";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 
 /**
- * ExerciseCreateLayout component renders the layout for creating a new exercise.
+ * ExerciseCategoryEditLayout component renders the layout for updating an exercise or category.
  * It includes a header with a close button, a title, and a check/confirm button.
  * The main content is displayed within a Stack navigator.
  *
  * @returns {JSX.Element} The rendered component.
  */
-const ExerciseEditLayout = (): JSX.Element => {
+const ExerciseCategoryEditLayout = (): JSX.Element => {
   const insets = useSafeAreaInsets();
   //! Either one of these will be undefined depending on the route, this shouldnt be an issue but we cant accurately type it
   const { exerciseId, categoryId } = useLocalSearchParams<{
@@ -21,12 +21,12 @@ const ExerciseEditLayout = (): JSX.Element => {
   }>();
 
   /**
-   * Renders the header component for the create exercise/category screen.
+   * Renders the header component for the update exercise/category screen.
    *
    * The header includes:
    * - A close button that navigates back to the previous screen.
    * - A title that dynamically displays "Edit Exercise" or "Edit Category" based on the `exerciseId` or `categoryId` prop.
-   * - A check button that triggers the creation of a new exercise or category based on the `exerciseId` or `categoryId` prop.
+   * - A check button that saved the exercise or category based on the `exerciseId` or `categoryId` prop.
    *
    * @returns {JSX.Element} The header component.
    */
@@ -63,7 +63,14 @@ const ExerciseEditLayout = (): JSX.Element => {
               backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
             },
           ]}
-          onPress={() => eventEmitter.emit("updateExercise")}
+          onPress={() => {
+            if (exerciseId) {
+              eventEmitter.emit("updateExercise");
+            }
+            if (categoryId) {
+              eventEmitter.emit("updateCategory");
+            }
+          }}
         >
           {({ pressed }) => (
             <MaterialIcons
@@ -85,7 +92,7 @@ const ExerciseEditLayout = (): JSX.Element => {
       }}
     >
       <Stack.Screen
-        name="[exerciseId]"
+        name="exercise/[exerciseId]"
         options={{ gestureEnabled: true }}
         initialParams={{ exerciseId }}
       />
@@ -98,7 +105,7 @@ const ExerciseEditLayout = (): JSX.Element => {
   );
 };
 
-export default ExerciseEditLayout;
+export default ExerciseCategoryEditLayout;
 
 const styles = StyleSheet.create({
   headerContainer: {

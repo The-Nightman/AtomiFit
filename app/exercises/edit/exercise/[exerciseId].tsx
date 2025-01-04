@@ -224,7 +224,6 @@ const editExercise = (): JSX.Element => {
     if (unitConfirm.operation === "convert") {
       try {
         await db.transaction(async (tx) => {
-
           // We need to pull the saved sets and convert them in memory as there is no supported method for this in SQLite
           const savedSets = await tx
             .select()
@@ -243,7 +242,8 @@ const editExercise = (): JSX.Element => {
           });
 
           // SQLite does not support batch updates so we need to loop through each set and update it one by one
-          for (const set of convertedSets) { // We use a for loop for performance since it is a lower level operation with less overhead
+          for (const set of convertedSets) {
+            // We use a for loop for performance since it is a lower level operation with less overhead
             await tx
               .update(schema.setsData)
               .set({ weight: set.weight, weight_unit: formData.weight_unit })
@@ -334,7 +334,10 @@ const editExercise = (): JSX.Element => {
             }
           />
         )}
-        <ScrollView contentContainerStyle={styles.scrollviewContainer}>
+        <ScrollView
+          style={{ zIndex: -1 }}
+          contentContainerStyle={styles.scrollviewContainer}
+        >
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>NAME</Text>
             <TextInput
