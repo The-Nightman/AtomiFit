@@ -54,7 +54,7 @@ const Toast = ({
     <Animated.View
       entering={FadeInUp}
       exiting={FadeOutUp}
-      style={[styles.toast, { backgroundColor: colour }]}
+      style={[styles.toast, { backgroundColor: colour, zIndex: 0 }]}
     >
       <Text style={styles.text}>{message}</Text>
     </Animated.View>
