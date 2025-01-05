@@ -744,6 +744,26 @@ const ExerciseGraph = ({
             <MaterialCommunityIcons name="cog" size={24} color="#9F9F9F" />
           </Pressable>
         )}
+        {/* DO NOT MOVE OR DELETE THIS TEXT ELEMENT, REQUIRED APPROACH FOR CROSS PLATFORM ONLAYOUT FIX */}
+        <Text
+          //! We absolutely do not want this element to be visible at all in fashion, it is only used to calculate the tick length
+          //! on iOS the onLayout returns the screen width of the device on the SvgText element we are using for our y-axis ticks
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            position: "absolute",
+            color: "transparent",
+            top: -9999,
+            left: -9999,
+          }}
+          onLayout={(e) => {
+            const { width } = e.nativeEvent.layout;
+            // We only need to set the tick length once otherwise we will be rapidly changing state many times
+            setTickLength(width + 11); // + 11 is a reasonable amount of padding between the ticks and the screen edge while preserving visibility of the graph
+          }}
+        >
+          {graph.yTicks.toReversed()[0]}
+        </Text>
         <Svg
           width={graphSize.width}
           height={graphSize.height}
@@ -788,31 +808,21 @@ const ExerciseGraph = ({
           </G>
           {/* Y-axis ticks and grid lines */}
           <G>
-            {
-              // By using toReversed we can reverse the array and just use index 0 in our onLayout event, also we dont want mutations
-              graph.yTicks.toReversed().map((tick, i) => (
-                <SvgText
-                  key={`text-${tick}`}
-                  onLayout={(e) => {
-                    const { width } = e.nativeEvent.layout;
-                    if (i === 0) {
-                      // We only need to set the tick length once otherwise we will be rapidly changing state many times
-                      setTickLength(width + 11); // + 11 is a reasonable amount of padding between the ticks and the screen edge
-                    }
-                  }}
-                  fill="white"
-                  fontSize="11px"
-                  fontWeight="normal"
-                  textAnchor="end"
-                  x={tickLength}
-                  y={graph.yScale(tick) + 3}
-                >
-                  {
-                    tick.toLocaleString() // We need to do this so that large numbers are readable, same as the display variants
-                  }
-                </SvgText>
-              ))
-            }
+            {graph.yTicks.map((tick, i) => (
+              <SvgText
+                key={`text-${tick}`}
+                fill="white"
+                fontSize="11px"
+                fontWeight="normal"
+                textAnchor="end"
+                x={tickLength}
+                y={graph.yScale(tick) + 3}
+              >
+                {
+                  tick.toLocaleString() // We need to do this so that large numbers are readable, same as the display variants
+                }
+              </SvgText>
+            ))}
             {graph.yTicks.map((tickLine, _) => (
               <Line
                 key={`line-${tickLine}`}
@@ -1090,7 +1100,7 @@ const ExerciseGraph = ({
 export default ExerciseGraph;
 
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, gap: 12 },
+  mainContainer: { flex: 1, gap: 12, zIndex: -1 },
   graphContainer: { flex: 1 },
   selectedContainer: {
     minHeight: 64,
