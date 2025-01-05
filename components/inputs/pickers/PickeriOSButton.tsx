@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text } from "react-native";
 interface PickeriOSButtonProps {
   text: string;
   onPress: () => void;
+  padding?: number;
 }
 
 /**
@@ -14,6 +15,7 @@ interface PickeriOSButtonProps {
  * @param {Object} props - The properties object.
  * @param {string} props.text - The text to display on the button.
  * @param {function} props.onPress - The function to call when the button is pressed.
+ * @param {number} props.padding - The optional padding value to apply to the button, if none is provided then a default value of 10 is used.
  *
  * @example
  * ```tsx
@@ -23,9 +25,16 @@ interface PickeriOSButtonProps {
  * />
  * ```
  */
-const PickeriOSButton = ({ text, onPress }: PickeriOSButtonProps) => {
+const PickeriOSButton = ({
+  text,
+  onPress,
+  padding = 10,
+}: PickeriOSButtonProps) => {
   return (
-    <Pressable style={styles.button} onPress={() => onPress()}>
+    <Pressable
+      style={[styles.button, { padding: padding }]}
+      onPress={() => onPress()}
+    >
       {({ pressed }) => (
         <Text
           style={[
@@ -45,7 +54,6 @@ export default PickeriOSButton;
 const styles = StyleSheet.create({
   button: {
     marginVertical: 16,
-    padding: 10,
   },
   text: {
     textAlign: "center",
