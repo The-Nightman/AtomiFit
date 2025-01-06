@@ -876,92 +876,94 @@ const ExerciseGraph = ({
             )}
           </G>
           {/* Datapoint markers */}
-          {(selectedOptions.graphPoints || data.length === 1) && !isData2D() ? (
-            <G>
-              {(data as GraphDataSet[]).map((d, i) => (
-                <G key={`circle-${d.date}-${d.id}`}>
-                  {/* Display circle */}
-                  <Circle
-                    cx={graph.xScale(new Date(d.date))}
-                    cy={graph.yScale(d.dataPoint)}
-                    r={4}
-                    fill="#60DD49"
-                  />
-                  {/* Selected data circle */}
-                  {selectedData.index === i && (
+          {selectedOptions.graphPoints ? (
+            !isData2D() ? (
+              <G>
+                {(data as GraphDataSet[]).map((d, i) => (
+                  <G key={`circle-${d.date}-${d.id}`}>
+                    {/* Display circle */}
                     <Circle
                       cx={graph.xScale(new Date(d.date))}
                       cy={graph.yScale(d.dataPoint)}
-                      r={6}
-                      stroke="#60DD49"
-                      strokeWidth={2}
-                      fill="none"
+                      r={4}
+                      fill="#60DD49"
                     />
-                  )}
-                  {/* We use an onPress event for the same functionality and reasons as above */}
-                  <Circle
-                    cx={graph.xScale(new Date(d.date))}
-                    cy={graph.yScale(d.dataPoint)}
-                    r={12}
-                    fill="none"
-                    onPress={() => {
-                      setSelectedData({ multiIndex: null, index: i });
-                    }}
-                  />
-                </G>
-              ))}
-            </G>
-          ) : (
-            // Multiline datapoint markers
-            <G>
-              {(data as GraphDataSet[][])
-                .filter((repArr) =>
-                  multiSettings.selected.includes(repArr[0].reps!)
-                )
-                .map((d, i) => (
-                  <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
-                    {(d as GraphDataSet[]).map((d, j) => (
-                      <G key={`circle-${d.date}-${d.id}`}>
-                        {/* Display circle */}
-                        <Circle
-                          cx={graph.xScale(new Date(d.date))}
-                          cy={graph.yScale(d.dataPoint)}
-                          r={4}
-                          fill={multilineColors[i]}
-                        />
-                        {/* Selected data circle */}
-                        {selectedData.multiIndex === i &&
-                          selectedData.index === j && (
-                            <Circle
-                              cx={graph.xScale(new Date(d.date))}
-                              cy={graph.yScale(d.dataPoint)}
-                              r={6}
-                              stroke={multilineColors[i]}
-                              strokeWidth={2}
-                              fill="none"
-                            />
-                          )}
-                        {/*
+                    {/* Selected data circle */}
+                    {selectedData.index === i && (
+                      <Circle
+                        cx={graph.xScale(new Date(d.date))}
+                        cy={graph.yScale(d.dataPoint)}
+                        r={6}
+                        stroke="#60DD49"
+                        strokeWidth={2}
+                        fill="none"
+                      />
+                    )}
+                    {/* We use an onPress event for the same functionality and reasons as above */}
+                    <Circle
+                      cx={graph.xScale(new Date(d.date))}
+                      cy={graph.yScale(d.dataPoint)}
+                      r={12}
+                      fill="none"
+                      onPress={() => {
+                        setSelectedData({ multiIndex: null, index: i });
+                      }}
+                    />
+                  </G>
+                ))}
+              </G>
+            ) : (
+              // Multiline datapoint markers
+              <G>
+                {(data as GraphDataSet[][])
+                  .filter((repArr) =>
+                    multiSettings.selected.includes(repArr[0].reps!)
+                  )
+                  .map((d, i) => (
+                    <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
+                      {(d as GraphDataSet[]).map((d, j) => (
+                        <G key={`circle-${d.date}-${d.id}`}>
+                          {/* Display circle */}
+                          <Circle
+                            cx={graph.xScale(new Date(d.date))}
+                            cy={graph.yScale(d.dataPoint)}
+                            r={4}
+                            fill={multilineColors[i]}
+                          />
+                          {/* Selected data circle */}
+                          {selectedData.multiIndex === i &&
+                            selectedData.index === j && (
+                              <Circle
+                                cx={graph.xScale(new Date(d.date))}
+                                cy={graph.yScale(d.dataPoint)}
+                                r={6}
+                                stroke={multilineColors[i]}
+                                strokeWidth={2}
+                                fill="none"
+                              />
+                            )}
+                          {/*
                         Touchable circle due to inability to use pressable,
                         react-native-svg does not support hitslop as dev refuses to 
                         implement due to svg pressable interaction not being standard on web
                         https://github.com/software-mansion/react-native-svg/issues/81
                       */}
-                        <Circle
-                          cx={graph.xScale(new Date(d.date))}
-                          cy={graph.yScale(d.dataPoint)}
-                          r={12}
-                          fill="none"
-                          onPress={() => {
-                            setSelectedData({ multiIndex: i, index: j });
-                          }}
-                        />
-                      </G>
-                    ))}
-                  </G>
-                ))}
-            </G>
-          )}
+                          <Circle
+                            cx={graph.xScale(new Date(d.date))}
+                            cy={graph.yScale(d.dataPoint)}
+                            r={12}
+                            fill="none"
+                            onPress={() => {
+                              setSelectedData({ multiIndex: i, index: j });
+                            }}
+                          />
+                        </G>
+                      ))}
+                    </G>
+                  ))}
+              </G>
+            )
+          ) : null}
         </Svg>
       </View>
       {/* Selected data and placeholder */}
@@ -1100,7 +1102,7 @@ const ExerciseGraph = ({
 export default ExerciseGraph;
 
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, gap: 12, zIndex: -1 },
+  mainContainer: { flex: 1, gap: 12, zIndex: -1 }, // We need to set the z-index to -1 for the bottom sheet in GraphOptions to render above the graph
   graphContainer: { flex: 1 },
   selectedContainer: {
     minHeight: 64,
