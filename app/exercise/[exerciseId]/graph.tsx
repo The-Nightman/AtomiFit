@@ -13,6 +13,7 @@ import { LineGraphOptions } from "@/types/graphs";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { convertDistanceUnits } from "@/utils/convertDistanceUnits";
 import { getMostUsedUnit } from "@/utils/getMostUsedUnit";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface GraphDataSet extends Set {
   dataPoint: number;
@@ -29,6 +30,7 @@ interface GraphDataSet extends Set {
  * @returns {JSX.Element} A view containing the exercise graph or a message indicating no data is available.
  */
 const graph = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const today = getToday();
   const [selectedOptions, setSelectedOptions] = useState<LineGraphOptions>({
     selectedGraph: "oneRepMax",
@@ -542,7 +544,12 @@ const graph = (): JSX.Element => {
   };
 
   return (
-    <View style={UtilityStyles.flex1}>
+    <View
+      style={[
+        UtilityStyles.flex1,
+        { paddingBottom: insets.bottom / 2 }, // The safe area padding is a bit too much so we reduce it by half, this does not negatively affect the UI
+      ]}
+    >
       <GraphOptions
         optionsType={prepExerciseType(type)}
         selectedOptions={selectedOptions}
