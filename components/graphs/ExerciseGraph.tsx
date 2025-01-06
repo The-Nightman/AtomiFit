@@ -182,7 +182,16 @@ const ExerciseGraph = ({
     const xExtents = d3.extent(
       graphData.map((d) => new Date(d.date).getTime())
     );
-    const yExtents = d3.extent(graphData.map((d) => d.dataPoint));
+    const yExtents = d3.extent(
+      [
+        ...graphData,
+        // We add a data point of 0 to the y-axis if the user has selected the option to start from zero
+        // The easiest and safest way to do this is to clone and element and set the datapoint property
+        ...(selectedOptions.yAxisFromZero
+          ? [{ ...graphData[0], dataPoint: 0 }]
+          : []),
+      ].map((d) => d.dataPoint)
+    );
 
     // Create a time scale for the x-axis
     const xScale: d3.ScaleTime<number, number> = d3.scaleUtc(
