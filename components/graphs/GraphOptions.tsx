@@ -83,7 +83,7 @@ const GraphOptions = ({
    *                        - "RepsDistanceOptions"
    *                        - "RepsOptions"
    *                        - "DistanceOptions"
-   * @returns {{ label: string; option: string; }[]} An array of objects, each containing a label and an option key.
+   * @returns {{ label: string; value: string; }[]} An array of objects, each containing a label and an value key.
    */
   const getOptions = (
     type: string
@@ -350,122 +350,128 @@ const GraphOptions = ({
           </View>
         )}
         {/* Menu, elements declared here for visibility */}
-        <ModalBase
-          modalState={menuVisible}
-          setModalState={setMenuVisible}
-          animationProps={{
-            animationIn: "zoomInRight",
-            animationOut: "zoomOutRight",
-          }}
-          backdropStyle={
-            // We need to do this because of quirks on iOS impacting functionality, view ModalBase jsdocs for more info
-            Platform.OS === "ios"
-              ? { color: "#ffffff00", opacity: 1 }
-              : { color: "", opacity: 0 }
-          }
-        >
-          <View style={styles.menuContainer}>
-            <Pressable
-              onPress={() =>
-                setSelectedOptions((prevState) => ({
-                  ...prevState,
-                  graphPoints: !prevState.graphPoints,
-                }))
-              }
-              style={styles.menuPressable}
-            >
-              <Text style={styles.menuText}>Graph Points</Text>
-              {selectedOptions.graphPoints ? (
-                <MaterialCommunityIcons
-                  name="checkbox-outline"
-                  size={24}
-                  color={"#60DD49"}
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="checkbox-blank-outline"
-                  size={24}
-                  color={hexcodeLuminosity("#9F9F9F", 30)}
-                />
-              )}
-            </Pressable>
-            <Pressable
-              onPress={() =>
-                setSelectedOptions((prevState) => ({
-                  ...prevState,
-                  yAxisFromZero: !prevState.yAxisFromZero,
-                }))
-              }
-              style={styles.menuPressable}
-            >
-              <Text style={styles.menuText}>Y-Axis From 0</Text>
-              {selectedOptions.yAxisFromZero ? (
-                <MaterialCommunityIcons
-                  name="checkbox-outline"
-                  size={24}
-                  color={"#60DD49"}
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="checkbox-blank-outline"
-                  size={24}
-                  color={hexcodeLuminosity("#9F9F9F", 30)}
-                />
-              )}
-            </Pressable>
-            <Pressable
-              onPress={() =>
-                setSelectedOptions((prevState) => ({
-                  ...prevState,
-                  trendline: !prevState.trendline,
-                }))
-              }
-              style={styles.menuPressable}
-            >
-              <Text style={styles.menuText}>Trend Line</Text>
-              {selectedOptions.trendline ? (
-                <MaterialCommunityIcons
-                  name="checkbox-outline"
-                  size={24}
-                  color={"#60DD49"}
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="checkbox-blank-outline"
-                  size={24}
-                  color={hexcodeLuminosity("#9F9F9F", 30)}
-                />
-              )}
-            </Pressable>
-            {isCustomDateSet() ? (
+        {!datepickerVisible && ( // This is enough to allow us to use the datepicker after using the menu modal on iOS
+          <ModalBase
+            modalState={menuVisible}
+            setModalState={setMenuVisible}
+            animationProps={{
+              animationIn: "zoomInRight",
+              animationOut: "zoomOutRight",
+            }}
+            backdropStyle={
+              // We need to do this because of quirks on iOS impacting functionality, view ModalBase jsdocs for more info
+              Platform.OS === "ios"
+                ? { color: "#ffffff00", opacity: 1 }
+                : { color: "", opacity: 0 }
+            }
+          >
+            <View style={styles.menuContainer}>
               <Pressable
                 onPress={() =>
-                  setSelectedOptions({
-                    ...selectedOptions,
-                    startDate: "1M",
-                    endDate: today,
-                  })
+                  setSelectedOptions((prevState) => ({
+                    ...prevState,
+                    graphPoints: !prevState.graphPoints,
+                  }))
                 }
                 style={styles.menuPressable}
               >
-                <Text style={styles.menuText}>Clear Custom Date</Text>
+                <Text style={styles.menuText}>Graph Points</Text>
+                {selectedOptions.graphPoints ? (
+                  <MaterialCommunityIcons
+                    name="checkbox-outline"
+                    size={24}
+                    color={"#60DD49"}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="checkbox-blank-outline"
+                    size={24}
+                    color={hexcodeLuminosity("#9F9F9F", 30)}
+                  />
+                )}
               </Pressable>
-            ) : (
               <Pressable
-                onPress={() => setDatepickerVisible(true)}
+                onPress={() =>
+                  setSelectedOptions((prevState) => ({
+                    ...prevState,
+                    yAxisFromZero: !prevState.yAxisFromZero,
+                  }))
+                }
                 style={styles.menuPressable}
               >
-                <Text style={styles.menuText}>Custom Date</Text>
+                <Text style={styles.menuText}>Y-Axis From 0</Text>
+                {selectedOptions.yAxisFromZero ? (
+                  <MaterialCommunityIcons
+                    name="checkbox-outline"
+                    size={24}
+                    color={"#60DD49"}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="checkbox-blank-outline"
+                    size={24}
+                    color={hexcodeLuminosity("#9F9F9F", 30)}
+                  />
+                )}
               </Pressable>
-            )}
-            <Pressable
-              onPress={() => {}}
-              style={[styles.menuPressable, { borderBottomWidth: 0 }]}
-            >
-              <Text style={styles.menuText}>Share</Text>
-            </Pressable>
-          </View>
-        </ModalBase>
+              <Pressable
+                onPress={() =>
+                  setSelectedOptions((prevState) => ({
+                    ...prevState,
+                    trendline: !prevState.trendline,
+                  }))
+                }
+                style={styles.menuPressable}
+              >
+                <Text style={styles.menuText}>Trend Line</Text>
+                {selectedOptions.trendline ? (
+                  <MaterialCommunityIcons
+                    name="checkbox-outline"
+                    size={24}
+                    color={"#60DD49"}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="checkbox-blank-outline"
+                    size={24}
+                    color={hexcodeLuminosity("#9F9F9F", 30)}
+                  />
+                )}
+              </Pressable>
+              {isCustomDateSet() ? (
+                <Pressable
+                  onPress={() => {
+                    setSelectedOptions({
+                      ...selectedOptions,
+                      startDate: "1M",
+                      endDate: today,
+                    });
+                    setMenuVisible(false);
+                  }}
+                  style={styles.menuPressable}
+                >
+                  <Text style={styles.menuText}>Clear Custom Date</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setDatepickerVisible(true);
+                    setMenuVisible(false);
+                  }}
+                  style={styles.menuPressable}
+                >
+                  <Text style={styles.menuText}>Custom Date</Text>
+                </Pressable>
+              )}
+              <Pressable
+                onPress={() => {}}
+                style={[styles.menuPressable, { borderBottomWidth: 0 }]}
+              >
+                <Text style={styles.menuText}>Share</Text>
+              </Pressable>
+            </View>
+          </ModalBase>
+        )}
         {/* Modal for custom date selection */}
         <GraphDateRangePicker
           modalVisible={datepickerVisible}
