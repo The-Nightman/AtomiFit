@@ -216,7 +216,7 @@ const GraphOptions = ({
             </Picker>
           )}
           <Pressable
-            style={styles.justifyCenter}
+            style={styles.menuButton}
             onPress={() => {
               setMenuVisible(!menuVisible);
             }}
@@ -229,30 +229,56 @@ const GraphOptions = ({
           <View style={styles.customDateContainer}>
             <Text style={styles.customDateTitle}>DATE:</Text>
             <View style={styles.customDateSubcontainer}>
-              <Text style={styles.customDateText}>
-                {new Date(selectedOptions.startDate).toLocaleDateString(
-                  undefined,
-                  {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }
-                )}
-              </Text>
-              <Text style={{ color: "white" }}>To</Text>
-              <Text style={styles.customDateText}>
-                {new Date(selectedOptions.endDate).toLocaleDateString(
-                  undefined,
-                  {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }
-                )}
-              </Text>
+              <Pressable
+                style={styles.customDateButton}
+                hitSlop={8}
+                onPress={() => setDatepickerVisible(true)} // Open datepicker to select start date
+              >
+                <Text
+                  style={[
+                    styles.customDateText,
+                    { borderBottomColor: hexcodeLuminosity("#FFFFFF", -80) },
+                  ]}
+                >
+                  {new Date(selectedOptions.startDate).toLocaleDateString(
+                    undefined,
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    }
+                  )}
+                </Text>
+              </Pressable>
+              <Text style={{ color: "white", alignSelf: "center" }}>To</Text>
+              <Pressable
+                style={styles.customDateButton}
+                hitSlop={8}
+                onPress={() => {
+                  eventEmitter.emit("setGraphDatepickerEndDate"); // This way we can set the datepicker to select the end date only without complicated logic
+                  setDatepickerVisible(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.customDateText,
+                    { borderBottomColor: hexcodeLuminosity("#FFFFFF", -80) },
+                  ]}
+                >
+                  {new Date(selectedOptions.endDate).toLocaleDateString(
+                    undefined,
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    }
+                  )}
+                </Text>
+              </Pressable>
             </View>
             <Pressable
               style={styles.cancelCustomDateButton}
+              hitSlop={8}
               onPress={() =>
                 setSelectedOptions({
                   ...selectedOptions,
@@ -264,7 +290,7 @@ const GraphOptions = ({
               {({ pressed }) => (
                 <MaterialCommunityIcons
                   name="calendar-remove"
-                  size={24}
+                  size={32}
                   color={
                     pressed ? hexcodeLuminosity("#60DD49", -60) : "#60DD49"
                   }
@@ -282,6 +308,7 @@ const GraphOptions = ({
                   backgroundColor: hexcodeLuminosity("#60DD49", -30),
                 },
               ]}
+              hitSlop={8}
               onPress={() => {
                 setSelectedOptions({ ...selectedOptions, startDate: "1M" });
                 // Close menu if pressed on all date button options, this keeps
@@ -298,6 +325,7 @@ const GraphOptions = ({
                   backgroundColor: hexcodeLuminosity("#60DD49", -30),
                 },
               ]}
+              hitSlop={8}
               onPress={() => {
                 setSelectedOptions({ ...selectedOptions, startDate: "3M" });
                 setMenuVisible(false);
@@ -312,6 +340,7 @@ const GraphOptions = ({
                   backgroundColor: hexcodeLuminosity("#60DD49", -30),
                 },
               ]}
+              hitSlop={8}
               onPress={() => {
                 setSelectedOptions({ ...selectedOptions, startDate: "6M" });
                 setMenuVisible(false);
@@ -326,6 +355,7 @@ const GraphOptions = ({
                   backgroundColor: hexcodeLuminosity("#60DD49", -30),
                 },
               ]}
+              hitSlop={8}
               onPress={() => {
                 setSelectedOptions({ ...selectedOptions, startDate: "1Y" });
                 setMenuVisible(false);
@@ -340,6 +370,7 @@ const GraphOptions = ({
                   backgroundColor: hexcodeLuminosity("#60DD49", -30),
                 },
               ]}
+              hitSlop={8}
               onPress={() => {
                 setSelectedOptions({ ...selectedOptions, startDate: "ALL" });
                 setMenuVisible(false);
@@ -518,7 +549,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
   },
-  customDateContainer: { flexDirection: "row", gap: 8, alignItems: "center" },
+  customDateContainer: { flexDirection: "row", gap: 16, alignItems: "center" },
   customDateTitle: { color: "white", fontSize: 17, fontWeight: "600" },
   customDateSubcontainer: {
     flex: 1,
@@ -527,12 +558,26 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   customDateText: {
-    flex: 1,
     color: "white",
     borderBottomWidth: 1.5,
     borderBottomColor: "#9F9F9F",
   },
-  cancelCustomDateButton: { marginRight: 4 },
+  customDateButton: {
+    flex: 1,
+    backgroundColor: "#3F3C3C",
+    minHeight: 36,
+    minWidth: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+    borderRadius: 8,
+  },
+  cancelCustomDateButton: {
+    minHeight: 36,
+    minWidth: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   menuContainer: {
     position: "absolute",
     top: "31.5%",
@@ -554,7 +599,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 20,
   },
-  justifyCenter: { justifyContent: "center" },
+  menuButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   modalBody: {
     minWidth: "80%",
     minHeight: "35%",
