@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LineGraphOptions } from "@/types/graphs";
 import WheelDatepickeriOS from "../inputs/datepickers/WheelDatepickeriOS";
 import WheelDatepickerAndroid from "../inputs/datepickers/WheelDatepickerAndroid";
+import { eventEmitter } from "@/utils/eventEmitter";
 
 interface dataDateRange {
   startDate: string;
@@ -54,11 +55,15 @@ const GraphDateRangePicker = ({
   });
 
   useEffect(() => {
-    setDate({
-      ...date,
-      startDate: new Date(dataDateRange.startDate),
-      endDate: new Date(dataDateRange.endDate),
-    });
+    // We only want to apply the start and end of the data range if the selected date range is a predefined one
+    // This is to avoid resetting the date range when the user has selected a custom date range
+    if (/1M|3M|6M|1Y|ALL/.test(selectedOptions.startDate)) {
+      setDate({
+        ...date,
+        startDate: new Date(dataDateRange.startDate),
+        endDate: new Date(dataDateRange.endDate),
+      });
+    }
   }, [
     // We need to make sure this component has the most up-to-date date information as initially
     // the date will be set to the current date until database data is fetched
@@ -69,6 +74,27 @@ const GraphDateRangePicker = ({
     selectedOptions.startDate,
     selectedOptions.endDate,
   ]);
+
+  // We use this so that when a user wants to change the date range in the graph we can avoid having to
+  // use complicated state management and currying functions to present the date picker for the end date
+  useEffect(() => {
+    eventEmitter.on("setGraphDatepickerEndDate", () =>
+      setDate({
+        ...date,
+        firstDateSet: true,
+        endDate: new Date(selectedOptions.endDate),
+      })
+    );
+    return () => {
+      eventEmitter.off("setGraphDatepickerEndDate", () =>
+        setDate({
+          ...date,
+          firstDateSet: true,
+          endDate: new Date(selectedOptions.endDate),
+        })
+      );
+    };
+  }, [selectedOptions.endDate]);
 
   /**
    * Handles the change of date in the date range picker.
