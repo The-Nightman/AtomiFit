@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
@@ -14,6 +14,7 @@ import UtilityStyles from "@/constants/UtilityStyles";
 import { convertDistanceUnits } from "@/utils/convertDistanceUnits";
 import { getMostUsedUnit } from "@/utils/getMostUsedUnit";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Storage } from "expo-sqlite/kv-store";
 
 interface GraphDataSet extends Set {
   dataPoint: number;
@@ -45,6 +46,41 @@ const graph = (): JSX.Element => {
     type: string;
   }>();
   const { db } = useContext(DrizzleContext);
+
+  useEffect(() => {
+    /**
+     * Initializes the graph preferences by retrieving stored values from the storage.
+     * If a preference is not found in the storage, it sets the default value from `selectedOptions`.
+     *
+     * @async
+     * @function initPreferences
+     * @returns {Promise<void>} A promise that resolves when the preferences have been initialized.
+     */
+    const initPreferences = async (): Promise<void> => {
+      const graphPrefs: [string, string | null][] = await Storage.multiGet([
+        "graphPoints",
+        "yAxisFromZero",
+        "trendline",
+      ]);
+
+      for (const [key, value] of graphPrefs) {
+        // We do this here instead of the settings context because this is a specific preference
+        // rather than app-wide setting and we want some separation of concerns
+        if (!value) {
+          await Storage.setItem(
+            key,
+            selectedOptions[key as keyof LineGraphOptions].toString()
+          );
+        } else {
+          setSelectedOptions((prev) => ({
+            ...prev,
+            [key]: value === "true",
+          }));
+        }
+      }
+    };
+    initPreferences();
+  }, []);
 
   /**
    * Generates an SQL query string based on the provided start date.

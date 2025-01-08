@@ -9,6 +9,7 @@ import ModalBase from "../modals/ModalBase";
 import PickeriOSButton from "../inputs/pickers/PickeriOSButton";
 import BottomSheetPickeriOS from "../inputs/pickers/BottomSheetPickeriOS";
 import { eventEmitter } from "@/utils/eventEmitter";
+import { Storage } from "expo-sqlite/kv-store";
 
 interface DataDateRange {
   startDate: string;
@@ -165,6 +166,28 @@ const GraphOptions = ({
       selectedOptions.startDate !== "1Y" &&
       selectedOptions.startDate !== "ALL"
     );
+  };
+
+  /**
+   * Toggles the user's preference for a given graph option in state and updates the Storage key appropriately.
+   *
+   * @remarks This is only intended to be used with boolean graph options.
+   *
+   * @param {keyof LineGraphOptions} preference - The key of the graph option to toggle.
+   * @returns {Promise<void>} A promise that resolves when the preference has been saved to storage.
+   */
+  const handlePreferenceToggle = async (
+    preference: keyof LineGraphOptions
+  ): Promise<void> => {
+    await Storage.setItem(
+      preference,
+      (!selectedOptions[preference]).toString()
+    );
+
+    setSelectedOptions((prevState) => ({
+      ...prevState,
+      [preference]: !prevState[preference],
+    }));
   };
 
   return (
@@ -398,12 +421,7 @@ const GraphOptions = ({
           >
             <View style={styles.menuContainer}>
               <Pressable
-                onPress={() =>
-                  setSelectedOptions((prevState) => ({
-                    ...prevState,
-                    graphPoints: !prevState.graphPoints,
-                  }))
-                }
+                onPress={() => handlePreferenceToggle("graphPoints")}
                 style={styles.menuPressable}
               >
                 <Text style={styles.menuText}>Graph Points</Text>
@@ -422,12 +440,7 @@ const GraphOptions = ({
                 )}
               </Pressable>
               <Pressable
-                onPress={() =>
-                  setSelectedOptions((prevState) => ({
-                    ...prevState,
-                    yAxisFromZero: !prevState.yAxisFromZero,
-                  }))
-                }
+                onPress={() => handlePreferenceToggle("yAxisFromZero")}
                 style={styles.menuPressable}
               >
                 <Text style={styles.menuText}>Y-Axis From 0</Text>
@@ -446,12 +459,7 @@ const GraphOptions = ({
                 )}
               </Pressable>
               <Pressable
-                onPress={() =>
-                  setSelectedOptions((prevState) => ({
-                    ...prevState,
-                    trendline: !prevState.trendline,
-                  }))
-                }
+                onPress={() => handlePreferenceToggle("trendline")}
                 style={styles.menuPressable}
               >
                 <Text style={styles.menuText}>Trend Line</Text>
