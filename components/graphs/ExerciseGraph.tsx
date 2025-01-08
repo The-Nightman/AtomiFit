@@ -241,7 +241,7 @@ const ExerciseGraph = ({
     const yDomain = (): number[] => {
       // We use the tickStep function to calculate the buffer area of the domain for
       // the y-axis as this will be dynamic and scale for us as the data changes
-      const yBottom = Math.floor(yExtents[0]! / tickStep) * tickStep - tickStep;
+      const yBottom = Math.floor(yExtents[0]! / tickStep) * tickStep - tickStep; //? (yExtents[0] === yExtents[1] ? tickStep : tickStep * 2) could be considered later on?
       const yTop = Math.ceil(yExtents[1]! / tickStep) * tickStep + tickStep;
 
       return [
