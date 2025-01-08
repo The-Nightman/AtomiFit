@@ -22,6 +22,8 @@ import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { DrizzleError } from "drizzle-orm";
 import { router } from "expo-router";
+import { useSettings } from "@/contexts/settingsContext";
+import { Storage } from "expo-sqlite/kv-store";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -56,6 +58,7 @@ const newExercise = (): JSX.Element => {
     message: "",
   });
   const { db } = useContext(DrizzleContext);
+  const { appSettings } = useSettings();
 
   const { data } = useLiveQuery(db.select().from(schema.categories));
 
@@ -82,7 +85,10 @@ const newExercise = (): JSX.Element => {
       setFormData((prevState) => ({ ...prevState, weight_unit: null }));
     }
     if (/weight/i.test(formData.type) && !formData.weight_unit) {
-      setFormData((prevState) => ({ ...prevState, weight_unit: "Kg" }));
+      setFormData((prevState) => ({
+        ...prevState,
+        weight_unit: appSettings!.unitSystem === "metric" ? "Kg" : "Lbs",
+      }));
     }
   }, [formData.type]);
 
