@@ -32,6 +32,13 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
 
   useEffect(() => {
+    // Clear the storage in development to prevent stale data
+    //! IMPORTANT: this will also clear other preferences stored in the KV store
+    //! throughout the app e.g. Graph options such as trendline, graphpoints etc.
+    if (__DEV__) {
+      Storage.clear();
+    }
+
     /**
      * Initializes the default settings in the storage if they do not already exist.
      *
