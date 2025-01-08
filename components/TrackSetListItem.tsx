@@ -15,30 +15,24 @@ import RepsInput from "./inputs/exerciseRecords/RepsInput";
 import DistanceInput from "./inputs/exerciseRecords/DistanceInput";
 import TimeInput from "./inputs/exerciseRecords/TimeInput";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
-import { DistanceUnit, WeightUnit } from "@/types/units";
+import { DistanceUnit } from "@/types/units";
+import { eventEmitter } from "@/utils/eventEmitter";
 
 interface TrackSetListItemProps {
   set: Set;
   setNumber: number;
-  menuVisible: any;
-  setMenuVisible: (
-    id: number,
-    val: boolean,
-    pos: { x: number; y: number }
-  ) => void;
-  containerRef: React.RefObject<View>;
 }
 
 /**
  * TrackSetListItem component renders a list item representing a set in a workout tracking application.
  *
+ * @remarks This component makes user of the eventEmitter to display a menu modal for
+ * options regarding the set via the `setMenu` event.
+ *
  * @component
  * @param {TrackSetListItemProps} props - The properties passed to the component.
  * @param {Set} props.set - The set data to be displayed and managed.
  * @param {number} props.setNumber - The number of the set in the sequence i.e. index + 1.
- * @param {boolean} props.menuVisible - The visibility state of the options menu.
- * @param {function(number, boolean, { x: number; y: number }): void} props.setMenuVisible - Function to set the visibility state of the options menu.
- * @param {React.RefObject<View>} props.containerRef - Reference to the container view for layout measurements.
  *
  * @returns {JSX.Element} The rendered TrackSetListItem component.
  *
@@ -47,18 +41,12 @@ interface TrackSetListItemProps {
  * <TrackSetListItem
  *   set={set}
  *   setNumber={1}
- *   menuVisible={menuVisible}
- *   setMenuVisible={setMenuVisible}
- *   containerRef={containerRef}
  * />
  * ```
  */
 const TrackSetListItem = ({
   set,
   setNumber,
-  menuVisible,
-  setMenuVisible,
-  containerRef,
 }: TrackSetListItemProps): JSX.Element => {
   const [setData, setSetData] = useState<Set>(set);
   const { db } = useContext(DrizzleContext);
@@ -190,27 +178,32 @@ const TrackSetListItem = ({
   };
 
   /**
-   * Handles the opening of the menu in parent by measuring the layout of the ListItemRef
-   * relative to the containerRef and setting the menu's visibility and position.
+   * Retrieves the position of the ListItemRef component.
    *
-   * @remarks
-   * This function uses the `measureLayout` method to get the position and size
-   * of the ListItemRef relative to the containerRef. It then sets the menu's
-   * visibility and position based on these measurements. Menu is stored in the parent
-   * due to issues with placement and z-indexing, this is a solution to that.
+   * This function measures the position and dimensions of the ListItemRef component
+   * and returns a Promise that resolves with an object containing the x and y coordinates
+   * and an offset value. The offset value is half the height of the component, which is used
+   * to properly offset the menu so that it does not begin halfway down the component.
    *
-   * @returns {void}
+   * @returns {Promise<{ x: number, y: number, offset: number }>} A promise that resolves with an object containing the x and y coordinates and the offset value.
    */
-  const handleMenuOpen = (): void => {
-    ListItemRef.current?.measureLayout(
-      containerRef.current!,
-      (_left, top, _width, height) => {
-        setMenuVisible(set.id!, !menuVisible.state, {
-          x: 8,
-          y: top + (height + 4), // distance from the top relative to parent + ( height of component + 4 (half of gap))
-        });
-      }
-    );
+  const getPositon = (): Promise<{ x: number; y: number; offset: number }> => {
+    return new Promise((resolve) => {
+      ListItemRef.current?.measure(
+        (
+          x: number,
+          _y: number,
+          _width: number,
+          height: number,
+          _pageX: number,
+          pageY: number
+        ) => {
+          // We want to half the height of the component so we can properly offset
+          // the menu otherwise the menu will begin halfway down the component
+          resolve({ x: x - 20, y: pageY, offset: height / 2 });
+        }
+      );
+    });
   };
 
   // Dictionary of display variants based on the keys of the set object
@@ -435,8 +428,12 @@ const TrackSetListItem = ({
         </View>
         {/* Open menu button, menu has to be in parent */}
         <Pressable
-          onPress={() => handleMenuOpen()}
-          style={styles.justifyCenter}
+          onPress={async () => {
+            const pos = await getPositon();
+            eventEmitter.emit("setMenu", set.id, pos);
+          }}
+          style={styles.menuButton}
+          hitSlop={8}
         >
           <Entypo name="dots-three-vertical" size={24} color={"#9F9F9F"} />
         </Pressable>
@@ -450,10 +447,11 @@ export default TrackSetListItem;
 const styles = StyleSheet.create({
   setListItemContainer: {
     flexDirection: "row",
-    height: 36,
+    minHeight: 40,
     justifyContent: "space-between",
-    paddingHorizontal: 8,
-    gap: 16,
+    paddingLeft: 8, // This is perfectly fine to do as there will be some "empty" space on the right side around the menu button
+    paddingRight: 2,
+    gap: 12,
   },
   setNumber: {
     minWidth: 18, // This prevents the jump on layout from being as jarring and obvious
@@ -470,9 +468,9 @@ const styles = StyleSheet.create({
   setListItemSubContainer: {
     flex: 1,
     flexDirection: "row",
-    gap: 8,
+    gap: 4,
   },
-  inputsContainer: { flex: 1, flexDirection: "row", gap: 16 },
+  inputsContainer: { flex: 1, flexDirection: "row", gap: 12 },
   inputStyles: {
     flex: 1,
     backgroundColor: "#3F3C3C",
@@ -484,6 +482,12 @@ const styles = StyleSheet.create({
   },
   inputFocusStyles: { color: "black", backgroundColor: "#60DD49" },
   justifyCenter: { justifyContent: "center" },
+  menuButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    minWidth: 36,
+    borderRadius: 10,
+  },
   timeInputInitialButtonStyle: {
     flex: 1,
     backgroundColor: "#3F3C3C",
