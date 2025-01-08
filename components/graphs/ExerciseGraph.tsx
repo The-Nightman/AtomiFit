@@ -976,73 +976,100 @@ const ExerciseGraph = ({
         </Svg>
       </View>
       {/* Selected data and placeholder */}
-      {selectedData.index !== null ? (
-        <View style={styles.selectedContainer}>
-          <Pressable
-            onPress={() =>
-              setSelectedData((prevData) => {
-                if (prevData.index === 0) return prevData;
-                return { ...prevData, index: prevData.index! - 1 };
-              })
-            }
-            hitSlop={30}
-          >
-            {({ pressed }) => (
-              <Entypo
-                name="chevron-thin-left"
-                size={30}
-                color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
-              />
-            )}
-          </Pressable>
-          <View style={styles.selectedTextContainer}>
-            {/* Generate JSX based on the select graph type */}
-            {
-              renderVariant() // We moved to a function for better control and error prevention,
-              // the old method crashed the app if data was selected and the graph type changed
-              // even with cleanup functions or other state calls in useEffect
-            }
-          </View>
-          <Pressable
-            onPress={() =>
-              setSelectedData((prevData) => {
-                // We need to make sure that if this is a 2D array, we dont go out of bounds of nested the array
+      {/* {selectedData.index !== null ? ( */}
+      <View style={styles.selectedContainer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.datapointNavigationButton,
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
+          onPress={() =>
+            setSelectedData((prevData) => {
+              // This is just for accessibility since graph datapoints are not visible to the built in smartphone screen readers
+              if (prevData.index === null) {
                 if (isData2D()) {
-                  // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
-                  // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
-                  const filteredData = (data as GraphDataSet[][]).filter(
-                    (repArr) => multiSettings.selected.includes(repArr[0].reps!)
-                  );
-                  const currentSubArray = filteredData[prevData.multiIndex!];
-                  if (prevData.index! < currentSubArray.length - 1) {
-                    return { ...prevData, index: prevData.index! + 1 };
-                  }
-                } else {
-                  if (prevData.index! < data.length - 1) {
-                    return { ...prevData, index: prevData.index! + 1 };
-                  }
+                  return {
+                    multiIndex: 0,
+                    index: 0,
+                  };
                 }
-                return prevData;
-              })
-            }
-            hitSlop={30}
-          >
-            {({ pressed }) => (
-              <Entypo
-                name="chevron-thin-right"
-                size={30}
-                color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
-              />
-            )}
-          </Pressable>
+                return { ...prevData, index: 0 };
+              }
+              if (prevData.index === 0) return prevData;
+              return { ...prevData, index: prevData.index! - 1 };
+            })
+          }
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="chevron-thin-left"
+              size={30}
+              color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
+            />
+          )}
+        </Pressable>
+        <View style={styles.selectedTextContainer}>
+          {/* Generate JSX based on the select graph type */}
+          {selectedData.index !== null ? (
+            renderVariant() // We moved to a function for better control and error prevention,
+          ) : (
+            // the old method crashed the app if data was selected and the graph type changed
+            // even with cleanup functions or other state calls in useEffect
+            <Text style={styles.selectedText}>
+              Tap a point on the graph to view details
+            </Text>
+          )}
         </View>
-      ) : (
-        <View style={styles.placeholderContainer}>
-          <Text style={styles.selectedText}>
-            Tap a point on the graph to view details
-          </Text>
-        </View>
-      )}
+        <Pressable
+          style={({ pressed }) => [
+            styles.datapointNavigationButton,
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
+          onPress={() =>
+            setSelectedData((prevData) => {
+              // This is just for accessibility since graph datapoints are not visible to the built in smartphone screen readers
+              if (prevData.index === null) {
+                if (isData2D()) {
+                  return {
+                    multiIndex: 0,
+                    index: 0,
+                  };
+                }
+                return { ...prevData, index: 0 };
+              }
+              // We need to make sure that if this is a 2D array, we dont go out of bounds of nested the array
+              if (isData2D()) {
+                // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
+                // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
+                const filteredData = (data as GraphDataSet[][]).filter(
+                  (repArr) => multiSettings.selected.includes(repArr[0].reps!)
+                );
+                const currentSubArray = filteredData[prevData.multiIndex!];
+                if (prevData.index! < currentSubArray.length - 1) {
+                  return { ...prevData, index: prevData.index! + 1 };
+                }
+              } else {
+                if (prevData.index! < data.length - 1) {
+                  return { ...prevData, index: prevData.index! + 1 };
+                }
+              }
+              return prevData;
+            })
+          }
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="chevron-thin-right"
+              size={30}
+              color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
+            />
+          )}
+        </Pressable>
+      </View>
       {isData2D() && ( // We only render if the data array is 2D or we get breaking errors as technically the elements are there just not visible
         <ModalBase
           modalState={multiSettings.modal}
@@ -1215,5 +1242,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
+  },
+  datapointNavigationButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 200,
   },
 });
