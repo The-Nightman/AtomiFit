@@ -12,6 +12,7 @@ import { getToday } from "@/utils/getToday";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { ScrollView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface TransformedHistoryData {
   date: string;
@@ -30,6 +31,7 @@ interface TransformedHistoryData {
  * @returns {React.JSX.Element} The rendered component.
  */
 const History = (): React.JSX.Element => {
+  const insets = useSafeAreaInsets();
   const { exerciseId } = useLocalSearchParams<{
     exerciseId: string;
   }>();
@@ -124,7 +126,12 @@ const History = (): React.JSX.Element => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: insets.bottom },
+      ]}
+    >
       {data
         .reduce<TransformedHistoryData[]>((acc, set) => {
           // Check if date is already in the accumulator
