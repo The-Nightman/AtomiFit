@@ -5,7 +5,7 @@ import * as schema from "@/database/schema";
 import { desc, eq } from "drizzle-orm";
 import { ListWorkout, ListWorkoutExercise } from "@/types/listView";
 import { FlatList } from "react-native-gesture-handler";
-import ListViewItem from "@/components/ListViewItem";
+import ListViewItem from "@/components/listItems/ListViewItem";
 import { getToday } from "@/utils/getToday";
 import { DistanceUnit, WeightUnit } from "@/types/units";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

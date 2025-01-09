@@ -12,12 +12,19 @@ interface ListViewItemProps {
 }
 
 /**
- * Renders a single item in the ListView.
+ * Renders a single item in the ListView screen.
  *
+ * @component
  * @param {Object} props - The props for the ListViewItem component.
  * @param {ListWorkout} props.workout - The workout data to be displayed.
  * @param {string} props.today - The current date in yyyy-mm-dd string format.
+ *
  * @returns {JSX.Element} The rendered ListViewItem.
+ *
+ * @example
+ * ```tsx
+ * <ListViewItem workout={workout} today={"2024-07-13"} />
+ * ```
  */
 const ListViewItem = memo(
   ({ workout, today }: ListViewItemProps): JSX.Element => {
@@ -124,8 +131,7 @@ const ListViewItem = memo(
                   <View>
                     {exercise.sets.map((set: Set) => (
                       // set maxWidth to the width of the screen minus margins
-                      // and paddings (44) + extra for safety and readability
-                      //! Test this on a smaller screen in android studio before merging into dev
+                      // and paddings (64) + extra for safety and readability
                       <View key={set.id} style={{ maxWidth: width - 64 }}>
                         {setDisplayVariant(set, displayVariants)}
                       </View>
