@@ -294,6 +294,12 @@ const index = () => {
       {/* Date scrolling container */}
       <View style={styles.dateScrollContainer}>
         <Pressable
+          style={({ pressed }) => [
+            styles.dayNavButton,
+            pressed && {
+              backgroundColor: hexcodeLuminosity("#0F0F0F", 60),
+            },
+          ]}
           onPress={() => {
             if (pagerViewRef.current) {
               pagerViewRef.current.decrementPage({ animated: true });
@@ -309,13 +315,11 @@ const index = () => {
           )}
         </Pressable>
         <Pressable
-          hitSlop={10}
+          hitSlop={16}
           style={({ pressed }) => [
-            {
-              backgroundColor: pressed
-                ? hexcodeLuminosity("#0F0F0F", 60)
-                : "transparent",
-              paddingHorizontal: 12,
+            styles.dateTextPressable,
+            pressed && {
+              backgroundColor: hexcodeLuminosity("#0F0F0F", 60),
             },
           ]}
           onPress={() => handleDateReset()}
@@ -323,6 +327,12 @@ const index = () => {
           <Text style={styles.dateText}>{displayDate(date, getToday())}</Text>
         </Pressable>
         <Pressable
+          style={({ pressed }) => [
+            styles.dayNavButton,
+            pressed && {
+              backgroundColor: hexcodeLuminosity("#0F0F0F", 60),
+            },
+          ]}
           onPress={() => {
             if (pagerViewRef.current) {
               pagerViewRef.current.incrementPage({ animated: true });
@@ -404,6 +414,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#60DD49",
+  },
+  dayNavButton: {
+    minHeight: 36,
+    minWidth: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dateTextPressable: {
+    minHeight: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 12,
   },
   dateText: {
     color: "white",
