@@ -8,6 +8,7 @@ import { FlatList } from "react-native-gesture-handler";
 import ListViewItem from "@/components/ListViewItem";
 import { getToday } from "@/utils/getToday";
 import { DistanceUnit, WeightUnit } from "@/types/units";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface QueryResult {
   id: number;
@@ -33,6 +34,7 @@ interface QueryResult {
  * @returns {JSX.Element} The ListView component.
  */
 const ListView = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [data, setData] = useState<ListWorkout[]>([]);
   const { db } = useContext(DrizzleContext);
 
@@ -214,6 +216,11 @@ const ListView = (): JSX.Element => {
       data={data}
       keyExtractor={(item) => item.date}
       renderItem={({ item }) => renderItem(item)}
+      contentContainerStyle={{
+        paddingTop: 8,
+        paddingBottom: insets.bottom,
+        gap: 16,
+      }}
     />
   );
 };
@@ -224,7 +231,7 @@ const styles = StyleSheet.create({
   placeholderContainer: {
     display: "flex",
     flexDirection: "row",
-    margin: 8,
+    marginLeft: 8,
     height: 100,
   },
   placeholderSidebar: {

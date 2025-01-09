@@ -184,7 +184,7 @@ const ListViewItem = memo(
 export default ListViewItem;
 
 const styles = StyleSheet.create({
-  itemContainer: { flexDirection: "row", margin: 8 },
+  itemContainer: { flexDirection: "row", marginLeft: 8 },
   itemSideBar: {
     width: 8,
     borderRadius: 4,
