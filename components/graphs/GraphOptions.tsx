@@ -208,9 +208,9 @@ const GraphOptions = ({
             >
               <PickeriOSButton
                 text={
-                  getOptions(optionsType).filter(
+                  getOptions(optionsType).find(
                     (option) => option.value === selectedOptions.selectedGraph
-                  )[0].label
+                  )?.label || ""
                 }
                 onPress={() => eventEmitter.emit("openGraphTypePicker")}
                 padding={0} // This is to help prevent wasted space same as above
