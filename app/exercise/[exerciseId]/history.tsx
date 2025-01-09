@@ -126,79 +126,89 @@ const History = (): React.JSX.Element => {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { paddingBottom: insets.bottom },
-      ]}
-    >
-      {data
-        .reduce<TransformedHistoryData[]>((acc, set) => {
-          // Check if date is already in the accumulator
-          const existingDate = acc.find((item) => item.date === set.date);
-          // If date is already in acc, push the set to the sets array
-          if (existingDate) {
-            existingDate.sets.push(set);
-          } else {
-            // If date is not in acc, push a new object with the date and an array of sets
-            acc.push({
-              date: set.date,
-              sets: [set],
-            });
-          }
-          // Return sets grouped by date
-          return acc;
-        }, [])
-        .map((historyObj: TransformedHistoryData) => {
-          return (
-            <View key={historyObj.date} style={styles.workoutContainer}>
-              <Text style={styles.exerciseDate}>
-                {displayDate(historyObj.date, getToday())}
-              </Text>
-              <View>
-                {historyObj.sets.map((set) => {
-                  return (
-                    <View key={set.id} style={styles.setDataContainer}>
-                      <View style={styles.setNotesPersonalRecordContainer}>
-                        {!set.notes ? (
-                          // If notes is blank render a blank view to maintain layout
-                          <View style={styles.setNotesPlaceholder} />
-                        ) : (
-                          <Pressable
-                            onPress={() => console.log(set.notes)}
-                            style={styles.justifyCenter}
-                          >
-                            <MaterialIcons
-                              name="speaker-notes"
-                              size={24}
-                              color="#60DD49"
-                            />
-                          </Pressable>
-                        )}
-                        {/* Records indicator, not yet fully implemented but
+    <>
+      {data.length ? (
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            { paddingBottom: insets.bottom },
+          ]}
+        >
+          {data
+            .reduce<TransformedHistoryData[]>((acc, set) => {
+              // Check if date is already in the accumulator
+              const existingDate = acc.find((item) => item.date === set.date);
+              // If date is already in acc, push the set to the sets array
+              if (existingDate) {
+                existingDate.sets.push(set);
+              } else {
+                // If date is not in acc, push a new object with the date and an array of sets
+                acc.push({
+                  date: set.date,
+                  sets: [set],
+                });
+              }
+              // Return sets grouped by date
+              return acc;
+            }, [])
+            .map((historyObj: TransformedHistoryData) => {
+              return (
+                <View key={historyObj.date} style={styles.workoutContainer}>
+                  <Text style={styles.exerciseDate}>
+                    {displayDate(historyObj.date, getToday())}
+                  </Text>
+                  <View>
+                    {historyObj.sets.map((set) => {
+                      return (
+                        <View key={set.id} style={styles.setDataContainer}>
+                          <View style={styles.setNotesPersonalRecordContainer}>
+                            {!set.notes ? (
+                              // If notes is blank render a blank view to maintain layout
+                              <View style={styles.setNotesPlaceholder} />
+                            ) : (
+                              <Pressable
+                                onPress={() => console.log(set.notes)}
+                                style={styles.justifyCenter}
+                              >
+                                <MaterialIcons
+                                  name="speaker-notes"
+                                  size={24}
+                                  color="#60DD49"
+                                />
+                              </Pressable>
+                            )}
+                            {/* Records indicator, not yet fully implemented but
                         required for layout */}
-                        <Pressable
-                          onPress={() => console.log("PR, not yet implemented")}
-                          style={styles.setPrButton}
-                        >
-                          <MaterialCommunityIcons
-                            name="trophy"
-                            size={24}
-                            color="#60DD49"
-                          />
-                        </Pressable>
-                      </View>
-                      <View style={styles.setDataSubContainer}>
-                        {setDisplayVariant(set, displayVariants)}
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          );
-        })}
-    </ScrollView>
+                            <Pressable
+                              onPress={() =>
+                                console.log("PR, not yet implemented")
+                              }
+                              style={styles.setPrButton}
+                            >
+                              <MaterialCommunityIcons
+                                name="trophy"
+                                size={24}
+                                color="#60DD49"
+                              />
+                            </Pressable>
+                          </View>
+                          <View style={styles.setDataSubContainer}>
+                            {setDisplayVariant(set, displayVariants)}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })}
+        </ScrollView>
+      ) : (
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>No data to display</Text>
+        </View>
+      )}
+    </>
   );
 };
 
@@ -241,4 +251,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   setDataUnit: { color: "white", fontWeight: "normal", fontSize: 13 },
+  placeholderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: { fontSize: 23, color: "#B9B9B9" },
 });
