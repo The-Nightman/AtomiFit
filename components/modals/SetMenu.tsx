@@ -218,9 +218,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 8,
     gap: 16,
+    alignItems: "center",
   },
   menuDeleteText: {
-    alignSelf: "center",
     color: "#CD2C2C",
     fontSize: 20,
     fontWeight: "600",

@@ -599,6 +599,8 @@ const styles = StyleSheet.create({
   menuPressable: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
     padding: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#9F9F9F",
