@@ -7,7 +7,7 @@ import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
 import { and, eq, max } from "drizzle-orm";
 import { Set } from "@/types/sets";
-import TrackSetListItem from "@/components/TrackSetListItem";
+import TrackSetListItem from "@/components/listItems/TrackSetListItem";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
