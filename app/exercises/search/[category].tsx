@@ -4,7 +4,7 @@ import { useContext, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { and, eq, like } from "drizzle-orm";
-import ExerciseListItem from "@/components/ExerciseListItem";
+import ExerciseListItem from "@/components/listItems/ExerciseListItem";
 import SearchBar from "@/components/SearchBar";
 import { ScrollView } from "react-native-gesture-handler";
 import UtilityStyles from "@/constants/UtilityStyles";

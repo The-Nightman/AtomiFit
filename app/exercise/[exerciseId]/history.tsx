@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, FlatList } from "react-native";
 import * as schema from "@/database/schema";
 import { desc, eq } from "drizzle-orm";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import HistoryListItem from "@/components/HistoryListItem";
+import HistoryListItem from "@/components/listItems/HistoryListItem";
 
 /**
  * History component.
