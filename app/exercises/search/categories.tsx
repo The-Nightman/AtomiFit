@@ -2,7 +2,7 @@ import { BackHandler, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import SearchBar from "@/components/SearchBar";
+import SearchBar from "@/components/ux/SearchBar";
 import * as schema from "@/database/schema";
 import { Category } from "@/types/categories";
 import { like } from "drizzle-orm";
