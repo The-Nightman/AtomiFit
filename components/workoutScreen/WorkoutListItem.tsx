@@ -148,13 +148,13 @@ const WorkoutListItem = ({
         pressed && { borderColor: "#60DD49" },
       ]}
       onPress={() => {
-        // If edit mode is active, handle the edit mode
+        // If edit mode is active we want to handle this rather than the default navigation behaviour
         if (editMode) {
           handleEditMode(exercise.exerciseId);
           return;
         }
-        // Else allow navigation to the exercise screen
-        router.push({
+
+        router.navigate({
           pathname: "/exercise/[exerciseId]/track",
           params: { exerciseId: exercise.exerciseId, date: date },
         });

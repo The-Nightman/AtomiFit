@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import WorkoutListItem from "../WorkoutListItem";
+import WorkoutListItem from "./WorkoutListItem";
 import { router } from "expo-router";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { Set } from "@/types/sets";
