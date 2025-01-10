@@ -84,7 +84,9 @@ const Track = (): JSX.Element => {
     if (
       !mostRecentDateQuery ||
       !mostRecentDateQuery.recentDate ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(mostRecentDateQuery.recentDate)
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+        mostRecentDateQuery.recentDate
+      )
     ) {
       // If there are no sets, create a blank set
       const setTemplates: {
