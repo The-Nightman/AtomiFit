@@ -1,21 +1,17 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { Text, Pressable, StyleSheet } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
-import { useContext, useRef, useState } from "react";
+import { useContext } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
 import { and, eq, max } from "drizzle-orm";
 import { Set } from "@/types/sets";
-import TrackSetListItem from "@/components/TrackSetListItem";
+import TrackSetListItem from "@/components/listItems/TrackSetListItem";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import SetMenu from "@/components/modals/SetMenu";
 
 /**
  * Track component.
@@ -27,15 +23,7 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
  * @returns {JSX.Element} The rendered component.
  */
 const Track = (): JSX.Element => {
-  const [menuVisible, setMenuVisible] = useState<{
-    state: boolean;
-    pos: { x: number; y: number };
-    currentSelectedId: number | null;
-  }>({
-    state: false,
-    pos: { x: 0, y: 0 },
-    currentSelectedId: null,
-  });
+  const insets = useSafeAreaInsets();
   const { exerciseId, exerciseType, weight_unit, date } = useLocalSearchParams<{
     exerciseId: string;
     exerciseType: string;
@@ -43,8 +31,6 @@ const Track = (): JSX.Element => {
     date: string;
   }>();
   const { db } = useContext(DrizzleContext);
-  const containerRef = useRef<View>(null);
-  const overlayWidth = useSharedValue<number>(0);
 
   // Fetch sets data from the database based on the exercise ID and passed date.
   // make use of useLiveQuery hook to watch for changes in the database.
@@ -98,7 +84,9 @@ const Track = (): JSX.Element => {
     if (
       !mostRecentDateQuery ||
       !mostRecentDateQuery.recentDate ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(mostRecentDateQuery.recentDate)
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+        mostRecentDateQuery.recentDate
+      )
     ) {
       // If there are no sets, create a blank set
       const setTemplates: {
@@ -170,159 +158,47 @@ const Track = (): JSX.Element => {
     await db.insert(schema.setsData).values(firstSetQuery);
   };
 
-  /**
-   * Handles the visibility of the menu.
-   *
-   * @param id - The database row id for the set the menu is opened for.
-   * @param visible - A boolean indicating whether the menu should be visible.
-   * @param pos - The position of the menu, containing x and y coordinates.
-   *
-   * @returns {void}
-   */
-  const handleMenuVisible = (
-    id: number,
-    visible: boolean,
-    pos: { x: number; y: number }
-  ): void => {
-    setMenuVisible({ state: visible, pos: pos, currentSelectedId: id });
-  };
-
-  /**
-   * Deletes the currently selected set from the database and updates the state.
-   *
-   * This function deletes the set from the database using the current selected ID in the menu state.
-   * It then resets the menu state and removes the set from the state.
-   * If the selected set ID is null or undefined, the function returns early without performing any actions.
-   *
-   * @returns {Promise<void>} A promise that resolves when the set has been deleted and the state has been updated.
-   */
-  const deleteSet = async (): Promise<void> => {
-    overlayWidth.value = withTiming(0);
-
-    if (!menuVisible.currentSelectedId) return; // Return early if no set is selected
-    await db
-      .delete(schema.setsData)
-      .where(eq(schema.setsData.id, menuVisible.currentSelectedId));
-
-    // Reset the menu state and selected id
-    setMenuVisible({
-      state: false,
-      pos: { x: 0, y: 0 },
-      currentSelectedId: null,
-    });
-  };
-
-  // Reanimated styles for the background of the set menu delete button
-  const animatedStyle = useAnimatedStyle(() => {
-    // Interpolate the color of the background based on the overlay width value
-    // This will fade from red to dark red as the overlay width increases
-    const backgroundColor = interpolateColor(
-      overlayWidth.value,
-      [0, 1],
-      ["#d10000", "#9b0000"]
-    );
-
-    return {
-      width: `${overlayWidth.value * 100}%`,
-      backgroundColor,
-    };
-  });
-  // Handle press in event for reanimated styles
-  const handlePressIn = () => {
-    overlayWidth.value = withTiming(1, { duration: 1000 });
-  };
-  // Handle press out event for reanimated styles
-  const handlePressOut = () => {
-    overlayWidth.value = withTiming(0);
-  };
-
   return (
-    <View style={styles.rootView}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <View
-          hitSlop={{ top: 200, bottom: 2000 }}
-          style={styles.scrollViewInner}
-          onTouchEnd={() => {
-            // If the menu is not open we dont want to run unnecessary state events
-            // for performance reasons, overwise this could get expensive quickly
-            if (menuVisible.state) {
-              setMenuVisible({
-                state: false,
-                pos: { x: 0, y: 0 },
-                currentSelectedId: null,
-              });
-              overlayWidth.value = withTiming(0);
-            }
-          }}
-          ref={containerRef}
-        >
-          {/* Mapped sets */}
-          {data.map((set, i) => (
-            <TrackSetListItem
-              key={set.id || `newset-${i}`}
-              set={set}
-              setNumber={i}
-              menuVisible={menuVisible}
-              setMenuVisible={handleMenuVisible}
-              containerRef={containerRef}
-            />
-          ))}
-          {/* Add set button */}
-          <Pressable
-            onPress={() => addNewSet()}
-            style={({ pressed }) => [
-              styles.addSetButton,
-              pressed && {
-                backgroundColor: hexcodeLuminosity(
-                  styles.addSetButton.backgroundColor,
-                  30
-                ),
-              },
-            ]}
-          >
-            <MaterialIcons name="add" size={24} color="#60DD49" />
-            <Text style={styles.addSetText}>ADD SET</Text>
-          </Pressable>
-          {/* Delete popup */}
-          {menuVisible.state && (
-            <View
-              style={[
-                styles.menuContainer,
-                { top: menuVisible.pos.y, right: menuVisible.pos.x },
-              ]}
-            >
-              {/* Animated View for background to give visual feedback */}
-              <Animated.View
-                style={[styles.animatedViewBaseStyle, animatedStyle]}
-              />
-              <Pressable
-                onPressIn={() => handlePressIn()}
-                onPressOut={() => handlePressOut()}
-                onLongPress={() => deleteSet()}
-                delayLongPress={1000}
-                style={styles.menuPressable}
-              >
-                <Text style={styles.menuDeleteText}>Delete Set</Text>
-                <MaterialCommunityIcons
-                  name="delete-forever-outline"
-                  size={20}
-                  color={hexcodeLuminosity("#ff0000", -20)}
-                />
-              </Pressable>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </View>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: insets.bottom },
+      ]}
+    >
+      {/* Mapped sets */}
+      {data.map((set, i) => (
+        <TrackSetListItem
+          key={set.id || `newset-${i}`}
+          set={set}
+          setNumber={i}
+        />
+      ))}
+      {/* Add set button */}
+      <Pressable
+        onPress={() => addNewSet()}
+        style={({ pressed }) => [
+          styles.addSetButton,
+          pressed && {
+            backgroundColor: hexcodeLuminosity(
+              styles.addSetButton.backgroundColor,
+              30
+            ),
+          },
+        ]}
+      >
+        <MaterialIcons name="add" size={24} color="#60DD49" />
+        <Text style={styles.addSetText}>ADD SET</Text>
+      </Pressable>
+      {/* Delete popup */}
+      <SetMenu />
+    </ScrollView>
   );
 };
 
 export default Track;
 
 const styles = StyleSheet.create({
-  rootView: { flex: 1, paddingTop: 20 },
-  scrollView: { minHeight: "auto" },
-  scrollViewInner: { gap: 16 },
+  container: { paddingTop: 20, gap: 16 },
   columnTitlesContainer: {
     flexDirection: "row",
     height: 36,
@@ -357,27 +233,4 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addSetText: { color: "white", fontSize: 22 },
-  menuContainer: {
-    position: "absolute",
-    width: "50%",
-    backgroundColor: hexcodeLuminosity("#3F3C3C", 20),
-    borderRadius: 10,
-    elevation: 15,
-    overflow: "hidden",
-  },
-  animatedViewBaseStyle: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    height: "100%",
-  },
-  menuPressable: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    margin: 8,
-  },
-  menuDeleteText: {
-    color: hexcodeLuminosity("#ff0000", -20), // Darken the red by 20%, this makes it a lot easier to look at
-    fontSize: 20,
-  },
 });

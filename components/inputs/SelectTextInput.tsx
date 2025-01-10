@@ -2,6 +2,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import {
   ColorValue,
   InputModeOptions,
+  Keyboard,
   StyleProp,
   TextStyle,
 } from "react-native";
@@ -21,7 +22,8 @@ interface SelectTextInputProps {
 
 /**
  * SelectTextInput is a custom text input component that manages its own focus state and selection behavior.
- * It uses a controlled component approach to handle the input value.
+ * It uses a controlled component approach to handle the input value and has a keyboard event listener
+ * to blur the input whenever the keyboard hides to improve the user experience on Android with nav buttons.
  *
  * @component
  * @param {SelectTextInputProps} props - The properties object.
@@ -91,6 +93,25 @@ const SelectTextInput = memo(
       if (textInputRef.current) {
         textInputRef.current.setSelection(0, state.val.length);
       }
+    }, [state.focused]);
+
+    // Create an event listener for the keyboard to blur the input if hidden
+    useEffect(() => {
+      const onBackPress = () => {
+        if (state.focused) {
+          // Keyboard.dismiss() will blur any focused text inputs, using a
+          // setState here will not and may cause errors with the suffix
+          Keyboard.dismiss();
+        }
+      };
+
+      // Add keyboard listener
+      Keyboard.addListener("keyboardDidHide", onBackPress);
+
+      // Remove keyboard listener
+      return () => {
+        Keyboard.removeAllListeners("keyboardDidHide");
+      };
     }, [state.focused]);
 
     /**

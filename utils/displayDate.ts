@@ -5,22 +5,22 @@
  * If the date is tomorrow, it returns "TOMORROW".
  * Otherwise, it returns the date formatted as a short weekday, short month, numeric day and numeric year.
  *
- * @param {string} date - The date string in yyyy-mm-dd format to be formatted.
- * @param {string} today - The current date string in yyyy-mm-dd format.
+ * @param {string} date - The date string in iso 8601 format to be formatted.
+ * @param {string} today - The current date string in iso 8601 format.
  * @returns {string} The formatted date string.
  */
 export const displayDate = (date: string, today: string): string => {
   if (date === today) {
     return "TODAY";
   } else if (
-    date ===
+    date.slice(0, 10) ===
     new Date(new Date(today).setDate(new Date(today).getDate() - 1))
       .toISOString()
       .slice(0, 10)
   ) {
     return "YESTERDAY";
   } else if (
-    date ===
+    date.slice(0, 10) ===
     new Date(new Date(today).setDate(new Date(today).getDate() + 1))
       .toISOString()
       .slice(0, 10)

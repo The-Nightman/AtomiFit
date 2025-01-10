@@ -27,7 +27,7 @@ interface WorkoutListItemProps {
  * @component
  * @param {WorkoutListItemProps} props - The properties for the WorkoutListItem component.
  * @param {{ exerciseId: number; exerciseName: string; sets: Set[] }} props.exercise - The exercise object containing details about the exercise.
- * @param {string} props.date - The date of the workout.
+ * @param {string} props.date - The date of the workout in ISO 8601 date time format.
  * @param {boolean} props.editMode - The edit mode state, this operates in the parent and does not relate to data such as workout sets.
  * @param {(exerciseId: number) => void} props.handleEditMode - The function to handle the edit mode.
  * @param {boolean} props.selected - The selected state of the workout list item while in edit mode.
@@ -43,7 +43,7 @@ interface WorkoutListItemProps {
  *       { id: '2', weight: 105, reps: 8, distance: null, time: null, notes: '' },
  *     ],
  *   }}
- *   date="2023-10-01"
+ *   date="2023-10-01T00:00:00.000+01:00"
  *   editMode={false}
  *   handleEditMode={() => console.log('Edit mode')}
  *   selected={false}
@@ -148,13 +148,13 @@ const WorkoutListItem = ({
         pressed && { borderColor: "#60DD49" },
       ]}
       onPress={() => {
-        // If edit mode is active, handle the edit mode
+        // If edit mode is active we want to handle this rather than the default navigation behaviour
         if (editMode) {
           handleEditMode(exercise.exerciseId);
           return;
         }
-        // Else allow navigation to the exercise screen
-        router.push({
+
+        router.navigate({
           pathname: "/exercise/[exerciseId]/track",
           params: { exerciseId: exercise.exerciseId, date: date },
         });

@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SettingsProvider } from "@/contexts/settingsContext";
 import { version } from "../package.json";
 import { Storage } from "expo-sqlite/kv-store";
+import { StatusBar } from "expo-status-bar";
 
 const APP_VERSION = version;
 
@@ -65,6 +66,10 @@ const RootLayoutNav = () => {
     <DrizzleProvider>
       <SettingsProvider>
         <GestureHandlerRootView>
+          <StatusBar
+            style="light" //We may want to change this to dark depending on the theme later
+            translucent
+          />
           <Stack
             screenOptions={{
               headerShown: false,
@@ -79,7 +84,11 @@ const RootLayoutNav = () => {
             />
             <Stack.Screen
               name="exercises"
-              options={{ gestureEnabled: true, gestureDirection:"vertical", animation: "slide_from_bottom" }}
+              options={{
+                gestureEnabled: true,
+                gestureDirection: "vertical",
+                animation: "slide_from_bottom",
+              }}
             />
             <Stack.Screen
               name="exercise/[exerciseId]"

@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
@@ -13,6 +13,8 @@ import { LineGraphOptions } from "@/types/graphs";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { convertDistanceUnits } from "@/utils/convertDistanceUnits";
 import { getMostUsedUnit } from "@/utils/getMostUsedUnit";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Storage } from "expo-sqlite/kv-store";
 
 interface GraphDataSet extends Set {
   dataPoint: number;
@@ -29,6 +31,7 @@ interface GraphDataSet extends Set {
  * @returns {JSX.Element} A view containing the exercise graph or a message indicating no data is available.
  */
 const graph = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const today = getToday();
   const [selectedOptions, setSelectedOptions] = useState<LineGraphOptions>({
     selectedGraph: "oneRepMax",
@@ -43,6 +46,41 @@ const graph = (): JSX.Element => {
     type: string;
   }>();
   const { db } = useContext(DrizzleContext);
+
+  useEffect(() => {
+    /**
+     * Initializes the graph preferences by retrieving stored values from the storage.
+     * If a preference is not found in the storage, it sets the default value from `selectedOptions`.
+     *
+     * @async
+     * @function initPreferences
+     * @returns {Promise<void>} A promise that resolves when the preferences have been initialized.
+     */
+    const initPreferences = async (): Promise<void> => {
+      const graphPrefs: [string, string | null][] = await Storage.multiGet([
+        "graphPoints",
+        "yAxisFromZero",
+        "trendline",
+      ]);
+
+      for (const [key, value] of graphPrefs) {
+        // We do this here instead of the settings context because this is a specific preference
+        // rather than app-wide setting and we want some separation of concerns
+        if (!value) {
+          await Storage.setItem(
+            key,
+            selectedOptions[key as keyof LineGraphOptions].toString()
+          );
+        } else {
+          setSelectedOptions((prev) => ({
+            ...prev,
+            [key]: value === "true",
+          }));
+        }
+      }
+    };
+    initPreferences();
+  }, []);
 
   /**
    * Generates an SQL query string based on the provided start date.
@@ -64,7 +102,12 @@ const graph = (): JSX.Element => {
     const todayObj = new Date(today);
 
     if (!keys.includes(startDate)) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      // ISO 8601 date format regex time offset inclusive
+      if (
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+          startDate
+        )
+      ) {
         setSelectedOptions({
           ...selectedOptions,
           startDate: "1M",
@@ -542,7 +585,12 @@ const graph = (): JSX.Element => {
   };
 
   return (
-    <View style={UtilityStyles.flex1}>
+    <View
+      style={[
+        UtilityStyles.flex1,
+        { paddingBottom: insets.bottom / 2 }, // The safe area padding is a bit too much so we reduce it by half, this does not negatively affect the UI
+      ]}
+    >
       <GraphOptions
         optionsType={prepExerciseType(type)}
         selectedOptions={selectedOptions}

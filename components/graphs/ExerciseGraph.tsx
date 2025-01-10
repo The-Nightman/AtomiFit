@@ -83,11 +83,11 @@ interface GraphConfig {
  * <ExerciseGraph
  *   selectedOptions={selectedOptions}
  *   data={[
- *     { date: "2021-09-01", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-02", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-03", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-04", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-05", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-01T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-02T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-03T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-04T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-05T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
  *   ]}
  * />
  * ```
@@ -182,7 +182,16 @@ const ExerciseGraph = ({
     const xExtents = d3.extent(
       graphData.map((d) => new Date(d.date).getTime())
     );
-    const yExtents = d3.extent(graphData.map((d) => d.dataPoint));
+    const yExtents = d3.extent(
+      [
+        ...graphData,
+        // We add a data point of 0 to the y-axis if the user has selected the option to start from zero
+        // The easiest and safest way to do this is to clone and element and set the datapoint property
+        ...(selectedOptions.yAxisFromZero
+          ? [{ ...graphData[0], dataPoint: 0 }]
+          : []),
+      ].map((d) => d.dataPoint)
+    );
 
     // Create a time scale for the x-axis
     const xScale: d3.ScaleTime<number, number> = d3.scaleUtc(
@@ -232,7 +241,7 @@ const ExerciseGraph = ({
     const yDomain = (): number[] => {
       // We use the tickStep function to calculate the buffer area of the domain for
       // the y-axis as this will be dynamic and scale for us as the data changes
-      const yBottom = Math.floor(yExtents[0]! / tickStep) * tickStep - tickStep;
+      const yBottom = Math.floor(yExtents[0]! / tickStep) * tickStep - tickStep; //? (yExtents[0] === yExtents[1] ? tickStep : tickStep * 2) could be considered later on?
       const yTop = Math.ceil(yExtents[1]! / tickStep) * tickStep + tickStep;
 
       return [
@@ -744,6 +753,26 @@ const ExerciseGraph = ({
             <MaterialCommunityIcons name="cog" size={24} color="#9F9F9F" />
           </Pressable>
         )}
+        {/* DO NOT MOVE OR DELETE THIS TEXT ELEMENT, REQUIRED APPROACH FOR CROSS PLATFORM ONLAYOUT FIX */}
+        <Text
+          //! We absolutely do not want this element to be visible at all in fashion, it is only used to calculate the tick length
+          //! on iOS the onLayout returns the screen width of the device on the SvgText element we are using for our y-axis ticks
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            position: "absolute",
+            color: "transparent",
+            top: -9999,
+            left: -9999,
+          }}
+          onLayout={(e) => {
+            const { width } = e.nativeEvent.layout;
+            // We only need to set the tick length once otherwise we will be rapidly changing state many times
+            setTickLength(width + 11); // + 11 is a reasonable amount of padding between the ticks and the screen edge while preserving visibility of the graph
+          }}
+        >
+          {graph.yTicks.toReversed()[0]}
+        </Text>
         <Svg
           width={graphSize.width}
           height={graphSize.height}
@@ -788,31 +817,21 @@ const ExerciseGraph = ({
           </G>
           {/* Y-axis ticks and grid lines */}
           <G>
-            {
-              // By using toReversed we can reverse the array and just use index 0 in our onLayout event, also we dont want mutations
-              graph.yTicks.toReversed().map((tick, i) => (
-                <SvgText
-                  key={`text-${tick}`}
-                  onLayout={(e) => {
-                    const { width } = e.nativeEvent.layout;
-                    if (i === 0) {
-                      // We only need to set the tick length once otherwise we will be rapidly changing state many times
-                      setTickLength(width + 11); // + 11 is a reasonable amount of padding between the ticks and the screen edge
-                    }
-                  }}
-                  fill="white"
-                  fontSize="11px"
-                  fontWeight="normal"
-                  textAnchor="end"
-                  x={tickLength}
-                  y={graph.yScale(tick) + 3}
-                >
-                  {
-                    tick.toLocaleString() // We need to do this so that large numbers are readable, same as the display variants
-                  }
-                </SvgText>
-              ))
-            }
+            {graph.yTicks.map((tick, i) => (
+              <SvgText
+                key={`text-${tick}`}
+                fill="white"
+                fontSize="11px"
+                fontWeight="normal"
+                textAnchor="end"
+                x={tickLength}
+                y={graph.yScale(tick) + 3}
+              >
+                {
+                  tick.toLocaleString() // We need to do this so that large numbers are readable, same as the display variants
+                }
+              </SvgText>
+            ))}
             {graph.yTicks.map((tickLine, _) => (
               <Line
                 key={`line-${tickLine}`}
@@ -866,162 +885,191 @@ const ExerciseGraph = ({
             )}
           </G>
           {/* Datapoint markers */}
-          {(selectedOptions.graphPoints || data.length === 1) && !isData2D() ? (
-            <G>
-              {(data as GraphDataSet[]).map((d, i) => (
-                <G key={`circle-${d.date}-${d.id}`}>
-                  {/* Display circle */}
-                  <Circle
-                    cx={graph.xScale(new Date(d.date))}
-                    cy={graph.yScale(d.dataPoint)}
-                    r={4}
-                    fill="#60DD49"
-                  />
-                  {/* Selected data circle */}
-                  {selectedData.index === i && (
+          {selectedOptions.graphPoints ? (
+            !isData2D() ? (
+              <G>
+                {(data as GraphDataSet[]).map((d, i) => (
+                  <G key={`circle-${d.date}-${d.id}`}>
+                    {/* Display circle */}
                     <Circle
                       cx={graph.xScale(new Date(d.date))}
                       cy={graph.yScale(d.dataPoint)}
-                      r={6}
-                      stroke="#60DD49"
-                      strokeWidth={2}
-                      fill="none"
+                      r={4}
+                      fill="#60DD49"
                     />
-                  )}
-                  {/* We use an onPress event for the same functionality and reasons as above */}
-                  <Circle
-                    cx={graph.xScale(new Date(d.date))}
-                    cy={graph.yScale(d.dataPoint)}
-                    r={12}
-                    fill="none"
-                    onPress={() => {
-                      setSelectedData({ multiIndex: null, index: i });
-                    }}
-                  />
-                </G>
-              ))}
-            </G>
-          ) : (
-            // Multiline datapoint markers
-            <G>
-              {(data as GraphDataSet[][])
-                .filter((repArr) =>
-                  multiSettings.selected.includes(repArr[0].reps!)
-                )
-                .map((d, i) => (
-                  <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
-                    {(d as GraphDataSet[]).map((d, j) => (
-                      <G key={`circle-${d.date}-${d.id}`}>
-                        {/* Display circle */}
-                        <Circle
-                          cx={graph.xScale(new Date(d.date))}
-                          cy={graph.yScale(d.dataPoint)}
-                          r={4}
-                          fill={multilineColors[i]}
-                        />
-                        {/* Selected data circle */}
-                        {selectedData.multiIndex === i &&
-                          selectedData.index === j && (
-                            <Circle
-                              cx={graph.xScale(new Date(d.date))}
-                              cy={graph.yScale(d.dataPoint)}
-                              r={6}
-                              stroke={multilineColors[i]}
-                              strokeWidth={2}
-                              fill="none"
-                            />
-                          )}
-                        {/*
+                    {/* Selected data circle */}
+                    {selectedData.index === i && (
+                      <Circle
+                        cx={graph.xScale(new Date(d.date))}
+                        cy={graph.yScale(d.dataPoint)}
+                        r={6}
+                        stroke="#60DD49"
+                        strokeWidth={2}
+                        fill="none"
+                      />
+                    )}
+                    {/* We use an onPress event for the same functionality and reasons as above */}
+                    <Circle
+                      cx={graph.xScale(new Date(d.date))}
+                      cy={graph.yScale(d.dataPoint)}
+                      r={12}
+                      fill="none"
+                      onPress={() => {
+                        setSelectedData({ multiIndex: null, index: i });
+                      }}
+                    />
+                  </G>
+                ))}
+              </G>
+            ) : (
+              // Multiline datapoint markers
+              <G>
+                {(data as GraphDataSet[][])
+                  .filter((repArr) =>
+                    multiSettings.selected.includes(repArr[0].reps!)
+                  )
+                  .map((d, i) => (
+                    <G key={`multiline-${(d as GraphDataSet[])[0].reps}-reps`}>
+                      {(d as GraphDataSet[]).map((d, j) => (
+                        <G key={`circle-${d.date}-${d.id}`}>
+                          {/* Display circle */}
+                          <Circle
+                            cx={graph.xScale(new Date(d.date))}
+                            cy={graph.yScale(d.dataPoint)}
+                            r={4}
+                            fill={multilineColors[i]}
+                          />
+                          {/* Selected data circle */}
+                          {selectedData.multiIndex === i &&
+                            selectedData.index === j && (
+                              <Circle
+                                cx={graph.xScale(new Date(d.date))}
+                                cy={graph.yScale(d.dataPoint)}
+                                r={6}
+                                stroke={multilineColors[i]}
+                                strokeWidth={2}
+                                fill="none"
+                              />
+                            )}
+                          {/*
                         Touchable circle due to inability to use pressable,
                         react-native-svg does not support hitslop as dev refuses to 
                         implement due to svg pressable interaction not being standard on web
                         https://github.com/software-mansion/react-native-svg/issues/81
                       */}
-                        <Circle
-                          cx={graph.xScale(new Date(d.date))}
-                          cy={graph.yScale(d.dataPoint)}
-                          r={12}
-                          fill="none"
-                          onPress={() => {
-                            setSelectedData({ multiIndex: i, index: j });
-                          }}
-                        />
-                      </G>
-                    ))}
-                  </G>
-                ))}
-            </G>
-          )}
+                          <Circle
+                            cx={graph.xScale(new Date(d.date))}
+                            cy={graph.yScale(d.dataPoint)}
+                            r={12}
+                            fill="none"
+                            onPress={() => {
+                              setSelectedData({ multiIndex: i, index: j });
+                            }}
+                          />
+                        </G>
+                      ))}
+                    </G>
+                  ))}
+              </G>
+            )
+          ) : null}
         </Svg>
       </View>
       {/* Selected data and placeholder */}
-      {selectedData.index !== null ? (
-        <View style={styles.selectedContainer}>
-          <Pressable
-            onPress={() =>
-              setSelectedData((prevData) => {
-                if (prevData.index === 0) return prevData;
-                return { ...prevData, index: prevData.index! - 1 };
-              })
-            }
-            hitSlop={30}
-          >
-            {({ pressed }) => (
-              <Entypo
-                name="chevron-thin-left"
-                size={30}
-                color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
-              />
-            )}
-          </Pressable>
-          <View style={styles.selectedTextContainer}>
-            {/* Generate JSX based on the select graph type */}
-            {
-              renderVariant() // We moved to a function for better control and error prevention,
-              // the old method crashed the app if data was selected and the graph type changed
-              // even with cleanup functions or other state calls in useEffect
-            }
-          </View>
-          <Pressable
-            onPress={() =>
-              setSelectedData((prevData) => {
-                // We need to make sure that if this is a 2D array, we dont go out of bounds of nested the array
+      {/* {selectedData.index !== null ? ( */}
+      <View style={styles.selectedContainer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.datapointNavigationButton,
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
+          onPress={() =>
+            setSelectedData((prevData) => {
+              // This is just for accessibility since graph datapoints are not visible to the built in smartphone screen readers
+              if (prevData.index === null) {
                 if (isData2D()) {
-                  // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
-                  // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
-                  const filteredData = (data as GraphDataSet[][]).filter(
-                    (repArr) => multiSettings.selected.includes(repArr[0].reps!)
-                  );
-                  const currentSubArray = filteredData[prevData.multiIndex!];
-                  if (prevData.index! < currentSubArray.length - 1) {
-                    return { ...prevData, index: prevData.index! + 1 };
-                  }
-                } else {
-                  if (prevData.index! < data.length - 1) {
-                    return { ...prevData, index: prevData.index! + 1 };
-                  }
+                  return {
+                    multiIndex: 0,
+                    index: 0,
+                  };
                 }
-                return prevData;
-              })
-            }
-            hitSlop={30}
-          >
-            {({ pressed }) => (
-              <Entypo
-                name="chevron-thin-right"
-                size={30}
-                color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
-              />
-            )}
-          </Pressable>
+                return { ...prevData, index: 0 };
+              }
+              if (prevData.index === 0) return prevData;
+              return { ...prevData, index: prevData.index! - 1 };
+            })
+          }
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="chevron-thin-left"
+              size={30}
+              color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
+            />
+          )}
+        </Pressable>
+        <View style={styles.selectedTextContainer}>
+          {/* Generate JSX based on the select graph type */}
+          {selectedData.index !== null ? (
+            renderVariant() // We moved to a function for better control and error prevention,
+          ) : (
+            // the old method crashed the app if data was selected and the graph type changed
+            // even with cleanup functions or other state calls in useEffect
+            <Text style={styles.selectedText}>
+              Tap a point on the graph to view details
+            </Text>
+          )}
         </View>
-      ) : (
-        <View style={styles.placeholderContainer}>
-          <Text style={styles.selectedText}>
-            Tap a point on the graph to view details
-          </Text>
-        </View>
-      )}
+        <Pressable
+          style={({ pressed }) => [
+            styles.datapointNavigationButton,
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
+          onPress={() =>
+            setSelectedData((prevData) => {
+              // This is just for accessibility since graph datapoints are not visible to the built in smartphone screen readers
+              if (prevData.index === null) {
+                if (isData2D()) {
+                  return {
+                    multiIndex: 0,
+                    index: 0,
+                  };
+                }
+                return { ...prevData, index: 0 };
+              }
+              // We need to make sure that if this is a 2D array, we dont go out of bounds of nested the array
+              if (isData2D()) {
+                // We need to filter the data now due to how we are handling the rendering of selected rep counts data rendering
+                // of selected rep counts data and so button navigation accurately reflects the selected data from the raw data
+                const filteredData = (data as GraphDataSet[][]).filter(
+                  (repArr) => multiSettings.selected.includes(repArr[0].reps!)
+                );
+                const currentSubArray = filteredData[prevData.multiIndex!];
+                if (prevData.index! < currentSubArray.length - 1) {
+                  return { ...prevData, index: prevData.index! + 1 };
+                }
+              } else {
+                if (prevData.index! < data.length - 1) {
+                  return { ...prevData, index: prevData.index! + 1 };
+                }
+              }
+              return prevData;
+            })
+          }
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="chevron-thin-right"
+              size={30}
+              color={pressed ? hexcodeLuminosity("#60DD49", -80) : "#60DD49"}
+            />
+          )}
+        </Pressable>
+      </View>
       {isData2D() && ( // We only render if the data array is 2D or we get breaking errors as technically the elements are there just not visible
         <ModalBase
           modalState={multiSettings.modal}
@@ -1090,7 +1138,7 @@ const ExerciseGraph = ({
 export default ExerciseGraph;
 
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, gap: 12 },
+  mainContainer: { flex: 1, gap: 12, zIndex: -1 }, // We need to set the z-index to -1 for the bottom sheet in GraphOptions to render above the graph
   graphContainer: { flex: 1 },
   selectedContainer: {
     minHeight: 64,
@@ -1194,5 +1242,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
+  },
+  datapointNavigationButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 200,
   },
 });

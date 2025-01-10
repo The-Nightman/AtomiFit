@@ -17,12 +17,12 @@ interface CategoryListItemProps {
  * @component
  * @param {Object} props - The properties object.
  * @param {Category} props.category - The category object containing details about the category.
- * @param {Date} props.date - The date associated with the category item.
+ * @param {Date} props.date - The date to pass through the category item in ISO 8601 date time format.
  * @returns {JSX.Element} The rendered CategoryListItem component.
  *
  * @example
  * ```tsx
- * <CategoryListItem category={category} date={new Date()} />
+ * <CategoryListItem category={category} date={"2023-10-10T00:00:00.000+01:00"} />
  * ```
  */
 const CategoryListItem = ({

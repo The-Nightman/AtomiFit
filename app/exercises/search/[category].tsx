@@ -4,15 +4,15 @@ import { useContext, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { and, eq, like } from "drizzle-orm";
-import ExerciseListItem from "@/components/ExerciseListItem";
-import SearchBar from "@/components/SearchBar";
+import ExerciseListItem from "@/components/listItems/ExerciseListItem";
+import SearchBar from "@/components/ux/SearchBar";
 import { ScrollView } from "react-native-gesture-handler";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 
 /**
- * Dynamic route [category] component that displays a list of exercises for a given category.
+ * CategoryExercises component that displays a list of exercises for a given category in the [category] route.
  *
  * This component fetches exercises from a database based on the category ID provided in the route.
  * It also provides search functionality to filter exercises within the category.
@@ -46,7 +46,11 @@ const CategoryExercises = (): JSX.Element => {
   return (
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
+      >
         {data.map((exercise) => (
           <ExerciseListItem
             key={exercise.id}

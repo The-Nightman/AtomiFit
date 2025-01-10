@@ -15,12 +15,15 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
-import NewCategoryModal from "@/components/modals/NewCategoryModal";
 import { DistanceUnit, WeightUnit } from "@/types/units";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { eq } from "drizzle-orm";
 import ModalBase from "@/components/modals/ModalBase";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import { convertWeightUnits } from "@/utils/convertWeightUnits";
+import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
+import BottomSheetPickeriOS from "@/components/inputs/pickers/BottomSheetPickeriOS";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -31,6 +34,7 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
  * @returns {JSX.Element} The rendered NewExercise Screen.
  */
 const editExercise = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState<{
     name: string;
     notes: string;
@@ -55,7 +59,6 @@ const editExercise = (): JSX.Element => {
     colour: "",
     message: "",
   });
-  const [categoryModal, setCategoryModal] = useState<boolean>(false);
   const [unitModal, setUnitModal] = useState<boolean>(false);
   const [unitConfirm, setUnitConfirm] = useState<{
     operation: "convert" | "switch" | null;
@@ -221,8 +224,62 @@ const editExercise = (): JSX.Element => {
    */
   const handleUnitChange = async (): Promise<void> => {
     if (unitConfirm.operation === "convert") {
-      // Convert the existing sets
-      // Not implemented
+      try {
+        await db.transaction(async (tx) => {
+          // We need to pull the saved sets and convert them in memory as there is no supported method for this in SQLite
+          const savedSets = await tx
+            .select()
+            .from(schema.setsData)
+            .where(eq(schema.setsData.exercise_id, Number(exerciseId)));
+
+          const convertedSets = savedSets.map((set) => {
+            return {
+              ...set,
+              weight: convertWeightUnits(
+                set.weight!,
+                formData.currentSavedUnit!,
+                formData.weight_unit!
+              ),
+            };
+          });
+
+          // SQLite does not support batch updates so we need to loop through each set and update it one by one
+          for (const set of convertedSets) {
+            // We use a for loop for performance since it is a lower level operation with less overhead
+            await tx
+              .update(schema.setsData)
+              .set({ weight: set.weight, weight_unit: formData.weight_unit })
+              .where(eq(schema.setsData.id, set.id));
+          }
+
+          await tx
+            .update(schema.exercises)
+            .set({
+              name: formData.name,
+              notes: formData.notes,
+              type: formData.type,
+              category_id: formData.category,
+              weight_unit: formData.weight_unit,
+            })
+            .where(eq(schema.exercises.id, Number(exerciseId)));
+        });
+
+        setFormData((prevState) => ({
+          ...prevState,
+          currentSavedUnit: formData.weight_unit,
+        }));
+        setToastState({
+          show: true,
+          message: "Exercise Saved",
+          colour: "#388E3C",
+        });
+      } catch (error) {
+        setToastState({
+          show: true,
+          message: "An Error Occurred, Could Not Change Units",
+          colour: "#C0392B",
+        });
+      }
     }
 
     if (unitConfirm.operation === "switch") {
@@ -279,7 +336,13 @@ const editExercise = (): JSX.Element => {
             }
           />
         )}
-        <ScrollView contentContainerStyle={styles.scrollviewContainer}>
+        <ScrollView
+          style={{ zIndex: -1 }}
+          contentContainerStyle={[
+            styles.scrollviewContainer,
+            { paddingBottom: insets.bottom },
+          ]}
+        >
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>NAME</Text>
             <TextInput
@@ -309,37 +372,86 @@ const editExercise = (): JSX.Element => {
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>CATEGORY</Text>
             <View
-              style={styles.categorySubcontainer}
+              style={{
+                width: "95%",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                gap: 8,
+              }}
             >
-              <Picker
-                mode="dropdown"
-                style={[
-                  styles.picker,
-                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-                ]}
-                itemStyle={styles.pickerItemIos}
-                selectedValue={formData.category}
-                onValueChange={(itemValue: number) =>
-                  setFormData({ ...formData, category: itemValue })
-                }
-              >
-                <Picker.Item
-                  style={styles.pickerItemAndroid}
-                  label="None Selected"
-                  value={0}
-                />
-                {data.map((category) => (
-                  <Picker.Item
-                    key={category.id}
-                    style={styles.pickerItemAndroid}
-                    label={category.name}
-                    value={category.id}
+              {Platform.OS === "ios" ? (
+                <>
+                  <View
+                    style={[
+                      styles.categoryIndicator,
+                      {
+                        borderColor: hexcodeLuminosity(
+                          (data.find(
+                            (category) => category.id === formData.category
+                          )?.colour as string) ?? "#000000",
+                          40
+                        ),
+                        backgroundColor: data.find(
+                          (category) => category.id === formData.category
+                        )?.colour,
+                      },
+                    ]}
                   />
-                ))}
-              </Picker>
+                  <View style={{ flex: 1 }}>
+                    <PickeriOSButton
+                      text={
+                        data.find(
+                          (category) => category.id === formData.category
+                        )?.name || "None Selected"
+                      }
+                      onPress={() => eventEmitter.emit("openCategoryPicker")}
+                    />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View
+                    style={[
+                      styles.categoryIndicator,
+                      {
+                        borderColor: hexcodeLuminosity(
+                          (data.find(
+                            (category) => category.id === formData.category
+                          )?.colour as string) ?? "#000000",
+                          40
+                        ),
+                        backgroundColor: data.find(
+                          (category) => category.id === formData.category
+                        )?.colour,
+                      },
+                    ]}
+                  />
+                  <Picker
+                    mode="dropdown"
+                    style={styles.picker}
+                    selectedValue={formData.category}
+                    onValueChange={(itemValue: number) =>
+                      setFormData({ ...formData, category: itemValue })
+                    }
+                  >
+                    {[
+                      // We use -1 for no cat. selected as 0 seems to not trigger onValueChange and thus no state update, mostly an android issue
+                      { name: "None Selected", id: -1 },
+                      ...data,
+                    ].map((category) => (
+                      <Picker.Item
+                        key={category.id}
+                        style={styles.pickerItemAndroid}
+                        label={category.name}
+                        value={category.id}
+                      />
+                    ))}
+                  </Picker>
+                </>
+              )}
               <Pressable
                 style={{ justifyContent: "center" }}
-                onPress={() => setCategoryModal(true)}
+                onPress={() => router.navigate("/exercises/create/newCategory")}
               >
                 {({ pressed }) => (
                   <MaterialIcons
@@ -353,63 +465,82 @@ const editExercise = (): JSX.Element => {
           </View>
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>TYPE</Text>
-            <Picker
-              mode="dropdown"
-              style={[
-                styles.picker,
-                Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-              ]}
-              itemStyle={styles.pickerItemIos}
-              selectedValue={formData.type}
-              onValueChange={(itemValue: string) =>
-                setFormData({ ...formData, type: itemValue })
-              }
-            >
-              {types.map((type, i) => (
-                <Picker.Item
-                  key={`${type}-${i}`}
-                  style={styles.pickerItemAndroid}
-                  label={type}
-                  value={type}
+            {Platform.OS === "ios" ? (
+              <View
+                style={{
+                  width: "95%",
+                }}
+              >
+                <PickeriOSButton
+                  text={
+                    types.find((type) => type === formData.type) ??
+                    "Select Type"
+                  }
+                  onPress={() => eventEmitter.emit("openTypePicker")}
                 />
-              ))}
-            </Picker>
+              </View>
+            ) : (
+              <Picker
+                mode="dropdown"
+                style={styles.picker}
+                selectedValue={formData.type}
+                onValueChange={(itemValue: string) =>
+                  setFormData({ ...formData, type: itemValue })
+                }
+              >
+                {types.map((type, i) => (
+                  <Picker.Item
+                    key={`${type}-${i}`}
+                    style={styles.pickerItemAndroid}
+                    label={type}
+                    value={type}
+                  />
+                ))}
+              </Picker>
+            )}
           </View>
           {/weight/i.test(formData.type) && (
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>WEIGHT UNIT</Text>
-              <Picker
-                mode="dropdown"
-                style={[
-                  styles.picker,
-                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-                ]}
-                itemStyle={styles.pickerItemIos}
-                selectedValue={formData.weight_unit}
-                onValueChange={(itemValue: WeightUnit) =>
-                  setFormData({ ...formData, weight_unit: itemValue })
-                }
-              >
-                {units.weight.map((unit) => (
-                  <Picker.Item
-                    key={unit.value}
-                    style={styles.pickerItemAndroid}
-                    label={unit.label}
-                    value={unit.value}
+              {Platform.OS === "ios" ? (
+                <View
+                  style={{
+                    width: "95%",
+                  }}
+                >
+                  <PickeriOSButton
+                    text={
+                      units.weight.find(
+                        (unit) => unit.value === formData.weight_unit
+                      )?.label || "Select Weight Unit"
+                    }
+                    onPress={() => eventEmitter.emit("openWeightUnitPicker")}
                   />
-                ))}
-              </Picker>
+                </View>
+              ) : (
+                <Picker
+                  mode="dropdown"
+                  style={styles.picker}
+                  itemStyle={styles.pickerItemIos}
+                  selectedValue={formData.weight_unit}
+                  onValueChange={(itemValue: WeightUnit) =>
+                    setFormData({ ...formData, weight_unit: itemValue })
+                  }
+                >
+                  {units.weight.map((unit) => (
+                    <Picker.Item
+                      key={unit.value}
+                      style={styles.pickerItemAndroid}
+                      label={unit.label}
+                      value={unit.value}
+                    />
+                  ))}
+                </Picker>
+              )}
             </View>
           )}
         </ScrollView>
       </View>
-      <NewCategoryModal
-        modalState={categoryModal}
-        setModalState={setCategoryModal}
-        returnCategoryId={(id: number) =>
-          setFormData({ ...formData, category: id })
-        }
-      />
       {/* Unit change modal */}
       <ModalBase
         modalState={unitModal}
@@ -445,13 +576,12 @@ const editExercise = (): JSX.Element => {
                 }
               >
                 <View>
-                  <Text
-                    style={styles.modalOptionName}
-                  >
+                  <Text style={styles.modalOptionName}>
                     Convert Existing Sets
                   </Text>
                   <Text style={styles.modalText}>
-                    not yet implemented
+                    30 {formData.currentSavedUnit} will become 30{" "}
+                    {formData.weight_unit}
                   </Text>
                 </View>
                 {unitConfirm.operation === "convert" ? (
@@ -480,11 +610,7 @@ const editExercise = (): JSX.Element => {
                 }
               >
                 <View>
-                  <Text
-                    style={styles.modalOptionName}
-                  >
-                    Only Change Unit
-                  </Text>
+                  <Text style={styles.modalOptionName}>Only Change Unit</Text>
                   <Text style={styles.modalText}>
                     30 {formData.currentSavedUnit} will become 30{" "}
                     {formData.weight_unit}
@@ -530,6 +656,41 @@ const editExercise = (): JSX.Element => {
           </View>
         </View>
       </ModalBase>
+      {Platform.OS === "ios" && (
+        // We may need to refactor how we do this depending on how it functions with accessibility later on
+        <>
+          <BottomSheetPickeriOS
+            eventName="openCategoryPicker"
+            data={[{ name: "None Selected", id: 0 }, ...data].map(
+              (category) => ({
+                label: category.name,
+                value: category.id,
+              })
+            )}
+            value={formData.category}
+            onChange={(value) =>
+              setFormData({ ...formData, category: Number(value) })
+            }
+            closeEvents={["openTypePicker", "openWeightUnitPicker"]}
+          />
+          <BottomSheetPickeriOS
+            eventName="openTypePicker"
+            data={types.map((type) => ({ label: type, value: type }))}
+            value={formData.type}
+            onChange={(value) => setFormData({ ...formData, type: value })}
+            closeEvents={["openCategoryPicker", "openWeightUnitPicker"]}
+          />
+          <BottomSheetPickeriOS
+            eventName="openWeightUnitPicker"
+            data={units.weight}
+            value={formData.weight_unit}
+            onChange={(value) =>
+              setFormData({ ...formData, weight_unit: value })
+            }
+            closeEvents={["openCategoryPicker", "openTypePicker"]}
+          />
+        </>
+      )}
     </>
   );
 };
@@ -551,7 +712,7 @@ const styles = StyleSheet.create({
   typePicker: {
     flex: 1,
   },
-  categorySubcontainer:{
+  categorySubcontainer: {
     width: "95%",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -609,7 +770,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingVertical: 8,
   },
-  modalOptionName:{ color: "white", fontSize: 20, fontWeight: "500" },
+  modalOptionName: { color: "white", fontSize: 20, fontWeight: "500" },
   modalButtonContainer: { flexDirection: "row", gap: 16 },
   buttonBase: {
     flex: 1,
@@ -624,4 +785,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#CD2C2C",
   },
   buttonText: { fontSize: 20, fontWeight: "bold", color: "white" },
+  categoryIndicator: {
+    width: 36,
+    height: 36,
+    alignSelf: "center",
+    borderRadius: 18,
+    borderWidth: 2,
+  },
 });

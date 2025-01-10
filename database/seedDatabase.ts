@@ -4,15 +4,7 @@ import categoriesData from "../data/categoriesData.json";
 import exercisesData from "../data/exercisesData.json";
 import workoutsTestData from "../data/mockWorkoutData.json";
 import { Set } from "@/types/sets";
-import { WeightUnit } from "@/types/units";
-
-interface JsonExercise {
-  name: string;
-  type: string;
-  notes: string;
-  category_id: number;
-  weight_unit?: WeightUnit;
-}
+import { getToday } from "@/utils/getToday";
 
 /**
  * Processes workout data by assigning dates to each set of exercises to dynamically seed test data over a perioud of 3 weeks prior to the current week.
@@ -32,7 +24,7 @@ interface JsonExercise {
 const processWorkoutData = (workoutData: Set[][]): Set[] => {
   // Set the start date for the data to be 3 weeks before the current day and at the start of the week
   // This will let us dynamically generate the dates for the workout data so we dont have to scroll back months or constantly update the data
-  const today = new Date();
+  const today = new Date(getToday());
   const startDate = today.setDate(
     today.getDate() - (21 + (today.getDay() - 1))
   );
@@ -52,7 +44,7 @@ const processWorkoutData = (workoutData: Set[][]): Set[] => {
     const workoutDay = set.map((exercise) => {
       return {
         ...exercise,
-        date: date.toISOString().split("T")[0],
+        date: date.toISOString(),
       };
     });
 

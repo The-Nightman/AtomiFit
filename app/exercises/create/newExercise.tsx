@@ -15,8 +15,15 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { MaterialIcons } from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
 import Toast from "@/components/ux/Toast";
-import NewCategoryModal from "@/components/modals/NewCategoryModal";
 import { DistanceUnit, WeightUnit } from "@/types/units";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BottomSheetPickeriOS from "@/components/inputs/pickers/BottomSheetPickeriOS";
+import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
+import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import { DrizzleError } from "drizzle-orm";
+import { router } from "expo-router";
+import { useSettings } from "@/contexts/settingsContext";
+import { Storage } from "expo-sqlite/kv-store";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -27,6 +34,7 @@ import { DistanceUnit, WeightUnit } from "@/types/units";
  * @returns {JSX.Element} The rendered NewExercise Screen.
  */
 const newExercise = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState<{
     name: string;
     notes: string;
@@ -36,7 +44,7 @@ const newExercise = (): JSX.Element => {
   }>({
     name: "",
     notes: "",
-    category: 0,
+    category: -1, // -1 is a placeholder for no category selected, see category picker below for more info
     type: "Weight And Reps",
     weight_unit: null,
   });
@@ -49,16 +57,22 @@ const newExercise = (): JSX.Element => {
     colour: "",
     message: "",
   });
-  const [categoryModal, setCategoryModal] = useState<boolean>(false);
   const { db } = useContext(DrizzleContext);
+  const { appSettings } = useSettings();
 
   const { data } = useLiveQuery(db.select().from(schema.categories));
 
   // We use this because of the button being positioned in the header inside the layout
   useEffect(() => {
     eventEmitter.on("createExercise", handleSaveExercise);
+    eventEmitter.on("selectNewCategory", (id: number) =>
+      setFormData({ ...formData, category: id })
+    );
     return () => {
       eventEmitter.off("createExercise", handleSaveExercise);
+      eventEmitter.off("selectNewCategory", (id: number) =>
+        setFormData({ ...formData, category: id })
+      );
     };
   }, [formData]); // handleSaveExercise is dependent on formData, if we leave this blank we are passing initial state
 
@@ -71,7 +85,10 @@ const newExercise = (): JSX.Element => {
       setFormData((prevState) => ({ ...prevState, weight_unit: null }));
     }
     if (/weight/i.test(formData.type) && !formData.weight_unit) {
-      setFormData((prevState) => ({ ...prevState, weight_unit: "Kg" }));
+      setFormData((prevState) => ({
+        ...prevState,
+        weight_unit: appSettings!.unitSystem === "metric" ? "Kg" : "Lbs",
+      }));
     }
   }, [formData.type]);
 
@@ -143,6 +160,16 @@ const newExercise = (): JSX.Element => {
         weight_unit: null,
       });
     } catch (error) {
+      if (
+        (error as DrizzleError).message.includes("UNIQUE constraint failed")
+      ) {
+        setToastState({
+          show: true,
+          colour: "#C0392B",
+          message: "Exercise name must be unique",
+        });
+        return;
+      }
       setToastState({
         show: true,
         message: "An Error Occurred, Could Not Save Exercise",
@@ -163,7 +190,12 @@ const newExercise = (): JSX.Element => {
             }
           />
         )}
-        <ScrollView contentContainerStyle={styles.scrollviewContainer}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollviewContainer,
+            { paddingBottom: insets.bottom },
+          ]}
+        >
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>NAME</Text>
             <TextInput
@@ -197,38 +229,82 @@ const newExercise = (): JSX.Element => {
                 width: "95%",
                 flexDirection: "row",
                 justifyContent: "space-between",
-                gap: 16,
+                gap: 8,
               }}
             >
-              <Picker
-                mode="dropdown"
-                style={[
-                  styles.picker,
-                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-                ]}
-                itemStyle={styles.pickerItemIos}
-                selectedValue={formData.category}
-                onValueChange={(itemValue: number) =>
-                  setFormData({ ...formData, category: itemValue })
-                }
-              >
-                <Picker.Item
-                  style={styles.pickerItemAndroid}
-                  label="None Selected"
-                  value={0}
-                />
-                {data.map((category) => (
-                  <Picker.Item
-                    key={category.id}
-                    style={styles.pickerItemAndroid}
-                    label={category.name}
-                    value={category.id}
+              {Platform.OS === "ios" ? (
+                <>
+                  <View
+                    style={[
+                      styles.categoryIndicator,
+                      {
+                        borderColor: hexcodeLuminosity(
+                          (data.find(
+                            (category) => category.id === formData.category
+                          )?.colour as string) ?? "#000000",
+                          40
+                        ),
+                        backgroundColor: data.find(
+                          (category) => category.id === formData.category
+                        )?.colour,
+                      },
+                    ]}
                   />
-                ))}
-              </Picker>
+                  <View style={{ flex: 1 }}>
+                    <PickeriOSButton
+                      text={
+                        data.find(
+                          (category) => category.id === formData.category
+                        )?.name || "None Selected"
+                      }
+                      onPress={() => eventEmitter.emit("openCategoryPicker")}
+                    />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View
+                    style={[
+                      styles.categoryIndicator,
+                      {
+                        borderColor: hexcodeLuminosity(
+                          (data.find(
+                            (category) => category.id === formData.category
+                          )?.colour as string) ?? "#000000",
+                          40
+                        ),
+                        backgroundColor: data.find(
+                          (category) => category.id === formData.category
+                        )?.colour,
+                      },
+                    ]}
+                  />
+                  <Picker
+                    mode="dropdown"
+                    style={styles.picker}
+                    selectedValue={formData.category}
+                    onValueChange={(itemValue: number) =>
+                      setFormData({ ...formData, category: itemValue })
+                    }
+                  >
+                    {[
+                      // We use -1 for no cat. selected as 0 seems to not trigger onValueChange and thus no state update, mostly an android issue
+                      { name: "None Selected", id: -1 },
+                      ...data,
+                    ].map((category) => (
+                      <Picker.Item
+                        key={category.id}
+                        style={styles.pickerItemAndroid}
+                        label={category.name}
+                        value={category.id}
+                      />
+                    ))}
+                  </Picker>
+                </>
+              )}
               <Pressable
                 style={{ justifyContent: "center" }}
-                onPress={() => setCategoryModal(true)}
+                onPress={() => router.navigate("/exercises/create/newCategory")}
               >
                 {({ pressed }) => (
                   <MaterialIcons
@@ -242,63 +318,117 @@ const newExercise = (): JSX.Element => {
           </View>
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>TYPE</Text>
-            <Picker
-              mode="dropdown"
-              style={[
-                styles.picker,
-                Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-              ]}
-              itemStyle={styles.pickerItemIos}
-              selectedValue={formData.type}
-              onValueChange={(itemValue: string) =>
-                setFormData({ ...formData, type: itemValue })
-              }
-            >
-              {types.map((type, i) => (
-                <Picker.Item
-                  key={`${type}-${i}`}
-                  style={styles.pickerItemAndroid}
-                  label={type}
-                  value={type}
+            {Platform.OS === "ios" ? (
+              <View
+                style={{
+                  width: "95%",
+                }}
+              >
+                <PickeriOSButton
+                  text={
+                    types.find((type) => type === formData.type) ??
+                    "Select Type"
+                  }
+                  onPress={() => eventEmitter.emit("openTypePicker")}
                 />
-              ))}
-            </Picker>
+              </View>
+            ) : (
+              <Picker
+                mode="dropdown"
+                style={styles.picker}
+                selectedValue={formData.type}
+                onValueChange={(itemValue: string) =>
+                  setFormData({ ...formData, type: itemValue })
+                }
+              >
+                {types.map((type, i) => (
+                  <Picker.Item
+                    key={`${type}-${i}`}
+                    style={styles.pickerItemAndroid}
+                    label={type}
+                    value={type}
+                  />
+                ))}
+              </Picker>
+            )}
           </View>
           {/weight/i.test(formData.type) && (
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>WEIGHT UNIT</Text>
-              <Picker
-                mode="dropdown"
-                style={[
-                  styles.picker,
-                  Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-                ]}
-                itemStyle={styles.pickerItemIos}
-                selectedValue={formData.weight_unit}
-                onValueChange={(itemValue: WeightUnit) =>
-                  setFormData({ ...formData, weight_unit: itemValue })
-                }
-              >
-                {units.weight.map((unit) => (
-                  <Picker.Item
-                    key={unit.value}
-                    style={styles.pickerItemAndroid}
-                    label={unit.label}
-                    value={unit.value}
+              {Platform.OS === "ios" ? (
+                <View
+                  style={{
+                    width: "95%",
+                  }}
+                >
+                  <PickeriOSButton
+                    text={
+                      units.weight.find(
+                        (unit) => unit.value === formData.weight_unit
+                      )?.label || "Select Weight Unit"
+                    }
+                    onPress={() => eventEmitter.emit("openWeightUnitPicker")}
                   />
-                ))}
-              </Picker>
+                </View>
+              ) : (
+                <Picker
+                  mode="dropdown"
+                  style={styles.picker}
+                  itemStyle={styles.pickerItemIos}
+                  selectedValue={formData.weight_unit}
+                  onValueChange={(itemValue: WeightUnit) =>
+                    setFormData({ ...formData, weight_unit: itemValue })
+                  }
+                >
+                  {units.weight.map((unit) => (
+                    <Picker.Item
+                      key={unit.value}
+                      style={styles.pickerItemAndroid}
+                      label={unit.label}
+                      value={unit.value}
+                    />
+                  ))}
+                </Picker>
+              )}
             </View>
           )}
         </ScrollView>
       </View>
-      <NewCategoryModal
-        modalState={categoryModal}
-        setModalState={setCategoryModal}
-        returnCategoryId={(id: number) =>
-          setFormData({ ...formData, category: id })
-        }
-      />
+      {Platform.OS === "ios" && (
+        // We may need to refactor how we do this depending on how it functions with accessibility later on
+        <>
+          <BottomSheetPickeriOS
+            eventName="openCategoryPicker"
+            data={[{ name: "None Selected", id: 0 }, ...data].map(
+              (category) => ({
+                label: category.name,
+                value: category.id,
+              })
+            )}
+            value={formData.category}
+            onChange={(value) =>
+              setFormData({ ...formData, category: Number(value) })
+            }
+            closeEvents={["openTypePicker", "openWeightUnitPicker"]}
+          />
+          <BottomSheetPickeriOS
+            eventName="openTypePicker"
+            data={types.map((type) => ({ label: type, value: type }))}
+            value={formData.type}
+            onChange={(value) => setFormData({ ...formData, type: value })}
+            closeEvents={["openCategoryPicker", "openWeightUnitPicker"]}
+          />
+          <BottomSheetPickeriOS
+            eventName="openWeightUnitPicker"
+            data={units.weight}
+            value={formData.weight_unit}
+            onChange={(value) =>
+              setFormData({ ...formData, weight_unit: value })
+            }
+            closeEvents={["openCategoryPicker", "openTypePicker"]}
+          />
+        </>
+      )}
     </>
   );
 };
@@ -316,6 +446,7 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     width: "95%",
+    backgroundColor: "#3F3C3C",
   },
   typePicker: {
     flex: 1,
@@ -334,6 +465,7 @@ const styles = StyleSheet.create({
   },
   nameInput: {
     width: "95%",
+    minHeight: 44,
     color: "white",
     fontSize: 22,
     borderBottomColor: "white",
@@ -341,9 +473,17 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     width: "95%",
+    minHeight: 44,
     color: "white",
     fontSize: 17,
     borderBottomColor: "white",
     borderBottomWidth: 1,
+  },
+  categoryIndicator: {
+    width: 36,
+    height: 36,
+    alignSelf: "center",
+    borderRadius: 18,
+    borderWidth: 2,
   },
 });

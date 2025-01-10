@@ -32,6 +32,13 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
 
   useEffect(() => {
+    // Clear the storage in development to prevent stale data
+    //! IMPORTANT: this will also clear other preferences stored in the KV store
+    //! throughout the app e.g. Graph options such as trendline, graphpoints etc.
+    if (__DEV__) {
+      Storage.clear();
+    }
+
     /**
      * Initializes the default settings in the storage if they do not already exist.
      *
@@ -57,7 +64,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       for (const [key, value] of Object.entries(defaultSettings)) {
         const existingKey = await Storage.getItem(key);
         if (!existingKey) {
-          await Storage.setItem(key, value); 
+          await Storage.setItem(key, value);
         }
       }
 
@@ -93,7 +100,12 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   ): Promise<void> => {
     await Storage.setItem(key, value.toString()); // We need to convert the value to a string as the storage only accepts strings
     if (appSettings) {
-      setAppSettings({ ...appSettings, [key]: value });
+      // We need to use the previous state for our updater function or else our settings
+      // updates will be batched together if we call this func in a for of/for await loop
+      setAppSettings((prevState) => ({
+        ...(prevState as AppSettings),
+        [key]: value,
+      }));
     }
   };
 

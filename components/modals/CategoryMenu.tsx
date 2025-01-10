@@ -14,6 +14,7 @@ import { eq } from "drizzle-orm";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 /**
  * CategoryMenu component displays a modal with options to edit or delete a category.
@@ -131,7 +132,10 @@ const CategoryMenu = (): JSX.Element => {
           style={styles.menuPressable}
           onPress={() => {
             if (modalState.categoryId)
-              eventEmitter.emit("editCategory", modalState.categoryId);
+              router.navigate({
+                pathname: "/exercises/edit/category/[categoryId]",
+                params: { categoryId: modalState.categoryId },
+              });
             setModalState({ ...modalState, state: false, categoryId: null });
           }}
         >

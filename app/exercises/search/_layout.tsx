@@ -18,10 +18,26 @@ import ExerciseMenu from "@/components/modals/ExerciseMenu";
 const ExercisesSearchLayout = (): JSX.Element => {
   const insets = useSafeAreaInsets();
 
-  return (
-    <View style={UtilityStyles.flex1}>
+  /**
+   * Renders the header component for the exercises search layout.
+   *
+   * The header includes:
+   * - A close button that navigates back to the previous screen.
+   * - A title text "Browse Exercises".
+   * - An add button that navigates to the new exercise creation screen.
+   *
+   * @returns {JSX.Element} The header component.
+   */
+  const header = (): JSX.Element => {
+    return (
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
           onPress={() => {
             router.back();
           }}
@@ -30,7 +46,7 @@ const ExercisesSearchLayout = (): JSX.Element => {
             <MaterialIcons
               name="close"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
@@ -38,6 +54,12 @@ const ExercisesSearchLayout = (): JSX.Element => {
           Browse Exercises
         </Text>
         <Pressable
+          style={({ pressed }) => [
+            { borderRadius: 22 },
+            pressed && {
+              backgroundColor: `${hexcodeLuminosity("#3F3C3C", 30)}66`,
+            },
+          ]}
           onPress={() => {
             router.push("/exercises/create/newExercise");
           }}
@@ -46,14 +68,19 @@ const ExercisesSearchLayout = (): JSX.Element => {
             <MaterialIcons
               name="add"
               size={44}
-              color={pressed ? hexcodeLuminosity("#3F3C3C", 30) : "#292929"}
+              color={pressed ? hexcodeLuminosity("#3F3C3C", 10) : "#0F0F0F"}
             />
           )}
         </Pressable>
       </View>
+    );
+  };
+
+  return (
+    <View style={UtilityStyles.flex1}>
       <Stack
         screenOptions={{
-          headerShown: false,
+          header: () => header(),
           contentStyle: { backgroundColor: "#0F0F0F" },
         }}
       >

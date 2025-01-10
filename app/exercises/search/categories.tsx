@@ -2,18 +2,18 @@ import { BackHandler, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import SearchBar from "@/components/SearchBar";
+import SearchBar from "@/components/ux/SearchBar";
 import * as schema from "@/database/schema";
 import { Category } from "@/types/categories";
 import { like } from "drizzle-orm";
 import { Exercise } from "@/types/exercise";
-import ExerciseListItem from "@/components/ExerciseListItem";
+import ExerciseListItem from "@/components/listItems/ExerciseListItem";
 import { useLocalSearchParams } from "expo-router";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import CategoryListItem from "@/components/CategoryListItem";
+import CategoryListItem from "@/components/listItems/CategoryListItem";
 import CategoryMenu from "@/components/modals/CategoryMenu";
-import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Categories component that displays a list of exercise categories.
@@ -25,6 +25,7 @@ import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
  * @returns {JSX.Element} The rendered Categories component.
  */
 const categories = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState<string>("");
   const { db } = useContext(DrizzleContext);
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -63,7 +64,11 @@ const categories = (): JSX.Element => {
   return (
     <View style={UtilityStyles.flex1}>
       <SearchBar search={search} setSearch={setSearch} />
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
+      >
         {searchResults.length
           ? searchResults.map((exercise: Exercise) => (
               <ExerciseListItem
@@ -83,7 +88,6 @@ const categories = (): JSX.Element => {
       </ScrollView>
       {/* These modals are specific to this screen so we will just declare them here,
        however they will still render throughout the stack on their respective events */}
-      <UpdateCategoryModal />
       <CategoryMenu />
     </View>
   );

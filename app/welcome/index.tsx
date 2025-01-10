@@ -17,6 +17,11 @@ import { useSettings } from "@/contexts/settingsContext";
 import { AppSettingsValue } from "@/types/settings";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { router } from "expo-router";
+import BottomSheetPickeriOS from "@/components/inputs/pickers/BottomSheetPickeriOS";
+import { eventEmitter } from "@/utils/eventEmitter";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollView } from "react-native-gesture-handler";
+import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
 
 /**
  * The `index` component that renders a welcome screen for the AtomiFit app.
@@ -30,6 +35,7 @@ import { router } from "expo-router";
  * @returns {JSX.Element} The rendered welcome screen component.
  */
 const index = (): JSX.Element => {
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState({
     unitSystem: "metric",
     calendarWeekStart: 1,
@@ -138,121 +144,182 @@ const index = (): JSX.Element => {
     router.replace("/");
   };
 
+  const unitSystemPickerData = [
+    {
+      label: "Metric",
+      value: "metric",
+    },
+    {
+      label: "Imperial",
+      value: "imperial",
+    },
+  ];
+
+  const calendarPickerData = [
+    {
+      label: "Monday",
+      value: 1,
+    },
+    {
+      label: "Tuesday",
+      value: 2,
+    },
+    {
+      label: "Wednesday",
+      value: 3,
+    },
+    {
+      label: "Thursday",
+      value: 4,
+    },
+    {
+      label: "Friday",
+      value: 5,
+    },
+    {
+      label: "Saturday",
+      value: 6,
+    },
+    {
+      label: "Sunday",
+      value: 0,
+    },
+  ];
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to</Text>
-      {/* Originaly the SVG would be inline however this requirement has 
-      changed but using an Svg element gives us some more flexibility */}
-      <Svg
-        style={{
-          ...svgDimensions,
-          marginBottom: 8,
-        }}
+    <>
+      <ScrollView
+        overScrollMode="never"
+        bounces={false}
+        contentContainerStyle={styles.container}
       >
-        <AtomiFitFullLogoSVG
-          width={svgDimensions.width}
-          height={svgDimensions.height}
-          color={"#60DD49"}
-        />
-      </Svg>
-      {/* We need to use a sacrificial view here to preserve layout and prevent fuckery with the SVG */}
-      <View style={styles.seperator} />
-      <View style={styles.subContainer}>
-        <View style={{ gap: 16 }}>
-          <Text style={styles.sectionsHeader}>Lets get you started...</Text>
-          <View>
-            <Text style={styles.sectionTitle}>Default Unit System</Text>
-            <Picker
-              mode="dropdown"
-              style={[
-                Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
-              ]}
-              itemStyle={styles.pickerItemIos}
-              selectedValue={formData.unitSystem}
-              onValueChange={(value: string) =>
-                setFormData({ ...formData, unitSystem: value })
-              }
-            >
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Metric"
-                value="metric"
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Imperial"
-                value="imperial"
-              />
-            </Picker>
+        <Text style={styles.title}>Welcome to</Text>
+        {/* Originaly the SVG would be inline however this requirement has 
+        changed but using an Svg element gives us some more flexibility */}
+        <Svg
+          style={{
+            ...svgDimensions,
+            marginBottom: 8,
+          }}
+        >
+          <AtomiFitFullLogoSVG
+            width={svgDimensions.width}
+            height={svgDimensions.height}
+            color={"#60DD49"}
+          />
+        </Svg>
+        {/* We need to use a sacrificial view here to preserve layout and prevent fuckery with the SVG */}
+        <View style={styles.seperator} />
+        <View style={[styles.subContainer, { paddingBottom: insets.bottom }]}>
+          <View style={{ gap: 16 }}>
+            <Text style={styles.sectionsHeader}>Lets get you started...</Text>
+            <View>
+              <Text style={styles.sectionTitle}>Default Unit System</Text>
+              {Platform.OS === "ios" ? (
+                <PickeriOSButton
+                  text={
+                    formData.unitSystem === "metric" ? "Metric" : "Imperial"
+                  }
+                  onPress={() => eventEmitter.emit("openUnitSystemPicker")}
+                />
+              ) : (
+                <Picker
+                  mode="dropdown"
+                  style={{ backgroundColor: "#3F3C3C" }}
+                  selectedValue={formData.unitSystem}
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, unitSystem: value })
+                  }
+                >
+                  {unitSystemPickerData.map((item) => (
+                    <Picker.Item
+                      key={`${item.label}-${item.value}`}
+                      style={styles.pickerItemAndroid}
+                      label={item.label}
+                      value={item.value}
+                    />
+                  ))}
+                </Picker>
+              )}
+            </View>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Calendar Week Start (not yet implemented)
+              </Text>
+              {Platform.OS === "ios" ? (
+                <PickeriOSButton
+                  text={
+                    calendarPickerData.find(
+                      (item) =>
+                        item.value === Number(formData.calendarWeekStart)
+                    )?.label ?? "Monday"
+                  }
+                  onPress={() =>
+                    eventEmitter.emit("openCalendarWeekStartPicker")
+                  }
+                />
+              ) : (
+                <Picker
+                  mode="dropdown"
+                  style={{ backgroundColor: "#3F3C3C" }}
+                  selectedValue={formData.calendarWeekStart}
+                  onValueChange={(value: number) =>
+                    setFormData({ ...formData, calendarWeekStart: value })
+                  }
+                >
+                  {calendarPickerData.map((item) => (
+                    <Picker.Item
+                      key={`${item.label}-${item.value}`}
+                      style={styles.pickerItemAndroid}
+                      label={item.label}
+                      value={item.value}
+                    />
+                  ))}
+                </Picker>
+              )}
+            </View>
           </View>
-          <View>
-            <Text style={styles.sectionTitle}>
-              Calendar Week Start (not yet implemented)
-            </Text>
-            <Picker
-              mode="dropdown"
-              style={[
-                Platform.OS === "android" && { backgroundColor: "#3F3C3C" },
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && {
+                  backgroundColor: hexcodeLuminosity("#60DD49", -60),
+                },
               ]}
-              itemStyle={styles.pickerItemIos}
-              selectedValue={formData.calendarWeekStart}
-              onValueChange={(value: number) =>
-                setFormData({ ...formData, calendarWeekStart: value })
-              }
+              onPress={async () => {
+                await handleSetup();
+              }}
             >
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Monday"
-                value={1}
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Tuesday"
-                value={2}
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Wednesday"
-                value={3}
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Thursday"
-                value={4}
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Friday"
-                value={5}
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Saturday"
-                value={6}
-              />
-              <Picker.Item
-                style={styles.pickerItemAndroid}
-                label="Sunday"
-                value={0}
-              />
-            </Picker>
+              <Text style={styles.buttonText}>Continue</Text>
+            </Pressable>
           </View>
         </View>
-        <View style={styles.buttonContainer}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              pressed && { backgroundColor: hexcodeLuminosity("#60DD49", -60) },
-            ]}
-            onPress={async () => {
-              await handleSetup();
-            }}
-          >
-            <Text style={styles.buttonText}>Continue</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+      </ScrollView>
+      {Platform.OS === "ios" && (
+        // We may need to refactor how we do this depending on how it functions with accessibility later on
+        <>
+          <BottomSheetPickeriOS
+            eventName="openUnitSystemPicker"
+            data={unitSystemPickerData}
+            value={formData.unitSystem}
+            onChange={(value) =>
+              setFormData({ ...formData, unitSystem: value })
+            }
+            closeEvents={["openCalendarWeekStartPicker"]}
+          />
+          <BottomSheetPickeriOS
+            eventName="openCalendarWeekStartPicker"
+            data={calendarPickerData}
+            value={formData.calendarWeekStart}
+            onChange={(value) =>
+              setFormData({ ...formData, calendarWeekStart: value })
+            }
+            closeEvents={["openUnitSystemPicker"]}
+          />
+        </>
+      )}
+    </>
   );
 };
 

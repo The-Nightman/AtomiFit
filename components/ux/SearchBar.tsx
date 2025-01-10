@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
+import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 
 interface SearchBarProps {
   search: string;
@@ -11,8 +12,8 @@ interface SearchBarProps {
  * SearchBar component renders a search input field with a search icon and a clear button.
  *
  * @param {SearchBarProps} props - The properties object.
- * @param {string} props.search - The current search text.
- * @param {React.Dispatch<React.SetStateAction<string>>} props.setSearch - Function to update the search text.
+ * @param {string} props.search - The current search state string.
+ * @param {React.Dispatch<React.SetStateAction<string>>} props.setSearch - Function to update the search state.
  *
  * @returns {JSX.Element} The rendered search bar component.
  */
@@ -28,7 +29,13 @@ const SearchBar = ({ search, setSearch }: SearchBarProps): JSX.Element => {
           onChange={(e) => setSearch(e.nativeEvent.text)}
           value={search}
         />
-        <Pressable onPress={() => setSearch("")}>
+        <Pressable
+          style={({ pressed }) => [
+            pressed && { backgroundColor: hexcodeLuminosity("#3F3C3C", 30) },
+            styles.clearButton,
+          ]}
+          onPress={() => setSearch("")}
+        >
           <AntDesign name="close" size={24} color="#B9B9B9" />
         </Pressable>
       </View>
@@ -40,24 +47,33 @@ export default SearchBar;
 
 const styles = StyleSheet.create({
   container: {
-    height: 76,
+    minHeight: 70,
     backgroundColor: "#3F3C3C",
     justifyContent: "center",
     paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   inputContainer: {
-    height: 40,
+    minHeight: 40,
     flexDirection: "row",
     backgroundColor: "black",
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
+    paddingLeft: 8,
+    paddingRight: 4,
     gap: 8,
   },
   input: {
     flex: 1,
     color: "white",
-    fontSize: 22,
+    fontSize: 18,
+  },
+  clearButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 22,
+    minHeight: 44,
+    minWidth: 44,
   },
 });

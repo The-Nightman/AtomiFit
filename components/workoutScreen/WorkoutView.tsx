@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import WorkoutListItem from "../WorkoutListItem";
+import WorkoutListItem from "./WorkoutListItem";
 import { router } from "expo-router";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { Set } from "@/types/sets";
@@ -33,7 +33,7 @@ interface WorkoutViewProps {
  *
  * @component
  * @param {WorkoutViewProps} props - The properties for the WorkoutView component.
- * @param {string} props.date - The date for which the workout data is to be displayed in YYYY-MM-DD format.
+ * @param {string} props.date - The date for the workout data in ISO 8601 date time format.
  * @param {{ edit: boolean; selectedExercises: number[] }} props.editMode - The current edit mode state object containing a boolean and number array property.
  * @param {(exerciseId: number) => void} props.handleEditMode - Function to handle changes in edit mode.
  *
@@ -42,7 +42,7 @@ interface WorkoutViewProps {
  * @example
  * ```tsx
  * <WorkoutView
- *   date="2023-10-10"
+ *   date="2023-10-10T00:00:00.000+01:00"
  *   editMode={{ edit: false, selectedExercises: [] }}
  *   handleEditMode={() => {}}
  * />
@@ -68,7 +68,7 @@ const WorkoutView = ({
         eq(schema.setsData.exercise_id, schema.exercises.id)
       )
       .where(eq(schema.setsData.date, date)),
-    [date] // re-run query when date changes
+    [date]
     //! IMPORTANT: Drizzle docs were updated on Oct 7th 2024 16:01 UTC, the docs are still
     //! plagued with errors and missing information, live query dependencies among them.
     //! simply put use LiveQuery as you would a useEffect
@@ -84,15 +84,13 @@ const WorkoutView = ({
         >
           {data
             .reduce<TransformedExerciseData[]>((acc, item) => {
-              // Check if the exercise already exists in the accumulator
               const existingExercise = acc.find(
                 (accItem) => accItem.exerciseId === item.setsData.exercise_id
               );
+
               if (existingExercise) {
-                // If it does, push the new set data to the existing exercise
                 existingExercise.sets.push(item.setsData);
               } else {
-                // If it doesn't, create a new exercise object and push it to the accumulator
                 acc.push({
                   exerciseId: item.setsData.exercise_id,
                   exerciseName: item.exerciseName!,
@@ -122,7 +120,7 @@ const WorkoutView = ({
           <Text style={styles.placeholderText}>Workout Empty</Text>
           <Pressable
             onPress={() =>
-              router.push({
+              router.navigate({
                 // /exercises/search/categories avoids trapping the query param in the layout
                 pathname: "/exercises/search/categories",
                 params: { date: date },
