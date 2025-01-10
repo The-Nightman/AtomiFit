@@ -13,7 +13,6 @@ import UtilityStyles from "@/constants/UtilityStyles";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import CategoryListItem from "@/components/listItems/CategoryListItem";
 import CategoryMenu from "@/components/modals/CategoryMenu";
-import UpdateCategoryModal from "@/components/modals/UpdateCategoryModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
@@ -89,7 +88,6 @@ const categories = (): JSX.Element => {
       </ScrollView>
       {/* These modals are specific to this screen so we will just declare them here,
        however they will still render throughout the stack on their respective events */}
-      <UpdateCategoryModal />
       <CategoryMenu />
     </View>
   );
