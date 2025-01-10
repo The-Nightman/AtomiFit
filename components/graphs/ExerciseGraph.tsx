@@ -83,11 +83,11 @@ interface GraphConfig {
  * <ExerciseGraph
  *   selectedOptions={selectedOptions}
  *   data={[
- *     { date: "2021-09-01", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-02", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-03", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-04", weight: 100, reps: 5, dataPoint: 80 },
- *     { date: "2021-09-05", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-01T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-02T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-03T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-04T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
+ *     { date: "2021-09-05T00:00:00.000+01:00", weight: 100, reps: 5, dataPoint: 80 },
  *   ]}
  * />
  * ```

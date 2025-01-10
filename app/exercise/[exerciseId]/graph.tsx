@@ -102,7 +102,12 @@ const graph = (): JSX.Element => {
     const todayObj = new Date(today);
 
     if (!keys.includes(startDate)) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      // ISO 8601 date format regex time offset inclusive
+      if (
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+          startDate
+        )
+      ) {
         setSelectedOptions({
           ...selectedOptions,
           startDate: "1M",
