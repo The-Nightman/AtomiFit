@@ -13,16 +13,21 @@ interface ExerciseListItemProps {
 
 /**
  * Component representing a single item in an exercise list on the browse screens.
- * 
+ *
  * The component navigates to the exercise screen via the replace method on press.
  *
  * @component
  * @param {ExerciseListItemProps} props - The properties for the component.
  * @param {Exercise} props.exercise - The exercise object containing details to display.
  * @param {string} props.search - The search term to highlight in the exercise name.
- * @param {string} props.date - The date to pass to the exercise screen.
+ * @param {string} props.date - The date to pass to the exercise screen in ISO 8601 date time format.
  *
  * @returns {JSX.Element} A pressable list item displaying the exercise name and an options icon.
+ *
+ * @example
+ * ```tsx
+ * <ExerciseListItem exercise={exercise} search={"bench"} date={"2023-10-10T00:00:00.000+01:00"} />
+ * ```
  */
 const ExerciseListItem = ({
   exercise,

@@ -17,13 +17,13 @@ interface ListViewItemProps {
  * @component
  * @param {Object} props - The props for the ListViewItem component.
  * @param {ListWorkout} props.workout - The workout data to be displayed.
- * @param {string} props.today - The current date in yyyy-mm-dd string format.
+ * @param {string} props.today - The current date in ISO 8601 format.
  *
  * @returns {JSX.Element} The rendered ListViewItem.
  *
  * @example
  * ```tsx
- * <ListViewItem workout={workout} today={"2024-07-13"} />
+ * <ListViewItem workout={workout} today={"2024-07-13T00:00:00.000+01:00"} />
  * ```
  */
 const ListViewItem = memo(
