@@ -109,13 +109,14 @@ const index = () => {
    * @returns {Promise<void>} A promise that resolves when the deletion is complete.
    */
   const handleDeleteExercises = async (): Promise<void> => {
-    await db.delete(schema.setsData).where(
-      // If row matches both date AND is inArray of selected exercises
-      and(
-        eq(schema.setsData.date, date),
-        inArray(schema.setsData.exercise_id, editMode.selectedExercises)
-      )
-    );
+    await db
+      .delete(schema.setsData)
+      .where(
+        and(
+          eq(schema.setsData.date, date),
+          inArray(schema.setsData.exercise_id, editMode.selectedExercises)
+        )
+      );
 
     // Reset edit mode state, assuming at this point the user has finished edits they wished to perform
     setEditMode({
@@ -128,15 +129,14 @@ const index = () => {
    * Local utility function that calculates a new date by adding a specified number
    * of days to a given date. Passing a negative number will subtract days.
    *
-   * @param {string} date - The initial date as a string in the format YYYY-MM-DD.
+   * @param {string} date - The initial date as a string in ISO 8601 format.
    * @param {number} days - The number of days to add to the initial date.
-   * @returns {string} The new date as a string in the format YYYY-MM-DD.
+   * @returns {string} The new date in ISO 8601 format.
    */
   const calculateDate = (date: string, days: number): string => {
     const parsedDate = new Date(date);
     parsedDate.setDate(parsedDate.getDate() + days);
-    // Return the date in ISO format without the time so we get a YYYY-MM-DD string
-    return parsedDate.toISOString().split("T")[0];
+    return parsedDate.toISOString();
   };
 
   /**
@@ -242,7 +242,7 @@ const index = () => {
               <Pressable
                 style={styles.headerCalendarButton}
                 onPress={() =>
-                  router.push({
+                  router.navigate({
                     pathname: "/calendar",
                   })
                 }
@@ -259,7 +259,7 @@ const index = () => {
               <Pressable
                 style={styles.headerExercisesButton}
                 onPress={() =>
-                  router.push({
+                  router.navigate({
                     // /exercises/search/categories avoids trapping the query param in the layout
                     pathname: "/exercises/search/categories",
                     params: { date: date },
