@@ -24,6 +24,7 @@ import { DrizzleError } from "drizzle-orm";
 import { router } from "expo-router";
 import { useSettings } from "@/contexts/settingsContext";
 import { Storage } from "expo-sqlite/kv-store";
+import { ExerciseTypes } from "@/types/exercise";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -39,7 +40,7 @@ const newExercise = (): JSX.Element => {
     name: string;
     notes: string;
     category: number;
-    type: string;
+    type: ExerciseTypes;
     weight_unit: WeightUnit;
   }>({
     name: "",
@@ -146,6 +147,7 @@ const newExercise = (): JSX.Element => {
         type: formData.type,
         category_id: formData.category,
         weight_unit: formData.weight_unit,
+        mp4Url: "",
       });
       setToastState({
         show: true,
@@ -337,7 +339,7 @@ const newExercise = (): JSX.Element => {
                 mode="dropdown"
                 style={styles.picker}
                 selectedValue={formData.type}
-                onValueChange={(itemValue: string) =>
+                onValueChange={(itemValue: ExerciseTypes) =>
                   setFormData({ ...formData, type: itemValue })
                 }
               >
