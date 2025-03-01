@@ -26,16 +26,21 @@
   },
   {
     "id": 6,
+    "name": "Forearms",
+    "colour": "#9370DB"
+  },
+  {
+    "id": 7,
     "name": "Legs",
     "colour": "#FFD700"
   },
   {
-    "id": 7,
+    "id": 8,
     "name": "Shoulders",
     "colour": "#00FF00"
   },
   {
-    "id": 8,
+    "id": 9,
     "name": "Triceps",
     "colour": "#FF4500"
   }

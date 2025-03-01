@@ -50,7 +50,9 @@
     "react-native-svg": "15.8.0",
     "react-native-tab-view": "^3.5.2",
     "react-native-web": "~0.19.13",
-    "reanimated-color-picker": "^3.0.6"
+    "reanimated-color-picker": "^3.0.6",
+    "expo-asset": "~11.0.4",
+    "expo-file-system": "~18.0.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

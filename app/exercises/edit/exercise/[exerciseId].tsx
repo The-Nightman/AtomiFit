@@ -24,6 +24,7 @@ import { convertWeightUnits } from "@/utils/convertWeightUnits";
 import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
 import BottomSheetPickeriOS from "@/components/inputs/pickers/BottomSheetPickeriOS";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ExerciseTypes } from "@/types/exercise";
 
 /**
  * NewExercise component that renders a form to create a new exercise.
@@ -39,7 +40,7 @@ const editExercise = (): JSX.Element => {
     name: string;
     notes: string;
     category: number;
-    type: string;
+    type: ExerciseTypes;
     weight_unit: WeightUnit;
     currentSavedUnit: WeightUnit;
   }>({
@@ -110,7 +111,7 @@ const editExercise = (): JSX.Element => {
     }
   }, [formData.type]);
 
-  const types = [
+  const types: ExerciseTypes[] = [
     "Weight And Reps",
     "Distance And Time",
     "Weight And Distance",
@@ -484,7 +485,7 @@ const editExercise = (): JSX.Element => {
                 mode="dropdown"
                 style={styles.picker}
                 selectedValue={formData.type}
-                onValueChange={(itemValue: string) =>
+                onValueChange={(itemValue: ExerciseTypes) =>
                   setFormData({ ...formData, type: itemValue })
                 }
               >
