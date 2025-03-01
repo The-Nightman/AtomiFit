@@ -1,0 +1,1 @@
+ALTER TABLE `exercises` ADD `mp4Url` text;

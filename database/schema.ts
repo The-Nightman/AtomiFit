@@ -24,11 +24,25 @@ export const exercises = sqliteTable(
     id: integer("id").primaryKey(),
     name: text("name").notNull(),
     notes: text("notes").notNull(),
-    type: text("type").notNull(),
+    type: text("type", {
+      enum: [
+        "Weight And Reps",
+        "Distance And Time",
+        "Weight And Distance",
+        "Weight And Time",
+        "Reps And Distance",
+        "Reps And Time",
+        "Weight",
+        "Reps",
+        "Distance",
+        "Time",
+      ],
+    }).notNull(),
     weight_unit: text("weight_unit", { enum: ["Kg", "Lbs"] }),
     category_id: integer("category_id")
       .references(() => categories.id)
       .notNull(),
+    mp4Url: text("mp4Url").notNull(),
   },
   (exercises) => ({
     exerciseNameIdx: uniqueIndex("exerciseNameIdx").on(exercises.name),

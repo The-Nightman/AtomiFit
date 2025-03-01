@@ -29,6 +29,13 @@
       "when": 1734372239156,
       "tag": "0003_polite_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1740771243915,
+      "tag": "0004_polite_chamber",
+      "breakpoints": true
     }
   ]
 }
