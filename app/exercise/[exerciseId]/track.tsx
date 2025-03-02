@@ -12,6 +12,7 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SetMenu from "@/components/modals/SetMenu";
+import { ExerciseTypes } from "@/types/exercise";
 
 /**
  * Track component.
@@ -26,7 +27,7 @@ const Track = (): JSX.Element => {
   const insets = useSafeAreaInsets();
   const { exerciseId, exerciseType, weight_unit, date } = useLocalSearchParams<{
     exerciseId: string;
-    exerciseType: string;
+    exerciseType: ExerciseTypes;
     weight_unit: "null" | "Kg" | "Lbs"; // see WeightUnit @/types/units, we we need to cast due to being a string url param
     date: string;
   }>();
@@ -160,6 +161,7 @@ const Track = (): JSX.Element => {
 
   return (
     <ScrollView
+      automaticallyAdjustKeyboardInsets={true} // We can avoid using a KeyboardAvoidingView by using this prop
       contentContainerStyle={[
         styles.container,
         { paddingBottom: insets.bottom },

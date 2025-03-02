@@ -8,6 +8,7 @@ import * as schema from "@/database/schema";
 import { eq } from "drizzle-orm";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { WeightUnit } from "@/types/units";
+import { ExerciseTypes } from "@/types/exercise";
 
 /**
  * ExerciseLayout component.
@@ -21,7 +22,7 @@ import { WeightUnit } from "@/types/units";
 const ExerciseLayout = (): JSX.Element => {
   const [exerciseInfo, setExerciseInfo] = useState<{
     name: string;
-    type: string;
+    type: ExerciseTypes | "";
     weight_unit: WeightUnit;
   }>({
     name: "",
@@ -41,7 +42,7 @@ const ExerciseLayout = (): JSX.Element => {
       const data:
         | {
             name: string;
-            type: string;
+            type: ExerciseTypes;
             weight_unit: WeightUnit;
           }[]
         | undefined = await db
