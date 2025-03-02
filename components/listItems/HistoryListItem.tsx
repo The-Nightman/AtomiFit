@@ -1,5 +1,6 @@
 import { Set } from "@/types/sets";
 import { displayDate } from "@/utils/displayDate";
+import { eventEmitter } from "@/utils/eventEmitter";
 import { formatTime } from "@/utils/formatTime";
 import { getToday } from "@/utils/getToday";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
@@ -125,7 +126,7 @@ const HistoryListItem = ({
                   <View style={styles.setNotesPlaceholder} />
                 ) : (
                   <Pressable
-                    onPress={() => console.log(set.notes)}
+                    onPress={() => eventEmitter.emit("notesModal", set.id, set.notes)}
                     style={styles.setNotesAndPrButton}
                   >
                     <MaterialIcons

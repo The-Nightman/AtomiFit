@@ -408,7 +408,7 @@ const TrackSetListItem = memo(
       >
         <Text style={styles.setNumber}>{setNumber + 1}</Text>
         <Pressable
-          onPress={() => console.log(set.notes)}
+          onPress={() => eventEmitter.emit("notesModal", set.id, set.notes)}
           style={styles.justifyCenter}
         >
           <MaterialIcons

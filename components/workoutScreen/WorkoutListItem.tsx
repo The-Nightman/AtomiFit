@@ -6,6 +6,7 @@ import { formatTime } from "@/utils/formatTime";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
+import { eventEmitter } from "@/utils/eventEmitter";
 
 interface WorkoutListItemProps {
   exercise: { exerciseId: number; exerciseName: string; sets: Set[] };
@@ -175,7 +176,7 @@ const WorkoutListItem = ({
                     <View style={styles.setNotesPlaceholder} />
                   ) : (
                     <Pressable
-                      onPress={() => console.log(set.notes)}
+                      onPress={() => eventEmitter.emit("notesModal", set.id, set.notes)}
                       style={styles.justifyCenter}
                     >
                       <MaterialIcons
