@@ -4,12 +4,12 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { Set } from "@/types/sets";
+import { SetPersonalRecord } from "@/types/sets";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
-import { memo, useContext, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import WeightInput from "../inputs/exerciseRecords/WeightInput";
 import RepsInput from "../inputs/exerciseRecords/RepsInput";
 import DistanceInput from "../inputs/exerciseRecords/DistanceInput";
@@ -19,9 +19,26 @@ import { DistanceUnit } from "@/types/units";
 import { eventEmitter } from "@/utils/eventEmitter";
 
 interface TrackSetListItemProps {
-  set: Set;
+  set: SetPersonalRecord;
   setNumber: number;
 }
+
+/**
+ * Compares the previous props and next props to determine if they are equal for memoization.
+ *
+ * @param {TrackSetListItemProps} prevProps - The previous props of the TrackSetListItem component.
+ * @param {TrackSetListItemProps} nextProps - The next props of the TrackSetListItem component.
+ * @returns {boolean} A boolean value indicating whether the props are equal.
+ */
+const propsAreEqual = (
+  prevProps: TrackSetListItemProps,
+  nextProps: TrackSetListItemProps
+): boolean => {
+  return (
+    JSON.stringify(prevProps.set) === JSON.stringify(nextProps.set) &&
+    prevProps.setNumber === nextProps.setNumber
+  );
+};
 
 /**
  * TrackSetListItem component renders a list item representing a set in a workout tracking application.
@@ -31,7 +48,7 @@ interface TrackSetListItemProps {
  *
  * @component
  * @param {TrackSetListItemProps} props - The properties passed to the component.
- * @param {Set} props.set - The set data to be displayed and managed.
+ * @param {SetPersonalRecord} props.set - The set data to be displayed and managed.
  * @param {number} props.setNumber - The number of the set in the sequence i.e. index + 1.
  *
  * @returns {JSX.Element} The rendered TrackSetListItem component.
@@ -46,9 +63,15 @@ interface TrackSetListItemProps {
  */
 const TrackSetListItem = memo(
   ({ set, setNumber }: TrackSetListItemProps): JSX.Element => {
-    const [setData, setSetData] = useState<Set>(set);
+    const [setData, setSetData] = useState<SetPersonalRecord>(set);
     const { db } = useContext(DrizzleContext);
     const ListItemRef = useRef<View>(null);
+
+    // set.personal_record.id should really be the only value we need to look out for
+    // This guarantees that the render accurately reflects the personal record status
+    useEffect(() => {
+      setSetData(set);
+    }, [set.personal_record?.id]);
 
     /**
      * Handles the change in the number of repetitions.
@@ -80,21 +103,87 @@ const TrackSetListItem = memo(
         if (/^\.+\d*$/.test(processedVal)) {
           processedVal = val.padStart(val.length + 1, "0"); // Add leading zero if decimal point is first character
         }
-
         setSetData({ ...setData, weight: Number(processedVal) });
       };
 
     /**
-     * Asynchronously handles saving the time value from the child modal component.
+     * Asynchronously saves the set data to the database.
      *
-     * This function updates the `setData` state with the new time value and
-     * persists the change to the database. If the `id` of the updated state
-     * is a number, it updates the corresponding record in the database and
-     * updates the state with the updated row.
+     * This function checks if the `setData.id` is a number.
+     * If it is, it updates the set data in the database and returns the full row result.
+     * If `setData.id` is undefined no action is performed currently.
+     * This may be expanded upon in the future, currently new sets are generated in the parent screen
+     * and added to the database there where an id is returned and added to the set object.
      *
-     * @remarks
-     * This function is seperate to the `saveSet` function as it is called from a child component
-     * to elevate the value as it is not automatically set to the parent state due to being a modal.
+     * @async
+     * @returns {Promise<void>} A promise that resolves when the set data has been saved.
+     */
+    const saveSet = async (setData: SetPersonalRecord): Promise<void> => {
+      if (typeof setData.id !== "number") return; // No action if id is invalid and return
+
+      // Personal record logic for weight x reps sets
+      if (setData.reps !== null || setData.weight !== null) {
+        const previousPrSet: (SetPersonalRecord | null)[] = await db
+          .select({
+            id: schema.setsData.id,
+            exercise_id: schema.setsData.exercise_id,
+            date: schema.setsData.date,
+            weight: schema.setsData.weight,
+            reps: schema.setsData.reps,
+            distance: schema.setsData.distance,
+            time: schema.setsData.time,
+            notes: schema.setsData.notes,
+            weight_unit: schema.setsData.weight_unit,
+            distance_unit: schema.setsData.distance_unit,
+            personal_record: schema.personalRecords,
+          })
+          .from(schema.setsData)
+          .leftJoin(
+            schema.personalRecords,
+            eq(schema.setsData.id, schema.personalRecords.set_id)
+          )
+          .where(
+            and(
+              eq(schema.setsData.exercise_id, setData.exercise_id),
+              eq(schema.setsData.reps, setData.reps!),
+              eq(schema.personalRecords.set_id, schema.setsData.id)
+            )
+          );
+
+        if (!previousPrSet[0]) {
+          // Check if this set is already a PR, i.e. user changes weight or reps and the data still fulfills the PR criteria
+          if (setData.personal_record?.set_id !== setData.id) {
+            // PR not found, create PR
+            await db.insert(schema.personalRecords).values({
+              set_id: setData.id,
+              exercise_id: setData.exercise_id,
+            });
+          }
+        } else if (previousPrSet[0].weight! < setData.weight!) {
+          // PR found, delete old PR and create new PR
+          await db
+            .delete(schema.personalRecords)
+            .where(eq(schema.personalRecords.set_id, previousPrSet[0].id!));
+          await db.insert(schema.personalRecords).values({
+            set_id: setData.id,
+            exercise_id: setData.exercise_id,
+          });
+        }
+      }
+      await db
+        .update(schema.setsData)
+        .set(setData)
+        .where(eq(schema.setsData.id, setData.id));
+      // We dont need any further actions here as we are setting state in our onChange event functions
+      // and we are making use of the useLiveQuery hook from Drizzle ORM to listen for database changes
+    };
+
+    /**
+     * Handles saving the time value from the child modal component.
+     *
+     * This function passes an updated copy of the state object to the `saveSet` function
+     * which persists the changes to the database following its own checks.
+     * It then updates the state with the new time value.
      *
      * @async
      * @param {number} val - The new time value to be saved.
@@ -103,26 +192,16 @@ const TrackSetListItem = memo(
      */
     const handleTimeSave = async (val: number): Promise<void> => {
       const updatedState = { ...setData, time: val };
-      if (typeof updatedState.id === "number") {
-        // Database returns are always arrays, so we need to destructure the first element
-        const [updatedSet]: Set[] = await db
-          .update(schema.setsData)
-          .set(updatedState)
-          .where(eq(schema.setsData.id, updatedState.id))
-          .returning();
-        setSetData(updatedSet);
-      }
+      await saveSet(updatedState);
+      setSetData(updatedState);
     };
 
     /**
      * Handles the saving of distance data for a set.
      *
-     * This function updates the state with the new distance value and, if the set has a valid ID,
-     * updates the corresponding record in the database. The updated set data is then stored in the state.
-     *
-     * @remarks
-     * This function is seperate to the `saveSet` function as it is called from a child component
-     * to elevate the value as it is not automatically set to the parent state due to being a modal.
+     * This function passes an updated copy of the state object to the `saveSet` function
+     * which persists the changes to the database following its own checks.
+     * It then updates the state with the new distance value.
      *
      * @async
      * @param {Object} distanceObj - An object containing the distance value and its unit.
@@ -140,39 +219,8 @@ const TrackSetListItem = memo(
         distance: distanceObj.distance,
         distance_unit: distanceObj.unit,
       };
-      if (typeof updatedState.id === "number") {
-        // Database returns are always arrays, so we need to destructure the first element
-        const [updatedSet]: Set[] = await db
-          .update(schema.setsData)
-          .set(updatedState)
-          .where(eq(schema.setsData.id, updatedState.id))
-          .returning();
-        setSetData(updatedSet);
-      }
-    };
-
-    /**
-     * Asynchronously saves the set data to the database.
-     *
-     * This function checks if the `setData.id` is a number.
-     * If it is, it updates the set data in the database and returns the full row result.
-     * If `setData.id` is undefined no action is performed currently.
-     * This may be expanded upon in the future, currently new sets are generated in the parent screen
-     * and added to the database there where an id is returned and added to the set object.
-     *
-     * @async
-     * @returns {Promise<void>} A promise that resolves when the set data has been saved.
-     */
-    const saveSet = async (): Promise<void> => {
-      if (typeof setData.id === "number") {
-        // Database returns are always arrays, so we need to destructure the first element
-        const [updatedSet]: Set[] = await db
-          .update(schema.setsData)
-          .set(setData)
-          .where(eq(schema.setsData.id, setData.id))
-          .returning();
-        setSetData(updatedSet);
-      }
+      await saveSet(updatedState);
+      setSetData(updatedState);
     };
 
     /**
@@ -215,7 +263,7 @@ const TrackSetListItem = memo(
           <WeightInput
             value={setData.weight!.toString()}
             onChangeFunc={handleWeightChange()}
-            onBlurFunc={() => saveSet()}
+            onBlurFunc={async () => await saveSet(setData)}
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
@@ -224,7 +272,7 @@ const TrackSetListItem = memo(
           <RepsInput
             value={setData.reps!.toString()}
             onChangeFunc={handleRepsChange()}
-            onBlurFunc={() => saveSet()}
+            onBlurFunc={async () => await saveSet(setData)}
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
@@ -262,7 +310,7 @@ const TrackSetListItem = memo(
           <WeightInput
             value={setData.weight!.toString()}
             onChangeFunc={handleWeightChange()}
-            onBlurFunc={() => saveSet()}
+            onBlurFunc={async () => await saveSet(setData)}
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
@@ -286,7 +334,7 @@ const TrackSetListItem = memo(
           <WeightInput
             value={setData.weight!.toString()}
             onChangeFunc={handleWeightChange()}
-            onBlurFunc={() => saveSet()}
+            onBlurFunc={async () => await saveSet(setData)}
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
@@ -309,7 +357,7 @@ const TrackSetListItem = memo(
           <RepsInput
             value={setData.reps!.toString()}
             onChangeFunc={handleRepsChange()}
-            onBlurFunc={() => saveSet()}
+            onBlurFunc={async () => await saveSet(setData)}
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
@@ -333,7 +381,7 @@ const TrackSetListItem = memo(
           <RepsInput
             value={setData.reps!.toString()}
             onChangeFunc={handleRepsChange()}
-            onBlurFunc={() => saveSet()}
+            onBlurFunc={async () => await saveSet(setData)}
             style={styles.inputStyles}
             focusStyle={styles.inputFocusStyles}
             selectionColor={"white"}
@@ -355,7 +403,7 @@ const TrackSetListItem = memo(
         <WeightInput
           value={setData.weight!.toString()}
           onChangeFunc={handleWeightChange()}
-          onBlurFunc={() => saveSet()}
+          onBlurFunc={async () => await saveSet(setData)}
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
@@ -366,7 +414,7 @@ const TrackSetListItem = memo(
         <RepsInput
           value={setData.reps!.toString()}
           onChangeFunc={handleRepsChange()}
-          onBlurFunc={() => saveSet()}
+          onBlurFunc={async () => await saveSet(setData)}
           style={styles.inputStyles}
           focusStyle={styles.inputFocusStyles}
           selectionColor={"white"}
@@ -406,7 +454,7 @@ const TrackSetListItem = memo(
         ref={ListItemRef}
         style={styles.setListItemContainer}
       >
-        <Text style={styles.setNumber}>{setNumber + 1}</Text>
+        <Text style={styles.setNumber}>{setNumber}</Text>
         <Pressable
           onPress={() => eventEmitter.emit("notesModal", set.id, set.notes)}
           style={styles.justifyCenter}
@@ -417,13 +465,17 @@ const TrackSetListItem = memo(
             color={set.notes ? "#60DD49" : hexcodeLuminosity("#3F3C3C", 40)}
           />
         </Pressable>
-        {/* Records indicator, not yet fully implemented but required for layout */}
-        <Pressable
-          onPress={() => console.log("PR, not yet implemented")}
-          style={styles.setPrButton}
-        >
-          <MaterialCommunityIcons name="trophy" size={24} color="#60DD49" />
-        </Pressable>
+        {/* Records indicator, not yet fully implemented */}
+        {setData.personal_record ? (
+          <Pressable
+            onPress={() => console.log(setData.personal_record)}
+            style={styles.setPrButton}
+          >
+            <MaterialCommunityIcons name="trophy" size={24} color="#60DD49" />
+          </Pressable>
+        ) : (
+          <View style={styles.setPrButton} />
+        )}
         <View style={styles.setListItemSubContainer}>
           <View style={styles.inputsContainer}>
             {setDisplayVariant(set, displayVariants)}
@@ -442,7 +494,8 @@ const TrackSetListItem = memo(
         </View>
       </View>
     );
-  }
+  },
+  (prevProps, nextProps) => propsAreEqual(prevProps, nextProps)
 );
 
 export default TrackSetListItem;
