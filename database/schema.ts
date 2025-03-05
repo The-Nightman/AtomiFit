@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   real,
   sqliteTable,
@@ -50,17 +51,42 @@ export const exercises = sqliteTable(
 );
 
 // Workouts table to group exercises together, this eliminates the need to query every table
-export const setsData = sqliteTable("sets_data", {
-  id: integer("id").primaryKey(),
-  date: text("date").notNull(), // ISO 8601 date string
-  exercise_id: integer("exercise_id")
-    .references(() => exercises.id, { onDelete: "cascade" })
-    .notNull(),
-  weight: real("weight"),
-  reps: integer("reps"),
-  distance: real("distance"),
-  time: integer("time"),
-  notes: text("notes"),
-  weight_unit: text("weight_unit", { enum: ["Kg", "Lbs"] }),
-  distance_unit: text("distance_unit", { enum: ["Km", "Mi", "M", "Ft"] }),
-});
+export const setsData = sqliteTable(
+  "sets_data",
+  {
+    id: integer("id").primaryKey(),
+    date: text("date").notNull(), // ISO 8601 date string
+    exercise_id: integer("exercise_id")
+      .references(() => exercises.id, { onDelete: "cascade" })
+      .notNull(),
+    weight: real("weight"),
+    reps: integer("reps"),
+    distance: real("distance"),
+    time: integer("time"),
+    notes: text("notes"),
+    weight_unit: text("weight_unit", { enum: ["Kg", "Lbs"] }),
+    distance_unit: text("distance_unit", { enum: ["Km", "Mi", "M", "Ft"] }),
+  },
+  (setsData) => ({
+    setIdIdx: uniqueIndex("setIdIdx").on(setsData.id),
+    setDateIdx: index("setDateIdx").on(setsData.date),
+  })
+);
+
+// Personal Records table to store the best sets for each exercise (distance and time PRs need some consultation before fully implementing)
+export const personalRecords = sqliteTable(
+  "personal_records",
+  {
+    id: integer("id").primaryKey(),
+    set_id: integer("set_id")
+      .references(() => setsData.id, { onDelete: "cascade" })
+      .notNull(),
+    exercise_id: integer("exercise_id")
+      .references(() => exercises.id, { onDelete: "cascade" })
+      .notNull(),
+  },
+  (personalRecords) => ({
+    prSetIdx: uniqueIndex("prSetIdx").on(personalRecords.set_id),
+    prExerciseIdx: index("prExerciseIdx").on(personalRecords.exercise_id),
+  })
+);

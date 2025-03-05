@@ -668,10 +668,9 @@ export const seedDatabase = async (
     // During testing we may add or remove categories and exercises so we need to clear these too
     await db.delete(schema.categories);
     await db.delete(schema.exercises);
-
-    // We will be reseeding the exercises and categories next, any ops here will be redundant
-
     await db.delete(schema.setsData);
+    await db.delete(schema.personalRecords);
+
     await db
       .insert(schema.setsData)
       .values(processWorkoutData(workoutsTestData as unknown as Set[][]));
