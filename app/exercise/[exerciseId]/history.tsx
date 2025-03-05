@@ -1,11 +1,11 @@
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import { Set } from "@/types/sets";
+import { Set, SetPersonalRecord } from "@/types/sets";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { useLocalSearchParams } from "expo-router";
 import { useContext } from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import * as schema from "@/database/schema";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HistoryListItem from "@/components/listItems/HistoryListItem";
 
@@ -27,12 +27,28 @@ const History = (): React.JSX.Element => {
   }>();
   const { db } = useContext(DrizzleContext);
 
-  const { data }: { data: Set[] } = useLiveQuery(
+  const { data }: { data: SetPersonalRecord[] } = useLiveQuery(
     db
-      .select()
+      .select({
+        id: schema.setsData.id,
+        exercise_id: schema.setsData.exercise_id,
+        date: schema.setsData.date,
+        weight: schema.setsData.weight,
+        reps: schema.setsData.reps,
+        distance: schema.setsData.distance,
+        time: schema.setsData.time,
+        notes: schema.setsData.notes,
+        weight_unit: schema.setsData.weight_unit,
+        distance_unit: schema.setsData.distance_unit,
+        personal_record: schema.personalRecords,
+      })
       .from(schema.setsData)
+      .leftJoin(
+        schema.personalRecords,
+        eq(schema.setsData.id, schema.personalRecords.set_id)
+      )
       .where(eq(schema.setsData.exercise_id, Number(exerciseId)))
-      .orderBy(desc(schema.setsData.date))
+      .orderBy(desc(schema.setsData.date), asc(schema.setsData.id))
   );
 
   return (
@@ -45,7 +61,7 @@ const History = (): React.JSX.Element => {
           ]}
           data={
             // We want to process the data to group sets by date
-            data.reduce<{ date: string; sets: Set[] }[]>((acc, set) => {
+            data.reduce<{ date: string; sets: SetPersonalRecord[] }[]>((acc, set) => {
               const existingDate = acc.find((item) => item.date === set.date);
 
               if (existingDate) {
