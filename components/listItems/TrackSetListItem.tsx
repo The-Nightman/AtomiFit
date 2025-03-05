@@ -122,8 +122,8 @@ const TrackSetListItem = memo(
       if (typeof setData.id !== "number") return; // No action if id is invalid and return
 
       // Personal record logic for weight x reps sets
-      if (setData.reps !== null || setData.weight !== null) {
-        const previousPrSet: (SetPersonalRecord | null)[] = await db
+      if (setData.reps !== null && setData.weight !== null) {
+        const [previousPrSet]: (SetPersonalRecord | null)[] = await db
           .select({
             id: schema.setsData.id,
             exercise_id: schema.setsData.exercise_id,
@@ -148,22 +148,24 @@ const TrackSetListItem = memo(
               eq(schema.setsData.reps, setData.reps!),
               eq(schema.personalRecords.set_id, schema.setsData.id)
             )
-          );
+          )
+          .limit(1); // This is for semantics as you can only have one PR record per exercise per rep count
 
-        if (!previousPrSet[0]) {
-          // Check if this set is already a PR, i.e. user changes weight or reps and the data still fulfills the PR criteria
+        if (!previousPrSet) {
+          // Previous PR not found
+          // Check that this set is not already a PR i.e. user changes weight or reps and the data still fulfills the PR criteria
           if (setData.personal_record?.set_id !== setData.id) {
-            // PR not found, create PR
+            // Create PR
             await db.insert(schema.personalRecords).values({
               set_id: setData.id,
               exercise_id: setData.exercise_id,
             });
           }
-        } else if (previousPrSet[0].weight! < setData.weight!) {
+        } else if (previousPrSet.weight! < setData.weight!) {
           // PR found, delete old PR and create new PR
           await db
             .delete(schema.personalRecords)
-            .where(eq(schema.personalRecords.set_id, previousPrSet[0].id!));
+            .where(eq(schema.personalRecords.set_id, previousPrSet.id!));
           await db.insert(schema.personalRecords).values({
             set_id: setData.id,
             exercise_id: setData.exercise_id,
