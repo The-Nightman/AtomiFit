@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Set } from "@/types/sets";
+import { Set, SetPersonalRecord } from "@/types/sets";
 import { router } from "expo-router";
 import { formatTime } from "@/utils/formatTime";
 import UtilityStyles from "@/constants/UtilityStyles";
@@ -9,7 +9,11 @@ import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { eventEmitter } from "@/utils/eventEmitter";
 
 interface WorkoutListItemProps {
-  exercise: { exerciseId: number; exerciseName: string; sets: Set[] };
+  exercise: {
+    exerciseId: number;
+    exerciseName: string;
+    sets: SetPersonalRecord[];
+  };
   date: string;
   editMode: boolean;
   handleEditMode: (exerciseId: number) => void;
@@ -27,7 +31,7 @@ interface WorkoutListItemProps {
  *
  * @component
  * @param {WorkoutListItemProps} props - The properties for the WorkoutListItem component.
- * @param {{ exerciseId: number; exerciseName: string; sets: Set[] }} props.exercise - The exercise object containing details about the exercise.
+ * @param {{ exerciseId: number; exerciseName: string; sets: SetPersonalRecord[] }} props.exercise - The exercise object containing details about the exercise.
  * @param {string} props.date - The date of the workout in ISO 8601 date time format.
  * @param {boolean} props.editMode - The edit mode state, this operates in the parent and does not relate to data such as workout sets.
  * @param {(exerciseId: number) => void} props.handleEditMode - The function to handle the edit mode.
@@ -58,8 +62,11 @@ const WorkoutListItem = ({
   selected,
 }: WorkoutListItemProps): React.JSX.Element => {
   // Dictionary of display variants based on the keys of the set object
-  const displayVariants: Record<string, (set: Set) => React.JSX.Element> = {
-    weight_reps: (set: Set) => (
+  const displayVariants: Record<
+    string,
+    (set: SetPersonalRecord) => React.JSX.Element
+  > = {
+    weight_reps: (set: SetPersonalRecord) => (
       <>
         <Text style={styles.setData}>
           {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
@@ -69,7 +76,7 @@ const WorkoutListItem = ({
         </Text>
       </>
     ),
-    distance_time: (set: Set) => (
+    distance_time: (set: SetPersonalRecord) => (
       <>
         <Text style={styles.setData}>
           {set.distance}
@@ -78,7 +85,7 @@ const WorkoutListItem = ({
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
     ),
-    weight_distance: (set: Set) => (
+    weight_distance: (set: SetPersonalRecord) => (
       <>
         <Text style={styles.setData}>
           {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
@@ -89,7 +96,7 @@ const WorkoutListItem = ({
         </Text>
       </>
     ),
-    weight_time: (set: Set) => (
+    weight_time: (set: SetPersonalRecord) => (
       <>
         <Text style={styles.setData}>
           {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
@@ -97,7 +104,7 @@ const WorkoutListItem = ({
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
     ),
-    reps_distance: (set: Set) => (
+    reps_distance: (set: SetPersonalRecord) => (
       <>
         <Text style={styles.setData}>
           {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
@@ -108,7 +115,7 @@ const WorkoutListItem = ({
         </Text>
       </>
     ),
-    reps_time: (set: Set) => (
+    reps_time: (set: SetPersonalRecord) => (
       <>
         <Text style={styles.setData}>
           {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
@@ -116,23 +123,23 @@ const WorkoutListItem = ({
         <Text style={styles.setData}>{formatTime(set.time!)}</Text>
       </>
     ),
-    weight: (set: Set) => (
+    weight: (set: SetPersonalRecord) => (
       <Text style={styles.setData}>
         {set.weight} <Text style={styles.setDataUnit}>{set.weight_unit}</Text>
       </Text>
     ),
-    reps: (set: Set) => (
+    reps: (set: SetPersonalRecord) => (
       <Text style={styles.setData}>
         {set.reps} <Text style={styles.setDataUnit}>Reps</Text>
       </Text>
     ),
-    distance: (set: Set) => (
+    distance: (set: SetPersonalRecord) => (
       <Text style={styles.setData}>
         {set.distance}
         <Text style={styles.setDataUnit}> {set.distance_unit}</Text>
       </Text>
     ),
-    time: (set: Set) => (
+    time: (set: SetPersonalRecord) => (
       <Text style={styles.setData}>{formatTime(set.time!)}</Text>
     ),
   };
@@ -168,15 +175,16 @@ const WorkoutListItem = ({
         <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
         <View>
           {!editMode &&
-            exercise.sets.map((set: Set) => (
+            exercise.sets.map((set: SetPersonalRecord) => (
               <View key={set.id} style={styles.setDataContainer}>
                 <View style={styles.setNotesPersonalRecordContainer}>
                   {!set.notes ? (
-                    // If notes is blank render a blank view to maintain layout
                     <View style={styles.setNotesPlaceholder} />
                   ) : (
                     <Pressable
-                      onPress={() => eventEmitter.emit("notesModal", set.id, set.notes)}
+                      onPress={() =>
+                        eventEmitter.emit("notesModal", set.id, set.notes)
+                      }
                       style={styles.justifyCenter}
                     >
                       <MaterialIcons
@@ -186,20 +194,30 @@ const WorkoutListItem = ({
                       />
                     </Pressable>
                   )}
-                  {/* Records indicator, not yet fully implemented but required for layout */}
-                  <Pressable
-                    onPress={() => console.log("PR, not yet implemented")}
-                    style={styles.setPrButton}
-                  >
-                    <MaterialCommunityIcons
-                      name="trophy"
-                      size={24}
-                      color="#60DD49"
-                    />
-                  </Pressable>
+                  {!set.personal_record ? (
+                    <View style={styles.setNotesPlaceholder} />
+                  ) : (
+                    <Pressable
+                      onPress={() => console.log("PR, not yet implemented")}
+                      style={styles.setPrButton}
+                    >
+                      <MaterialCommunityIcons
+                        name="trophy"
+                        size={24}
+                        color="#60DD49"
+                      />
+                    </Pressable>
+                  )}
                 </View>
                 <View style={styles.setDataSubContainer}>
-                  {setDisplayVariant(set, displayVariants)}
+                  {/* This typecasting isnt ideal however SetPersonalRecord is an extension of Set */}
+                  {setDisplayVariant(
+                    set,
+                    displayVariants as Record<
+                      string,
+                      (set: Set) => React.JSX.Element
+                    >
+                  )}
                 </View>
               </View>
             ))}
