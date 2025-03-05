@@ -6,7 +6,7 @@ import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useLocalSearchParams } from "expo-router";
 import * as schema from "@/database/schema";
 import { and, eq, max } from "drizzle-orm";
-import { Set } from "@/types/sets";
+import { Set, SetPersonalRecord } from "@/types/sets";
 import TrackSetListItem from "@/components/listItems/TrackSetListItem";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
@@ -35,10 +35,26 @@ const Track = (): JSX.Element => {
 
   // Fetch sets data from the database based on the exercise ID and passed date.
   // make use of useLiveQuery hook to watch for changes in the database.
-  const { data }: { data: Set[] } = useLiveQuery(
+  const { data }: { data: SetPersonalRecord[] } = useLiveQuery(
     db
-      .select()
+      .select({
+        id: schema.setsData.id,
+        exercise_id: schema.setsData.exercise_id,
+        date: schema.setsData.date,
+        weight: schema.setsData.weight,
+        reps: schema.setsData.reps,
+        distance: schema.setsData.distance,
+        time: schema.setsData.time,
+        notes: schema.setsData.notes,
+        weight_unit: schema.setsData.weight_unit,
+        distance_unit: schema.setsData.distance_unit,
+        personal_record: schema.personalRecords,
+      })
       .from(schema.setsData)
+      .leftJoin(
+        schema.personalRecords,
+        eq(schema.setsData.id, schema.personalRecords.set_id)
+      )
       .where(
         and(
           // Cast exerciseId to number due to string nature of URL params
@@ -64,9 +80,13 @@ const Track = (): JSX.Element => {
     // If there are sets copy the previous for user convenience
     if (data.length > 0) {
       // Copy the previous set, blank the notes and delete the id
-      const newSet = { ...data[data.length - 1], notes: "" };
+      const newSet = {
+        ...data[data.length - 1],
+        notes: "",
+        personal_record: null, // By default, a copied set will NEVER be a PR
+      };
       delete newSet.id;
-      // Insert the new set and return the id
+      // Insert the new set, we dont need to return anything as useLiveQuery listens for database changes
       await db.insert(schema.setsData).values(newSet);
 
       return; // Return early
@@ -169,11 +189,7 @@ const Track = (): JSX.Element => {
     >
       {/* Mapped sets */}
       {data.map((set, i) => (
-        <TrackSetListItem
-          key={set.id || `newset-${i}`}
-          set={set}
-          setNumber={i}
-        />
+        <TrackSetListItem key={set.id} set={set} setNumber={i + 1} />
       ))}
       {/* Add set button */}
       <Pressable
