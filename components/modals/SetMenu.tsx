@@ -18,7 +18,7 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
-import { eq } from "drizzle-orm";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { eventEmitter } from "@/utils/eventEmitter";
 
 /**
@@ -122,7 +122,9 @@ const SetMenu = (): JSX.Element => {
   /**
    * Deletes the currently selected set from the database and updates the state.
    *
-   * This function deletes the set from the database using the current selected ID in the menu state.
+   * First the function checks if the set is a personal record and if so, it searches for the next best set
+   * with the same reps criteria and inserts it into the personal records if one is present.
+   * It then deletes the set and any associated personal record using the current selected ID in the menu state.
    * It then resets the menu state and removes the set from the state.
    * If the selected set ID is null or undefined, the function returns early without performing any actions.
    *
@@ -130,11 +132,98 @@ const SetMenu = (): JSX.Element => {
    */
   const deleteSet = async (): Promise<void> => {
     backgroundWidth.value = withTiming(0);
-
     if (!modalState.setId) return; // Return early if no set is selected
+
+    // weight x reps PR logic
+    const isSetPR: ({
+      set_id: number;
+      exercise_id: number;
+      set_reps: number | null;
+    } | null)[] = await db
+      .select({
+        set_id: schema.personalRecords.set_id,
+        exercise_id: schema.personalRecords.exercise_id,
+        set_reps: schema.setsData.reps,
+      })
+      .from(schema.personalRecords)
+      .leftJoin(
+        schema.setsData,
+        eq(schema.setsData.id, schema.personalRecords.set_id)
+      )
+      .where(eq(schema.personalRecords.set_id, modalState.setId));
+
+    if (isSetPR[0]) {
+      // Search for the next best set with the same reps criteria
+      const nextBestSet: ({ id: number; exercise_id: number } | null)[] =
+        await db
+          .select({
+            id: schema.setsData.id,
+            exercise_id: schema.setsData.exercise_id,
+            weight: schema.setsData.weight,
+            date: schema.setsData.date,
+          })
+          .from(schema.setsData)
+          .where(
+            and(
+              eq(schema.setsData.exercise_id, isSetPR[0].exercise_id),
+              eq(schema.setsData.reps, isSetPR[0].set_reps!),
+              ne(schema.setsData.id, modalState.setId)
+            )
+          )
+          /* Order by weight descending and date & id ascending to get the first set matching the criteria on the most recent date
+           * Note: If the next matching set is in the future it will be matched
+            Example output:
+            [
+              {
+                "date": "2025-02-28T00:00:00.000Z",
+                "id": 234,
+                "reps": 6,
+                "weight": 87.5,
+              },
+              {
+                "date": "2025-02-28T00:00:00.000Z",
+                "id": 250,
+                "reps": 6,
+                "weight": 87.5,
+              },
+              {
+                "date": "2025-02-10T00:00:00.000Z",
+                "id": 143,
+                "reps": 6,
+                "weight": 85,
+              },
+              {
+                "date": "2025-02-21T00:00:00.000Z",
+                "id": 151,
+                "reps": 6,
+                "weight": 85,
+              }
+            ]
+          */
+          .orderBy(
+            desc(schema.setsData.weight),
+            asc(schema.setsData.date),
+            asc(schema.setsData.id)
+          )
+          .limit(1);
+
+      // If there is a next best set, insert it into the personal records
+      if (nextBestSet[0]) {
+        await db.insert(schema.personalRecords).values({
+          set_id: nextBestSet[0].id,
+          exercise_id: nextBestSet[0].exercise_id,
+        });
+      }
+    }
+
+    // PRAGMA foreign_keys = ON; is causing issues with seeding and such
+    // so they stay disabled and we do the job of cascade ourselves
     await db
       .delete(schema.setsData)
       .where(eq(schema.setsData.id, modalState.setId));
+    await db
+      .delete(schema.personalRecords)
+      .where(eq(schema.personalRecords.set_id, modalState.setId));
 
     // Reset the menu state and selected id
     setModalState({
