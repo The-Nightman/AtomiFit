@@ -18,8 +18,9 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useContext, useEffect, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
-import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { eventEmitter } from "@/utils/eventEmitter";
+import { insertNextBestSet } from "@/utils/db/insertNextBestSet";
 
 /**
  * SetMenu component renders a modal with options to manage a set.
@@ -153,67 +154,7 @@ const SetMenu = (): JSX.Element => {
       .where(eq(schema.personalRecords.set_id, modalState.setId));
 
     if (isSetPR[0]) {
-      // Search for the next best set with the same reps criteria
-      const nextBestSet: ({ id: number; exercise_id: number } | null)[] =
-        await db
-          .select({
-            id: schema.setsData.id,
-            exercise_id: schema.setsData.exercise_id,
-            weight: schema.setsData.weight,
-            date: schema.setsData.date,
-          })
-          .from(schema.setsData)
-          .where(
-            and(
-              eq(schema.setsData.exercise_id, isSetPR[0].exercise_id),
-              eq(schema.setsData.reps, isSetPR[0].set_reps!),
-              ne(schema.setsData.id, modalState.setId)
-            )
-          )
-          /* Order by weight descending and date & id ascending to get the first set matching the criteria on the most recent date
-           * Note: If the next matching set is in the future it will be matched
-            Example output:
-            [
-              {
-                "date": "2025-02-28T00:00:00.000Z",
-                "id": 234,
-                "reps": 6,
-                "weight": 87.5,
-              },
-              {
-                "date": "2025-02-28T00:00:00.000Z",
-                "id": 250,
-                "reps": 6,
-                "weight": 87.5,
-              },
-              {
-                "date": "2025-02-10T00:00:00.000Z",
-                "id": 143,
-                "reps": 6,
-                "weight": 85,
-              },
-              {
-                "date": "2025-02-21T00:00:00.000Z",
-                "id": 151,
-                "reps": 6,
-                "weight": 85,
-              }
-            ]
-          */
-          .orderBy(
-            desc(schema.setsData.weight),
-            asc(schema.setsData.date),
-            asc(schema.setsData.id)
-          )
-          .limit(1);
-
-      // If there is a next best set, insert it into the personal records
-      if (nextBestSet[0]) {
-        await db.insert(schema.personalRecords).values({
-          set_id: nextBestSet[0].id,
-          exercise_id: nextBestSet[0].exercise_id,
-        });
-      }
+        await insertNextBestSet(db, isSetPR[0], modalState.setId);
     }
 
     // PRAGMA foreign_keys = ON; is causing issues with seeding and such
