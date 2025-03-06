@@ -12,3 +12,11 @@ export interface Set {
   weight_unit: WeightUnit;
   distance_unit: DistanceUnit;
 }
+
+export interface SetPersonalRecord extends Set {
+  personal_record: {
+    id: number;
+    set_id: number;
+    exercise_id: number;
+  } | null;
+}

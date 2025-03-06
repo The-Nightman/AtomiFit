@@ -20,6 +20,7 @@ import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { eventEmitter } from "@/utils/eventEmitter";
+import { insertNextBestSet } from "@/utils/db/insertNextBestSet";
 
 /**
  * SetMenu component renders a modal with options to manage a set.
@@ -122,7 +123,9 @@ const SetMenu = (): JSX.Element => {
   /**
    * Deletes the currently selected set from the database and updates the state.
    *
-   * This function deletes the set from the database using the current selected ID in the menu state.
+   * First the function checks if the set is a personal record and if so, it searches for the next best set
+   * with the same reps criteria and inserts it into the personal records if one is present.
+   * It then deletes the set and any associated personal record using the current selected ID in the menu state.
    * It then resets the menu state and removes the set from the state.
    * If the selected set ID is null or undefined, the function returns early without performing any actions.
    *
@@ -130,11 +133,38 @@ const SetMenu = (): JSX.Element => {
    */
   const deleteSet = async (): Promise<void> => {
     backgroundWidth.value = withTiming(0);
-
     if (!modalState.setId) return; // Return early if no set is selected
+
+    // weight x reps PR logic
+    const isSetPR: ({
+      set_id: number;
+      exercise_id: number;
+      set_reps: number | null;
+    } | null)[] = await db
+      .select({
+        set_id: schema.personalRecords.set_id,
+        exercise_id: schema.personalRecords.exercise_id,
+        set_reps: schema.setsData.reps,
+      })
+      .from(schema.personalRecords)
+      .leftJoin(
+        schema.setsData,
+        eq(schema.setsData.id, schema.personalRecords.set_id)
+      )
+      .where(eq(schema.personalRecords.set_id, modalState.setId));
+
+    if (isSetPR[0]) {
+        await insertNextBestSet(db, isSetPR[0], modalState.setId);
+    }
+
+    // PRAGMA foreign_keys = ON; is causing issues with seeding and such
+    // so they stay disabled and we do the job of cascade ourselves
     await db
       .delete(schema.setsData)
       .where(eq(schema.setsData.id, modalState.setId));
+    await db
+      .delete(schema.personalRecords)
+      .where(eq(schema.personalRecords.set_id, modalState.setId));
 
     // Reset the menu state and selected id
     setModalState({

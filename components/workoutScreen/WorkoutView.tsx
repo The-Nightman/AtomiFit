@@ -3,7 +3,7 @@ import { AntDesign } from "@expo/vector-icons";
 import WorkoutListItem from "./WorkoutListItem";
 import { router } from "expo-router";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { Set } from "@/types/sets";
+import { Set, SetPersonalRecord } from "@/types/sets";
 import { useContext } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
@@ -14,12 +14,13 @@ interface QueryData {
   exerciseId: number | null;
   exerciseName: string | null;
   setsData: Set;
+  personal_record: SetPersonalRecord["personal_record"];
 }
 
 interface TransformedExerciseData {
   exerciseId: number;
   exerciseName: string;
-  sets: Set[];
+  sets: SetPersonalRecord[];
 }
 
 interface WorkoutViewProps {
@@ -61,11 +62,16 @@ const WorkoutView = ({
         exerciseId: schema.exercises.id,
         exerciseName: schema.exercises.name,
         setsData: schema.setsData,
+        personal_record: schema.personalRecords,
       })
       .from(schema.setsData)
       .leftJoin(
         schema.exercises,
         eq(schema.setsData.exercise_id, schema.exercises.id)
+      )
+      .leftJoin(
+        schema.personalRecords,
+        eq(schema.setsData.id, schema.personalRecords.set_id)
       )
       .where(eq(schema.setsData.date, date)),
     [date]
@@ -89,12 +95,17 @@ const WorkoutView = ({
               );
 
               if (existingExercise) {
-                existingExercise.sets.push(item.setsData);
+                existingExercise.sets.push({
+                  ...item.setsData,
+                  personal_record: item.personal_record,
+                });
               } else {
                 acc.push({
                   exerciseId: item.setsData.exercise_id,
                   exerciseName: item.exerciseName!,
-                  sets: [item.setsData],
+                  sets: [
+                    { ...item.setsData, personal_record: item.personal_record },
+                  ],
                 });
               }
 

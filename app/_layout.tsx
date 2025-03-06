@@ -15,6 +15,8 @@ import { SettingsProvider } from "@/contexts/settingsContext";
 import { version } from "../package.json";
 import { Storage } from "expo-sqlite/kv-store";
 import { StatusBar } from "expo-status-bar";
+import NotesModal from "@/components/modals/NotesModal";
+import { View } from "react-native";
 
 const APP_VERSION = version;
 
@@ -95,6 +97,14 @@ const RootLayoutNav = () => {
               options={{ gestureEnabled: true }}
             />
           </Stack>
+          {/* 
+            This does look misplaced and kind of hacky but the notes modal is used across the app,
+            also it needs to be wrapped by a view or else it breaks the styling and is unuseable.
+            regardless as long as the events are emitted correctly there wont be a problem
+          */}
+          <View>
+            <NotesModal />
+          </View>
         </GestureHandlerRootView>
       </SettingsProvider>
     </DrizzleProvider>

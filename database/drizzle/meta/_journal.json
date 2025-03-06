@@ -36,6 +36,13 @@
       "when": 1740771243915,
       "tag": "0004_polite_chamber",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1740954660594,
+      "tag": "0005_early_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

@@ -12,13 +12,25 @@ import { getToday } from "@/utils/getToday";
 import { useContext, useEffect, useRef, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { displayDate } from "@/utils/displayDate";
 import InfinitePager, {
   InfinitePagerImperativeApi,
 } from "react-native-infinite-pager";
 import WorkoutView from "@/components/workoutScreen/WorkoutView";
+import { SetPersonalRecord } from "@/types/sets";
+
+interface SetsToDelete {
+  id: number;
+  exercise_id: number;
+  date: string;
+  weight: number | null;
+  reps: number | null;
+  distance: number | null;
+  time: number | null;
+  personal_record: SetPersonalRecord["personal_record"];
+}
 
 const index = () => {
   const [date, setDate] = useState<string>(getToday());
@@ -109,14 +121,95 @@ const index = () => {
    * @returns {Promise<void>} A promise that resolves when the deletion is complete.
    */
   const handleDeleteExercises = async (): Promise<void> => {
-    await db
-      .delete(schema.setsData)
+    const setsToDelete: SetsToDelete[] = await db
+      .select({
+        id: schema.setsData.id,
+        exercise_id: schema.setsData.exercise_id,
+        date: schema.setsData.date,
+        weight: schema.setsData.weight,
+        reps: schema.setsData.reps,
+        distance: schema.setsData.distance,
+        time: schema.setsData.time,
+        personal_record: schema.personalRecords,
+        // We do not require notes or units for any operations here
+      })
+      .from(schema.setsData)
+      .leftJoin(
+        schema.personalRecords,
+        eq(schema.setsData.id, schema.personalRecords.set_id)
+      )
       .where(
         and(
           eq(schema.setsData.date, date),
           inArray(schema.setsData.exercise_id, editMode.selectedExercises)
         )
       );
+
+    // For each set to delete, check if it is a PR and if so, search for the next
+    // best set with the same reps criteria and insert it into the personal records
+    // This code is copied from the SetMenu component
+    setsToDelete.forEach(async (set: SetsToDelete) => {
+      // weight x reps PR logic
+      const isSetPR: ({
+        set_id: number;
+        exercise_id: number;
+        set_reps: number | null;
+      } | null)[] = await db
+        .select({
+          set_id: schema.personalRecords.set_id,
+          exercise_id: schema.personalRecords.exercise_id,
+          set_reps: schema.setsData.reps,
+        })
+        .from(schema.personalRecords)
+        .leftJoin(
+          schema.setsData,
+          eq(schema.setsData.id, schema.personalRecords.set_id)
+        )
+        .where(eq(schema.personalRecords.set_id, set.id));
+
+      if (isSetPR[0]) {
+        // Search for the next best set with the same reps criteria
+        const nextBestSet: ({ id: number; exercise_id: number } | null)[] =
+          await db
+            .select({
+              id: schema.setsData.id,
+              exercise_id: schema.setsData.exercise_id,
+              weight: schema.setsData.weight,
+              date: schema.setsData.date,
+            })
+            .from(schema.setsData)
+            .where(
+              and(
+                eq(schema.setsData.exercise_id, isSetPR[0].exercise_id),
+                eq(schema.setsData.reps, isSetPR[0].set_reps!),
+                ne(schema.setsData.id, set.id)
+              )
+            )
+            // Order by weight descending and date & id ascending to get the first set matching the criteria on the most recent date
+            //* Note: If the next matching set is in the future it will be matched
+            .orderBy(
+              desc(schema.setsData.weight),
+              asc(schema.setsData.date),
+              asc(schema.setsData.id)
+            )
+            .limit(1);
+
+        // If there is a next best set, insert it into the personal records
+        if (nextBestSet[0]) {
+          await db.insert(schema.personalRecords).values({
+            set_id: nextBestSet[0].id,
+            exercise_id: nextBestSet[0].exercise_id,
+          });
+        }
+      }
+
+      // PRAGMA foreign_keys = ON; is causing issues with seeding and such
+      // so they stay disabled and we do the job of cascade ourselves
+      await db.delete(schema.setsData).where(eq(schema.setsData.id, set.id));
+      await db
+        .delete(schema.personalRecords)
+        .where(eq(schema.personalRecords.set_id, set.id));
+    });
 
     // Reset edit mode state, assuming at this point the user has finished edits they wished to perform
     setEditMode({

@@ -6,6 +6,7 @@ import m0001 from './0001_clumsy_ezekiel_stane.sql';
 import m0002 from './0002_windy_gravity.sql';
 import m0003 from './0003_polite_grandmaster.sql';
 import m0004 from './0004_polite_chamber.sql';
+import m0005 from './0005_early_hobgoblin.sql';
 
   export default {
     journal,
@@ -14,7 +15,8 @@ import m0004 from './0004_polite_chamber.sql';
 m0001,
 m0002,
 m0003,
-m0004
+m0004,
+m0005
     }
   }
   

@@ -32,6 +32,7 @@ export const DrizzleProvider = ({ children }: DrizzleProviderProps) => {
 
   // Use Drizzle Studio in development mode
   // Cannot Lazy Load Drizzle Studio due to this causing a timeout and never ending loading screen
+  //! IMPORTANT: If drizzle studio fails to load and gives security errors in webconsole, try http instead of https
   if (__DEV__) {
     useDrizzleStudio(openDatabaseSync("test.db"));
   }
