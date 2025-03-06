@@ -9,7 +9,7 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { memo, useContext, useEffect, useRef, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
 import * as schema from "@/database/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import WeightInput from "../inputs/exerciseRecords/WeightInput";
 import RepsInput from "../inputs/exerciseRecords/RepsInput";
 import DistanceInput from "../inputs/exerciseRecords/DistanceInput";
@@ -17,6 +17,10 @@ import TimeInput from "../inputs/exerciseRecords/TimeInput";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { DistanceUnit } from "@/types/units";
 import { eventEmitter } from "@/utils/eventEmitter";
+import { insertNextBestSet } from "@/utils/db/insertNextBestSet";
+import { getPreviousPrSet } from "@/utils/db/getPreviousPrSet";
+import { deletePersonalRecord } from "@/utils/db/deletePersonalRecord";
+import { insertPersonalRecord } from "@/utils/db/insertPersonalRecord";
 
 interface TrackSetListItemProps {
   set: SetPersonalRecord;
@@ -122,54 +126,82 @@ const TrackSetListItem = memo(
       if (typeof setData.id !== "number") return; // No action if id is invalid and return
 
       // Personal record logic for weight x reps sets
-      if (setData.reps !== null && setData.weight !== null) {
-        const [previousPrSet]: (SetPersonalRecord | null)[] = await db
-          .select({
-            id: schema.setsData.id,
-            exercise_id: schema.setsData.exercise_id,
-            date: schema.setsData.date,
-            weight: schema.setsData.weight,
-            reps: schema.setsData.reps,
-            distance: schema.setsData.distance,
-            time: schema.setsData.time,
-            notes: schema.setsData.notes,
-            weight_unit: schema.setsData.weight_unit,
-            distance_unit: schema.setsData.distance_unit,
-            personal_record: schema.personalRecords,
-          })
-          .from(schema.setsData)
-          .leftJoin(
-            schema.personalRecords,
-            eq(schema.setsData.id, schema.personalRecords.set_id)
-          )
-          .where(
-            and(
-              eq(schema.setsData.exercise_id, setData.exercise_id),
-              eq(schema.setsData.reps, setData.reps!),
-              eq(schema.personalRecords.set_id, schema.setsData.id)
-            )
-          )
-          .limit(1); // This is for semantics as you can only have one PR record per exercise per rep count
+      if (
+        setData.reps !== null &&
+        setData.weight !== null &&
+        setData.reps > 0 &&
+        setData.weight > 0
+      ) {
+        const previousPrSet = await getPreviousPrSet(
+          db,
+          setData.exercise_id,
+          setData.reps!
+        );
+
+        // If set is still pr and the weight or reps have changed
+        if (
+          // The set prop is always one step behind the setData state which
+          // gives us a very convenient method of comparison
+          (set.reps !== setData.reps || set.weight !== setData.weight) &&
+          set.personal_record &&
+          !previousPrSet
+        ) {
+          // This will give us the next best
+          await insertNextBestSet(
+            db,
+            {
+              set_id: set.id!,
+              exercise_id: set.exercise_id,
+              set_reps: set.reps,
+            },
+            set.id!
+          );
+
+          await deletePersonalRecord(db, set.id!);
+
+          await insertNextBestSet(
+            db,
+            {
+              set_id: set.id!,
+              exercise_id: set.exercise_id,
+              set_reps: set.reps,
+            },
+            set.reps!
+          );
+        }
+
+        // This will only fire if the previousPrSet contains a future set, this will be
+        // the case if a user, for example, adds 3 sets of 80kg x 5 reps and the first of
+        // these sets is a PR. If the user then goes back and changes the reps to 3 on
+        // accident or otherwise, the next set in that sequence will become the PR.
+        // If the user then changes the reps back to 5, the 2nd set that was marked a PR
+        // set will be deleted. This also covers the case where the user goes to a previous
+        // day and edits a set. Without this check we will run into unique errors and the
+        // inability for the user to delete the set without first editing it again which
+        // is bad UX and an easily avoidable issue.
+        if (
+          previousPrSet &&
+          previousPrSet.id! > setData.id &&
+          previousPrSet.date === set.date
+        ) {
+          await deletePersonalRecord(db, previousPrSet.id!);
+        } else if (
+          previousPrSet &&
+          new Date(previousPrSet.date) > new Date(setData.date)
+        ) {
+          await deletePersonalRecord(db, previousPrSet.id!);
+          await insertPersonalRecord(db, setData.id, setData.exercise_id);
+        }
 
         if (!previousPrSet) {
-          // Previous PR not found
           // Check that this set is not already a PR i.e. user changes weight or reps and the data still fulfills the PR criteria
           if (setData.personal_record?.set_id !== setData.id) {
-            // Create PR
-            await db.insert(schema.personalRecords).values({
-              set_id: setData.id,
-              exercise_id: setData.exercise_id,
-            });
+            await insertPersonalRecord(db, setData.id, setData.exercise_id);
           }
         } else if (previousPrSet.weight! < setData.weight!) {
           // PR found, delete old PR and create new PR
-          await db
-            .delete(schema.personalRecords)
-            .where(eq(schema.personalRecords.set_id, previousPrSet.id!));
-          await db.insert(schema.personalRecords).values({
-            set_id: setData.id,
-            exercise_id: setData.exercise_id,
-          });
+          await deletePersonalRecord(db, previousPrSet.id!);
+          await insertPersonalRecord(db, setData.id, setData.exercise_id);
         }
       }
       await db
