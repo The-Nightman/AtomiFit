@@ -13,6 +13,9 @@ import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SetMenu from "@/components/modals/SetMenu";
 import { ExerciseTypes } from "@/types/exercise";
+import { getPreviousPrSet } from "@/utils/db/getPreviousPrSet";
+import { deletePersonalRecord } from "@/utils/db/deletePersonalRecord";
+import { insertPersonalRecord } from "@/utils/db/insertPersonalRecord";
 
 /**
  * Track component.
@@ -175,8 +178,39 @@ const Track = (): JSX.Element => {
     firstSetQuery.date = date;
     firstSetQuery.notes = "";
 
-    // Insert the new set
-    await db.insert(schema.setsData).values(firstSetQuery);
+    // Insert the new set, we return the new set id if edge case checks pass
+    const [firstSetId]: { id: number }[] = await db
+      .insert(schema.setsData)
+      .values(firstSetQuery)
+      .returning({ id: schema.setsData.id });
+
+    //! Edge case: User forgets to log an exercise on a previous date and it fits
+    //! PR criteria, we need to check for the most recent PR set added and compare
+    //! it to the new set. If the new set is a PR that matches or beats the previous
+    //! PR set entered on a future date, we delete the previous PR set and insert
+    //! the new set as the PR set 
+    if (
+      firstSetQuery.reps !== null &&
+      firstSetQuery.weight !== null &&
+      firstSetQuery.reps > 0 &&
+      firstSetQuery.weight > 0
+    ) {
+      const prevPrSet: SetPersonalRecord | null = await getPreviousPrSet(
+        db,
+        Number(exerciseId),
+        firstSetQuery.reps
+      );
+      // If there is a previous PR set and it is ONLY in the future we perform the db operations
+      if (
+        prevPrSet &&
+        new Date(prevPrSet.date) > new Date(firstSetQuery.date) &&
+        prevPrSet.weight! > 0 &&
+        prevPrSet.weight! <= firstSetQuery.weight
+      ) {
+        await deletePersonalRecord(db, prevPrSet.id!);
+        await insertPersonalRecord(db, firstSetId.id, Number(exerciseId));
+      }
+    }
   };
 
   return (
