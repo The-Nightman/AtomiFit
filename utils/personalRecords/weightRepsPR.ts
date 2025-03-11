@@ -9,11 +9,6 @@ import { and, asc, desc, eq, max, ne } from "drizzle-orm";
 /**
  * Updates the personal record for a given set of weight and reps in the database.
  * 
- * @param {ExpoSQLiteDatabase<Record<string, never>>} db - The database instance to interact with.
- * @param {SetPersonalRecord} set - The new set data to be evaluated.
- * @param {SetPersonalRecord} currentSetState - The current state of the set being evaluated.
- * @returns {Promise<void>}
- * 
  * This function performs the following operations:
  * 1. Retrieves the previous maximum weight for the same exercise and reps.
  * 2. If the rep range of the current set has been altered, deletes the existing personal record and inserts the next best set.
@@ -23,6 +18,12 @@ import { and, asc, desc, eq, max, ne } from "drizzle-orm";
  *    - If the current set is edited on a date prior to the previous personal record, updates the personal record accordingly.
  *    - If the current set is edited on the same date but was created before the previous personal record (by ID), updates the personal record.
  * 4. If no previous personal record exists for the same rep range, inserts the current set as the new personal record.
+ * 
+ * @async
+ * @param {ExpoSQLiteDatabase<Record<string, never>>} db - The database instance to interact with.
+ * @param {SetPersonalRecord} set - The new set data to be evaluated.
+ * @param {SetPersonalRecord} currentSetState - The current state of the set being evaluated.
+ * @returns {Promise<void>}
  */
 export const weightRepsPR = async (
   db: ExpoSQLiteDatabase<Record<string, never>>,

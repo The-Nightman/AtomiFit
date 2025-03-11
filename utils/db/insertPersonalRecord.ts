@@ -4,10 +4,11 @@ import * as schema from "@/database/schema";
 /**
  * Inserts a personal record into the database.
  *
+ * @async
  * @param {ExpoSQLiteDatabase<Record<string, never>>} db - The Expo SQLite database instance.
  * @param {number} setId - The ID of the set.
  * @param {number} exerciseId - The ID of the exercise.
- * @returns {Promise<void>} A promise that resolves when the record is inserted.
+ * @returns {Promise<void>}
  */
 export const insertPersonalRecord = async (
   db: ExpoSQLiteDatabase<Record<string, never>>,
