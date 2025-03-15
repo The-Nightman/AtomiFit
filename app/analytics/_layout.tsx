@@ -1,52 +1,80 @@
-import { MaterialTopTabs } from "@/components/layouts/materialTopTabs";
+import { View, Pressable, StyleSheet, Text, Platform } from "react-native";
+import { Stack, usePathname } from "expo-router";
+import { eventEmitter } from "@/utils/eventEmitter";
 import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
-import { View, StyleSheet } from "react-native";
-import UtilityStyles from "@/constants/UtilityStyles";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import { AntDesign } from "@expo/vector-icons";
 
 /**
- * AnalyticsLayout component.
+ * AnalyticsSharedLayout component.
  *
- * This component represents the layout for the analytics screens.
+ * This component represents the layout for the analytics screens in the shared
+ * (screens) route and associated modals for platform considerations.
  *
- * @returns {JSX.Element} The rendered CalendarLayout component.
+ * @returns {JSX.Element} The rendered AnalyticsSharedLayout component.
  */
-const AnalyticsLayout = (): JSX.Element => {
-  return (
-    <View style={UtilityStyles.flex1}>
+const AnalyticsSharedLayout = (): JSX.Element => {
+  const [, path] = usePathname().match(/^\/analytics\/(\w+)/)!;
+
+  const header = (): JSX.Element => {
+    return (
       <View style={styles.headerContainer}>
         <View style={styles.headerIcon}>
           <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
         </View>
+        <View style={styles.headerButtonsContainer}>
+          {path === "records" && (
+            <Pressable
+              style={styles.headerFilterButton}
+              onPress={() => {
+                Platform.OS === "ios"
+                  ? eventEmitter.emit("openiOSRecordsFilterModal")
+                  : eventEmitter.emit("openRecordsFilterModal");
+              }}
+            >
+              <AntDesign name="filter" size={24} color={"#60DD49"} />
+              <Text
+                style={[styles.headerFilterButtonText, { color: "#60DD49" }]}
+              >
+                FILTERS
+              </Text>
+            </Pressable>
+          )}
+        </View>
       </View>
-      <MaterialTopTabs
-        screenOptions={{
-          tabBarLabelStyle: { color: "white" },
-          tabBarStyle: { backgroundColor: "#0F0F0F" },
-          tabBarIndicatorStyle: { backgroundColor: "#60DD49" },
-          sceneStyle: { backgroundColor: "#0F0F0F" },
+    );
+  };
+
+  const modalHeader = (): JSX.Element => {
+    return (
+      <View style={styles.modalHeaderContainer}>
+        <View style={styles.headerIcon}>
+          <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <Stack
+      screenOptions={{
+        header: () => header(),
+        contentStyle: { backgroundColor: "#0F0F0F" },
+      }}
+    >
+      <Stack.Screen name="(screens)" options={{ gestureEnabled: true }} />
+      <Stack.Screen
+        name="iOSRecordsFiltersModal"
+        options={{
+          gestureEnabled: true,
+          presentation: "modal",
+          header: () => modalHeader(),
         }}
-      >
-        <MaterialTopTabs.Screen
-          name="records"
-          options={{
-            tabBarLabel: "Records",
-            tabBarIcon: ({ focused }) => (
-              <MaterialCommunityIcons
-                name="trophy"
-                size={20}
-                color={focused ? "#60DD49" : hexcodeLuminosity("#3F3C3C", 40)}
-              />
-            ),
-          }}
-        />
-      </MaterialTopTabs>
-    </View>
+      />
+    </Stack>
   );
 };
 
-export default AnalyticsLayout;
+export default AnalyticsSharedLayout;
 
 const styles = StyleSheet.create({
   headerContainer: {
@@ -58,11 +86,34 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerIcon: { marginLeft: 6 },
-  exerciseName: {
-    color: "white",
-    fontSize: 28,
+  headerButtonsContainer: {
+    flexDirection: "row",
+    height: 64,
+    alignItems: "center",
+    gap: 16,
+    marginRight: 12,
+  },
+  headerFilterButton: {
+    flexDirection: "row",
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: "#292929",
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  headerFilterButtonText: {
+    fontSize: 17,
     fontWeight: "bold",
-    marginTop: 8,
-    marginHorizontal: 6,
+  },
+  modalHeaderContainer: {
+    display: "flex",
+    height: 80,
+    backgroundColor: "#60DD49",
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
   },
 });
