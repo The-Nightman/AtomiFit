@@ -6,6 +6,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 /**
  * Retrieves the previous personal record set for a given exercise and number of repetitions.
  *
+ * @async
  * @param {ExpoSQLiteDatabase<Record<string, never>>} db - The ExpoSQLiteDatabase instance to query.
  * @param {number} exerciseId - The ID of the exercise to retrieve the previous personal record set for.
  * @param {number} reps - The number of repetitions to match for the previous personal record set.

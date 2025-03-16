@@ -20,6 +20,8 @@ import InfinitePager, {
 } from "react-native-infinite-pager";
 import WorkoutView from "@/components/workoutScreen/WorkoutView";
 import { SetPersonalRecord } from "@/types/sets";
+import { eventEmitter } from "@/utils/eventEmitter";
+import SettingsMenu from "@/components/modals/SettingsMenu";
 
 interface SetsToDelete {
   id: number;
@@ -284,7 +286,7 @@ const index = () => {
   return (
     <View style={UtilityStyles.flex1}>
       {/* Header, contains interactive elements and is specific to this screen */}
-      <View style={[styles.headerContainer]}>
+      <View style={styles.headerContainer}>
         <View style={styles.headerIcon}>
           <AtomiFitShortSVG height={64} width={64} color={"#0F0F0F"} />
         </View>
@@ -369,7 +371,7 @@ const index = () => {
               </Pressable>
               {/* Settings/More button */}
               <Pressable
-                onPress={() => console.log("settings")}
+                onPress={() => eventEmitter.emit("openSettings")}
                 style={styles.headerSettingsButton}
               >
                 {({ pressed }) => (
@@ -383,6 +385,8 @@ const index = () => {
             </>
           )}
         </View>
+        {/* Modal for settings, we place this here as the root flex: 1 breaks its functionality */}
+        <SettingsMenu />
       </View>
       {/* Date scrolling container */}
       <View style={styles.dateScrollContainer}>

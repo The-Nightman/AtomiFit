@@ -5,9 +5,10 @@ import { eq } from "drizzle-orm";
 /**
  * Deletes a personal record from the database based on the provided set ID.
  *
+ * @async
  * @param {ExpoSQLiteDatabase<Record<string, never>>} db - The Expo SQLite database instance.
  * @param {number} setId - The ID of the set to delete from the personal records table.
- * @returns {Promise<void>} A promise that resolves when the deletion is complete.
+ * @returns {Promise<void>}
  */
 export const deletePersonalRecord = async (
   db: ExpoSQLiteDatabase<Record<string, never>>,

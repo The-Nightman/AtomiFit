@@ -21,6 +21,7 @@ import { insertNextBestSet } from "@/utils/db/insertNextBestSet";
 import { getPreviousPrSet } from "@/utils/db/getPreviousPrSet";
 import { deletePersonalRecord } from "@/utils/db/deletePersonalRecord";
 import { insertPersonalRecord } from "@/utils/db/insertPersonalRecord";
+import { weightRepsPR } from "@/utils/personalRecords/weightRepsPR";
 
 interface TrackSetListItemProps {
   set: SetPersonalRecord;
@@ -111,105 +112,30 @@ const TrackSetListItem = memo(
       };
 
     /**
-     * Asynchronously saves the set data to the database.
+     * Saves the set data to the database.
      *
-     * This function checks if the `setData.id` is a number.
-     * If it is, it updates the set data in the database and returns the full row result.
-     * If `setData.id` is undefined no action is performed currently.
-     * This may be expanded upon in the future, currently new sets are generated in the parent screen
-     * and added to the database there where an id is returned and added to the set object.
-     *
+     * This function validates the set before checking the data points to determine the personal record logic to apply.
+     * If the set has valid data points for weight x reps the `weightRepsPR` function is called to handle the personal record logic.
+     * The function then updates the set data in the database.
+     * 
      * @async
-     * @returns {Promise<void>} A promise that resolves when the set data has been saved.
+     * @param {SetPersonalRecord} setData - The set data to be saved.
+     * @returns {Promise<void>} A promise that resolves when the save operation is complete.
      */
     const saveSet = async (setData: SetPersonalRecord): Promise<void> => {
       if (typeof setData.id !== "number") return; // No action if id is invalid and return
 
-      // Personal record logic for weight x reps sets
       if (
-        setData.reps !== null &&
-        setData.weight !== null &&
-        setData.reps > 0 &&
-        setData.weight > 0
+        setData.reps! > 0 &&
+        setData.weight! > 0
       ) {
-        const previousPrSet = await getPreviousPrSet(
-          db,
-          setData.exercise_id,
-          setData.reps!
-        );
-
-        // If set is still pr and the weight or reps have changed
-        if (
-          // The set prop is always one step behind the setData state which
-          // gives us a very convenient method of comparison
-          (set.reps !== setData.reps || set.weight !== setData.weight) &&
-          set.personal_record &&
-          !previousPrSet
-        ) {
-          // This will give us the next best
-          await insertNextBestSet(
-            db,
-            {
-              set_id: set.id!,
-              exercise_id: set.exercise_id,
-              set_reps: set.reps,
-            },
-            set.id!
-          );
-
-          await deletePersonalRecord(db, set.id!);
-
-          await insertNextBestSet(
-            db,
-            {
-              set_id: set.id!,
-              exercise_id: set.exercise_id,
-              set_reps: set.reps,
-            },
-            set.reps!
-          );
-        }
-
-        // This will only fire if the previousPrSet contains a future set, this will be
-        // the case if a user, for example, adds 3 sets of 80kg x 5 reps and the first of
-        // these sets is a PR. If the user then goes back and changes the reps to 3 on
-        // accident or otherwise, the next set in that sequence will become the PR.
-        // If the user then changes the reps back to 5, the 2nd set that was marked a PR
-        // set will be deleted. This also covers the case where the user goes to a previous
-        // day and edits a set. Without this check we will run into unique errors and the
-        // inability for the user to delete the set without first editing it again which
-        // is bad UX and an easily avoidable issue.
-        if (
-          previousPrSet &&
-          previousPrSet.id! > setData.id &&
-          previousPrSet.date === set.date
-        ) {
-          await deletePersonalRecord(db, previousPrSet.id!);
-        } else if (
-          previousPrSet &&
-          new Date(previousPrSet.date) > new Date(setData.date)
-        ) {
-          await deletePersonalRecord(db, previousPrSet.id!);
-          await insertPersonalRecord(db, setData.id, setData.exercise_id);
-        }
-
-        if (!previousPrSet) {
-          // Check that this set is not already a PR i.e. user changes weight or reps and the data still fulfills the PR criteria
-          if (setData.personal_record?.set_id !== setData.id) {
-            await insertPersonalRecord(db, setData.id, setData.exercise_id);
-          }
-        } else if (previousPrSet.weight! < setData.weight!) {
-          // PR found, delete old PR and create new PR
-          await deletePersonalRecord(db, previousPrSet.id!);
-          await insertPersonalRecord(db, setData.id, setData.exercise_id);
-        }
+        await weightRepsPR(db, set, setData);
       }
+
       await db
         .update(schema.setsData)
         .set(setData)
         .where(eq(schema.setsData.id, setData.id));
-      // We dont need any further actions here as we are setting state in our onChange event functions
-      // and we are making use of the useLiveQuery hook from Drizzle ORM to listen for database changes
     };
 
     /**
