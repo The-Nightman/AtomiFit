@@ -29,7 +29,7 @@ import PickeriOSButton from "@/components/inputs/pickers/PickeriOSButton";
  * The `index` component is the first screen users are shown when opening the app to set their preferences.
  *
  * @remarks
- * Currently the default unit system and calendar week start (not yet implemented) are the only preferences shown here.
+ * Currently the default unit system and calendar week start are the only preferences shown here.
  * The component uses the `useSettings` custom hook to update app settings in the data store.
  *
  * @returns {JSX.Element} The rendered welcome screen component.
@@ -244,7 +244,7 @@ const index = (): JSX.Element => {
             </View>
             <View>
               <Text style={styles.sectionTitle}>
-                Calendar Week Start (not yet implemented)
+                Calendar Week Start
               </Text>
               {Platform.OS === "ios" ? (
                 <PickeriOSButton

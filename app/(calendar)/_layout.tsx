@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import { eventEmitter } from "@/utils/eventEmitter";
 
 const { width: SIDEBAR_WIDTH } = Dimensions.get("window");
 
@@ -99,6 +100,22 @@ const CalendarLayout = (): JSX.Element => {
             >
               <Entypo name="menu" size={45} color="black" />
               <AtomiFitShortSVG color={"#0F0F0F"} />
+            </Pressable>
+          </View>
+          <View style={styles.headerButtonsContainer}>
+            <Pressable
+              style={styles.calendarSkipButton}
+              onPress={() => {
+                eventEmitter.emit("calendarReturnToToday");
+              }}
+            >
+              {({ pressed }) => (
+                <MaterialIcons
+                  name="today"
+                  size={32}
+                  color={pressed ? "#2D6823" : "#60DD49"}
+                />
+              )}
             </Pressable>
           </View>
         </View>
@@ -228,6 +245,24 @@ const styles = StyleSheet.create({
   },
   sideButtonText: { fontSize: 28, color: "white" },
   sideButtonTextActive: { fontSize: 28, fontWeight: "bold", color: "#60DD49" },
+  headerButtonsContainer: {
+    flexDirection: "row",
+    height: 64,
+    alignItems: "center",
+    gap: 16,
+    marginRight: 12,
+  },
+  calendarSkipButton: {
+    flexDirection: "row",
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: "#292929",
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
 });
 
 export default CalendarLayout;
