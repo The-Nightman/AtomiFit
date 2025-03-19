@@ -338,7 +338,7 @@ const index = () => {
                 style={styles.headerCalendarButton}
                 onPress={() =>
                   router.navigate({
-                    pathname: "/calendar",
+                    pathname: "/timeline/calendar",
                   })
                 }
               >

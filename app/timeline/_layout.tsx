@@ -36,7 +36,7 @@ const { width: SIDEBAR_WIDTH } = Dimensions.get("window");
  * @returns {JSX.Element} The rendered CalendarLayout component.
  */
 const CalendarLayout = (): JSX.Element => {
-  const path = usePathname();
+  const [, path] = usePathname().match(/^\/timeline\/(\w+)/)!;
   const insets = useSafeAreaInsets();
   const [svgDimensions, setSvgDimensions] = useState<number>(0);
   const translateX = useSharedValue<number>(-SIDEBAR_WIDTH);
@@ -133,19 +133,19 @@ const CalendarLayout = (): JSX.Element => {
             <View>
               <Pressable
                 onPress={() => {
-                  if (path === "/calendar") return;
-                  router.replace("/calendar");
+                  if (path === "calendar") return;
+                  router.replace("/timeline/calendar");
                 }}
                 style={styles.sideButton}
               >
                 <MaterialIcons
                   name="calendar-month"
                   size={28}
-                  color={path === "/calendar" ? "#60DD49" : "white"}
+                  color={path === "calendar" ? "#60DD49" : "white"}
                 />
                 <Text
                   style={
-                    path === "/calendar"
+                    path === "calendar"
                       ? styles.sideButtonTextActive
                       : styles.sideButtonText
                   }
@@ -156,18 +156,18 @@ const CalendarLayout = (): JSX.Element => {
               <Pressable
                 style={styles.sideButton}
                 onPress={() => {
-                  if (path === "/listView") return;
-                  router.replace("/listView");
+                  if (path === "listView") return;
+                  router.replace("/timeline/listView");
                 }}
               >
                 <MaterialIcons
                   name="format-list-bulleted"
                   size={28}
-                  color={path === "/listView" ? "#60DD49" : "white"}
+                  color={path === "listView" ? "#60DD49" : "white"}
                 />
                 <Text
                   style={
-                    path === "/listView"
+                    path === "listView"
                       ? styles.sideButtonTextActive
                       : styles.sideButtonText
                   }

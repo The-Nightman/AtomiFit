@@ -80,10 +80,7 @@ const RootLayoutNav = () => {
           >
             <Stack.Screen name="index" options={{ gestureEnabled: true }} />
             <Stack.Screen name="welcome" options={{ gestureEnabled: true }} />
-            <Stack.Screen
-              name="(calendar)"
-              options={{ gestureEnabled: true }}
-            />
+            <Stack.Screen name="timeline" options={{ gestureEnabled: true }} />
             <Stack.Screen
               name="exercises"
               options={{
