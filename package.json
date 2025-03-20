@@ -17,6 +17,7 @@
     "@gorhom/bottom-sheet": "^5.0.6",
     "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-picker/picker": "2.9.0",
+    "@react-navigation/drawer": "^7.1.2",
     "@react-navigation/material-top-tabs": "^7.0.4",
     "@react-navigation/native": "^7.0.3",
     "@types/d3": "^7.4.3",
