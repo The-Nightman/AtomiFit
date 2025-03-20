@@ -1,205 +1,278 @@
-import { Link, router, Stack, usePathname } from "expo-router";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
-  Dimensions,
-  LayoutChangeEvent,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Gesture,
-  GestureDetector,
-  PanGesture,
-} from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
-import UtilityStyles from "@/constants/UtilityStyles";
-import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import {
+  Entypo,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { eventEmitter } from "@/utils/eventEmitter";
+import { Drawer } from "expo-router/drawer";
+import {
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerHeaderProps,
+  DrawerItemList,
+} from "@react-navigation/drawer";
+import { DrizzleContext } from "@/contexts/drizzleContext";
+import * as schema from "@/database/schema";
+import { Category } from "@/types/categories";
+import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
+import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width: SIDEBAR_WIDTH } = Dimensions.get("window");
+interface CategoryFilterState {
+  categories: Category[];
+  filters: Category["id"][];
+}
 
 /**
  * CalendarLayout component.
  *
  * This component represents the layout for the calendar view and list view.
- * It includes a sidebar menu that can be panned open or closed.
- * The layout also includes a stack of screens for navigation.
+ * It includes a drawer layout with custom header and drawer components.
  *
  * @returns {JSX.Element} The rendered CalendarLayout component.
  */
 const CalendarLayout = (): JSX.Element => {
-  const [, path] = usePathname().match(/^\/timeline\/(\w+)/)!;
-  const insets = useSafeAreaInsets();
-  const [svgDimensions, setSvgDimensions] = useState<number>(0);
-  const translateX = useSharedValue<number>(-SIDEBAR_WIDTH);
+  const [catFilterState, setCatFilterState] = useState<CategoryFilterState>({
+    categories: [],
+    filters: [],
+  });
+  const { db } = useContext(DrizzleContext);
 
-  /**
-   * Handles the layout change event to set the SVG size in the sidebar.
-   *
-   * @param {LayoutChangeEvent} event - The layout change event.
-   */
-  const handleLayout = (event: LayoutChangeEvent) => {
-    // Get the width of the specified view
-    const { width } = event.nativeEvent.layout;
-    setSvgDimensions(width * 0.33);
-  };
+  useEffect(() => {
+    const getCategories = async () => {
+      const categories: Category[] = await db.select().from(schema.categories);
 
-  /**
-   * Gesture configuration for panning.
-   */
-  const panGesture: PanGesture = Gesture.Pan()
-    .activeOffsetX([-30, 30]) // Active offset for required distance to pan before activating
-    .onUpdate(({ translationX }) => {
-      // Update the shared value for translationX within bounds
-      translateX.value = Math.max(
-        -SIDEBAR_WIDTH,
-        Math.min(0, translateX.value + translationX * 0.1)
-      );
-    })
-    .onEnd(() => {
-      if (translateX.value > -SIDEBAR_WIDTH / 3) {
-        // if closer to the open position finish the animation
-        translateX.value = withSpring(0, { velocity: 0.1, damping: 20 });
-      } else {
-        // if closer to the closed position finish the animation
-        translateX.value = withSpring(-SIDEBAR_WIDTH, {
-          velocity: 0.1,
-          damping: 20,
-        });
-      }
-    });
+      setCatFilterState({
+        categories: categories,
+        filters: [],
+      });
+    };
+    getCategories();
+  }, []);
 
-  /**
-   * Animated style for the sidebar, sets the translation value to the pan value to animate movement.
-   */
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
+  useEffect(() => {
+    eventEmitter.emit("categoryFilterChange", catFilterState.filters);
+  }, [catFilterState.filters]);
 
   return (
-    <GestureDetector gesture={panGesture}>
-      <View style={UtilityStyles.flex1}>
-        <View style={styles.headerContainer}>
-          <View>
-            <Pressable
-              style={styles.headerMenuButton}
-              onPress={() =>
-                (translateX.value = withSpring(0, {
-                  velocity: 0.1,
-                  damping: 20,
-                }))
-              }
-            >
-              <Entypo name="menu" size={45} color="black" />
-              <AtomiFitShortSVG color={"#0F0F0F"} />
-            </Pressable>
-          </View>
-          <View style={styles.headerButtonsContainer}>
-            <Pressable
-              style={styles.calendarSkipButton}
-              onPress={() => {
-                eventEmitter.emit("calendarReturnToToday");
-              }}
-            >
-              {({ pressed }) => (
-                <MaterialIcons
-                  name="today"
-                  size={32}
-                  color={pressed ? "#2D6823" : "#60DD49"}
-                />
-              )}
-            </Pressable>
-          </View>
-        </View>
-        {/* Sidebar Menu */}
-        <Animated.View style={[styles.sideMenuContainer, animatedStyle]}>
-          <View
-            style={[styles.sideMenuBar, { paddingTop: insets.top }]}
-            onLayout={handleLayout}
-          >
-            <AtomiFitShortSVG
-              color={"#60DD49"}
-              height={svgDimensions}
-              width={svgDimensions}
+    <Drawer
+      screenOptions={{
+        header: (props) => <DrawerHeader {...props} />,
+        drawerActiveTintColor: "#60DD49",
+        drawerInactiveTintColor: "white",
+        sceneStyle: { backgroundColor: "#0F0F0F" }, //* This is the equivalent of contentStyle in the Stack navigator
+        drawerStyle: { backgroundColor: hexcodeLuminosity("#0F0F0F", 20) },
+        drawerType: "slide",
+        drawerPosition: "left",
+      }}
+      drawerContent={(props) => (
+        <CustomDrawer
+          {...props}
+          setCatFilterState={setCatFilterState}
+          catFilterState={catFilterState}
+        />
+      )}
+      initialRouteName="calendar"
+    >
+      <Drawer.Screen
+        name="calendar"
+        options={{
+          title: "Calendar View",
+          drawerIcon: ({ color, focused }) => (
+            <MaterialIcons
+              name="calendar-month"
+              size={24}
+              color={focused ? color : "white"}
             />
-            <View>
-              <Pressable
-                onPress={() => {
-                  if (path === "calendar") return;
-                  router.replace("/timeline/calendar");
-                }}
-                style={styles.sideButton}
-              >
-                <MaterialIcons
-                  name="calendar-month"
-                  size={28}
-                  color={path === "calendar" ? "#60DD49" : "white"}
-                />
-                <Text
-                  style={
-                    path === "calendar"
-                      ? styles.sideButtonTextActive
-                      : styles.sideButtonText
-                  }
-                >
-                  Calendar View
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.sideButton}
-                onPress={() => {
-                  if (path === "listView") return;
-                  router.replace("/timeline/listView");
-                }}
-              >
-                <MaterialIcons
-                  name="format-list-bulleted"
-                  size={28}
-                  color={path === "listView" ? "#60DD49" : "white"}
-                />
-                <Text
-                  style={
-                    path === "listView"
-                      ? styles.sideButtonTextActive
-                      : styles.sideButtonText
-                  }
-                >
-                  List View
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-          <Pressable
-            style={styles.sideMenuClosePressable}
-            onPress={() =>
-              (translateX.value = withSpring(-SIDEBAR_WIDTH, {
-                velocity: 0.1,
-                damping: 20,
-              }))
-            }
-          />
-        </Animated.View>
-        {/* Stack */}
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "#0F0F0F" },
-          }}
-          initialRouteName="calendar"
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="listView"
+        options={{
+          title: "List View",
+          drawerIcon: ({ color, focused }) => (
+            <MaterialIcons
+              name="format-list-bulleted"
+              size={24}
+              color={focused ? color : "white"}
+            />
+          ),
+        }}
+      />
+    </Drawer>
+  );
+};
+
+/**
+ * DrawerHeader component renders a custom header with a custom navigation menu button.
+ *
+ * @param {DrawerHeaderProps} props - The properties for the DrawerHeader component.
+ *
+ * @returns {JSX.Element} The rendered DrawerHeader component.
+ *
+ * @component
+ * @example
+ * <Drawer
+ *   screenOptions={{
+ *     header: (props) => <DrawerHeader {...props} />,
+ *   }}
+ * >
+ *   <Drawer.Screen name="screen" />
+ * </Drawer>
+ */
+const DrawerHeader = (props: DrawerHeaderProps): JSX.Element => {
+  return (
+    <View style={styles.headerContainer}>
+      <View>
+        <Pressable
+          accessibilityLabel="Open Navigation Menu"
+          style={styles.headerMenuButtonContainer}
+          onPress={() => props.navigation.openDrawer()}
         >
-          <Stack.Screen name="calendar" options={{ gestureEnabled: true }} />
-          <Stack.Screen name="listView" options={{ gestureEnabled: true }} />
-        </Stack>
+          <Entypo name="menu" size={45} color="black" />
+          <AtomiFitShortSVG color={"#0F0F0F"} />
+        </Pressable>
       </View>
-    </GestureDetector>
+      <View style={styles.headerButtonsContainer}>
+        <Pressable
+          accessibilityLabel="Return to Today"
+          style={styles.calendarSkipButton}
+          onPress={() => {
+            eventEmitter.emit("calendarReturnToToday");
+          }}
+        >
+          {({ pressed }) => (
+            <MaterialIcons
+              name="today"
+              size={32}
+              color={pressed ? "#2D6823" : "#60DD49"}
+            />
+          )}
+        </Pressable>
+      </View>
+    </View>
+  );
+};
+
+interface CustomDrawerProps extends DrawerContentComponentProps {
+  setCatFilterState: React.Dispatch<React.SetStateAction<CategoryFilterState>>;
+  catFilterState: CategoryFilterState;
+}
+
+/**
+ * CustomDrawer component renders a custom drawer with category filters and navigation options.
+ *
+ * @param {CustomDrawerProps} props - The props for the CustomDrawer component.
+ * @param {React.Dispatch<React.SetStateAction<CategoryFilterState>>} props.setCatFilterState - Function to update the category filter state.
+ * @param {CategoryFilterState} props.catFilterState - The current state of the category filters.
+ *
+ * @returns {JSX.Element} The rendered CustomDrawer component.
+ *
+ * @component
+ * @example
+ * <Drawer
+ *   drawerContent={(props) => (
+ *     <CustomDrawer
+ *       {...props}
+ *       setCatFilterState={setCatFilterState}
+ *       catFilterState={catFilterState}
+ *     />
+ *   )}
+ * >
+ *   <Drawer.Screen name="screen" />
+ * </Drawer>
+ */
+const CustomDrawer = ({
+  setCatFilterState,
+  catFilterState,
+  ...props
+}: CustomDrawerProps): JSX.Element => {
+  const { bottom } = useSafeAreaInsets();
+
+  return (
+    <DrawerContentScrollView
+      contentContainerStyle={[
+        styles.drawerCustomContainer,
+        { paddingBottom: bottom },
+      ]}
+      {...props}
+    >
+      <View style={{ gap: 32 }}>
+        <TouchableOpacity
+          style={styles.drawerBackButton}
+          onPress={() => router.dismiss()}
+        >
+          {Platform.OS === "ios" ? (
+            <MaterialIcons name="arrow-back-ios-new" size={28} color="white" />
+          ) : (
+            <MaterialIcons name="arrow-back" size={28} color="white" />
+          )}
+          <Text style={styles.drawerBackButtonText}>Back</Text>
+        </TouchableOpacity>
+
+        <View>
+          <DrawerItemList {...props} />
+        </View>
+      </View>
+
+      <View style={styles.drawerFilterContainer}>
+        <Text style={styles.filterItemText}>
+          Filter by Category
+        </Text>
+        {catFilterState.categories.map((category) => (
+          <Pressable
+            onPress={() => {
+              setCatFilterState((prev) => {
+                if (prev.filters.includes(category.id)) {
+                  return {
+                    ...prev,
+                    filters: prev.filters.filter((id) => id !== category.id),
+                  };
+                } else {
+                  return { ...prev, filters: [...prev.filters, category.id] };
+                }
+              });
+            }}
+            key={`${category.id}-${category.name}`}
+            style={styles.filterItem}
+          >
+            <View style={styles.filterSubcontainer}>
+              <View
+                style={[
+                  styles.categoryMarker,
+                  { backgroundColor: category.colour },
+                ]}
+              />
+              <Text style={styles.filterItemText}>{category.name}</Text>
+            </View>
+            {catFilterState.filters.includes(category.id) ? (
+              <MaterialCommunityIcons
+                name="checkbox-outline"
+                size={24}
+                color={"#60DD49"}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="checkbox-blank-outline"
+                size={24}
+                color={hexcodeLuminosity("#9F9F9F", 30)}
+              />
+            )}
+          </Pressable>
+        ))}
+      </View>
+    </DrawerContentScrollView>
   );
 };
 
@@ -212,39 +285,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
-  headerMenuButton: {
+  headerMenuButtonContainer: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
   },
-  sideMenuContainer: {
-    display: "flex",
-    flexDirection: "row",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    zIndex: 1,
-  },
-  sideMenuBar: {
-    width: "80%",
-    height: "100%",
-    backgroundColor: "#292929",
-    padding: 20,
-  },
-  sideMenuClosePressable: { width: "20%", height: "100%" },
-  sideButton: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#555555",
-    padding: 10,
-  },
-  sideButtonText: { fontSize: 28, color: "white" },
-  sideButtonTextActive: { fontSize: 28, fontWeight: "bold", color: "#60DD49" },
   headerButtonsContainer: {
     flexDirection: "row",
     height: 64,
@@ -262,6 +307,40 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 4,
+  },
+  drawerCustomContainer: { flex: 1 },
+  drawerBackButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 8,
+  },
+  drawerBackButtonText: {
+    color: "white",
+    fontSize: 20,
+    textAlignVertical: "center",
+  },
+  drawerFilterContainer: {
+    marginTop: "auto",
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#555555",
+    gap: 4,
+  },
+  filterItem: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 4,
+    padding: 6,
+  },
+  filterSubcontainer: { flexDirection: "row", alignItems: "center", gap: 8 },
+  filterItemText: { fontSize: 20, color: "white" },
+  categoryMarker: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
 
