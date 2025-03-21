@@ -36,7 +36,7 @@ interface QueryResult {
  * @returns {JSX.Element} The ListView component.
  */
 const ListView = (): JSX.Element => {
-  const insets = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
   const [data, setData] = useState<ListWorkout[]>([]);
   const [filters, setFilters] = useState<Category["id"][]>([]);
   const { db } = useContext(DrizzleContext);
@@ -250,8 +250,8 @@ const ListView = (): JSX.Element => {
       keyExtractor={(item) => item.date}
       renderItem={({ item }) => renderItem(item)}
       contentContainerStyle={{
-        paddingTop: 8,
-        paddingBottom: insets.bottom,
+        paddingTop: 16,
+        paddingBottom: bottom ? bottom : 16,
         gap: 16,
       }}
     />
