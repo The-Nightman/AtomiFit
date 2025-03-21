@@ -12,6 +12,23 @@ interface ListViewItemProps {
 }
 
 /**
+ * Compares the previous props and next props to determine if they are equal for memoization.
+ *
+ * @param {ListViewItemProps} prevProps - The previous props of the ListViewItem component.
+ * @param {ListViewItemProps} nextProps - The next props of the ListViewItem component.
+ * @returns {boolean} A boolean value indicating whether the props are equal.
+ */
+const propsAreEqual = (
+  prevProps: ListViewItemProps,
+  nextProps: ListViewItemProps
+): boolean => {
+  return (
+    JSON.stringify(prevProps.workout) === JSON.stringify(nextProps.workout) &&
+    prevProps.today === nextProps.today
+  );
+};
+
+/**
  * Renders a single item in the ListView screen.
  *
  * @component
@@ -184,7 +201,8 @@ const ListViewItem = memo(
         </View>
       </View>
     );
-  }
+  },
+  (prevProps, nextProps) => propsAreEqual(prevProps, nextProps)
 );
 
 export default ListViewItem;
