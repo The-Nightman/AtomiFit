@@ -18,20 +18,26 @@ import { Theme } from "react-native-calendars/src/types";
 import { DayProps } from "react-native-calendars/src/calendar/day";
 import { dateToUTCZero } from "@/utils/dateToUTCZero";
 import { useSettings } from "@/contexts/settingsContext";
+import { Category } from "@/types/categories";
+
+interface DOT {
+  key: string;
+  color: string;
+}
 
 interface CategoriesKeys {
-  [key: string]: { key: string; color: string };
+  [key: string]: DOT;
 }
 
 interface MarkedDates {
-  [key: string]: { dots: { key: string; color: string }[]; selected: boolean };
+  [key: string]: { dots: DOT[]; selected: boolean };
 }
 
 interface SelectedDate {
   [key: string]: {
     selected: boolean;
     selectedColor: string;
-    dots: { key: string; color: string }[] | undefined;
+    dots: DOT[];
   };
 }
 
@@ -56,20 +62,38 @@ const Calendar = (): JSX.Element => {
   });
   const [categoriesKeys, setCategoriesKeys] = useState<CategoriesKeys>({});
   const [workouts, setWorkouts] = useState<MarkedDates>({});
+  const [filters, setFilters] = useState<Category["id"][]>([]);
   const calendarRef = useRef<CalendarListImperativeMethods>(null);
   const { db } = useContext(DrizzleContext);
   const { appSettings } = useSettings();
 
   useEffect(() => {
-    eventEmitter.on("calendarReturnToToday", () => {
+    eventEmitter.on("categoryFilterChange", (filter) => {
+      setFilters(filter);
+    });
+
+    return () => {
+      eventEmitter.off("categoryFilterChange", (filter) => {
+        setFilters(filter);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    // Function to handle returning to the current day when the event is emitted
+    // If there are logged workouts for today, select the day from the marked dates
+    // and copy the dots array to the selected date.
+    const returnToToday = () => {
+      const today = dateToUTCZero(new Date(getToday()))
+        .toISOString()
+        .split("T")[0];
       setSelectedDate(() => {
-        const today = dateToUTCZero(new Date(getToday())).toISOString().split("T")[0]
         if (workouts[today]) {
           return {
             [today]: {
               selected: true,
               selectedColor: "#60DD49",
-              dots: workouts[today].dots,
+              dots: workouts[today].dots || [],
             },
           };
         }
@@ -82,41 +106,27 @@ const Calendar = (): JSX.Element => {
         };
       });
       calendarRef.current?.scrollToMonth(getToday());
-    });
+    };
+
+    eventEmitter.on("calendarReturnToToday", () => returnToToday());
 
     return () => {
-      eventEmitter.off("calendarReturnToToday", () => {
-        setSelectedDate(() => {
-          const today = dateToUTCZero(new Date(getToday())).toISOString().split("T")[0]
-          if (workouts[today]) {
-            return {
-              [today]: {
-                selected: true,
-                selectedColor: "#60DD49",
-                dots: workouts[today].dots,
-              },
-            };
-          }
-          return {
-            [today]: {
-              selected: true,
-              selectedColor: "#60DD49",
-              dots: [],
-            },
-          };
-        });
-        calendarRef.current?.scrollToMonth(getToday());
-      });
+      eventEmitter.off("calendarReturnToToday", () => returnToToday());
     };
-  }, []);
+  }, [JSON.stringify(workouts)]);
 
   useEffect(() => {
     const getCategories = async () => {
       const categories: { id: number; name: string; colour: string }[] =
         await db.select().from(schema.categories);
 
-      const categoriesMarkingVariants = categories.reduce<CategoriesKeys>(
-        (acc, category) => {
+      const filteredCategories = categories.filter((category) => {
+        if (filters.length === 0) return true;
+        return filters.includes(category.id);
+      });
+
+      const categoriesMarkingVariants =
+        filteredCategories.reduce<CategoriesKeys>((acc, category) => {
           if (!acc[category.name]) {
             acc[category.name] = {
               key: category.name,
@@ -125,14 +135,12 @@ const Calendar = (): JSX.Element => {
           }
 
           return acc;
-        },
-        {}
-      );
+        }, {});
 
       setCategoriesKeys(categoriesMarkingVariants);
     };
     getCategories();
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const getWorkouts = async () => {
@@ -157,6 +165,10 @@ const Calendar = (): JSX.Element => {
           .toISOString()
           .split("T")[0];
 
+        if (!categoriesKeys[workout.category_name!]) {
+          return acc;
+        }
+
         if (!acc[date]) {
           acc[date] = {
             dots: [categoriesKeys[workout.category_name!]],
@@ -177,25 +189,36 @@ const Calendar = (): JSX.Element => {
         return acc;
       }, {});
 
-      // If there are logged workouts for today, select the day from
-      // the marked dates and copy the dots array to the selected date.
-      const today = dateToUTCZero(new Date(getToday()))
-        .toISOString()
-        .split("T")[0];
-
-      if (markedDates[today] && selectedDate[today]) {
+      const selectedDateKey = Object.keys(selectedDate)[0];
+      // We need to check if the selected date has any saved workouts, if it does
+      // we need to copy them over to guarantee the correct rendering of the dots.
+      if (markedDates[selectedDateKey]) {
         setSelectedDate({
-          [today]: {
+          [selectedDateKey]: {
             selected: true,
             selectedColor: "#60DD49",
-            dots: markedDates[today].dots,
+            dots: markedDates[selectedDateKey].dots,
+          },
+        });
+      }
+      // Else if the selected date has no saved workouts, i.e. the user has set
+      // filter options then we need to remove the stale data
+      else if (
+        !markedDates[selectedDateKey] &&
+        selectedDate[selectedDateKey].dots.length > 0
+      ) {
+        setSelectedDate({
+          [selectedDateKey]: {
+            selected: true,
+            selectedColor: "#60DD49",
+            dots: [],
           },
         });
       }
       setWorkouts(markedDates);
     };
     getWorkouts();
-  }, [categoriesKeys]);
+  }, [JSON.stringify(categoriesKeys)]);
 
   /**
    * Handles the event when a day is pressed in the calendar.
