@@ -1,5 +1,5 @@
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import * as schema from "@/database/schema";
 import { asc, desc, eq, inArray } from "drizzle-orm";
@@ -40,6 +40,7 @@ const ListView = (): JSX.Element => {
   const [data, setData] = useState<ListWorkout[]>([]);
   const [filters, setFilters] = useState<Category["id"][]>([]);
   const { db } = useContext(DrizzleContext);
+  const listViewRef = useRef<FlatList<ListWorkout>>(null);
   const today = getToday(); // Get the current date
 
   useEffect(() => {
@@ -53,6 +54,25 @@ const ListView = (): JSX.Element => {
       });
     };
   }, []);
+
+  useEffect(() => {
+    const scrollToToday = () => {
+      const index = data.findIndex((item) => item.date === today);
+      if (index !== -1 && listViewRef.current) {
+        listViewRef.current.scrollToIndex({
+          index,
+          viewOffset: 8,
+          animated: true,
+        });
+      }
+    };
+
+    eventEmitter.on("calendarReturnToToday", () => scrollToToday());
+
+    return () => {
+      eventEmitter.off("calendarReturnToToday", () => scrollToToday());
+    };
+  }, [data]);
 
   useEffect(() => {
     /**
@@ -246,6 +266,7 @@ const ListView = (): JSX.Element => {
 
   return (
     <FlatList
+      ref={listViewRef}
       data={data}
       keyExtractor={(item) => item.date}
       renderItem={({ item }) => renderItem(item)}
