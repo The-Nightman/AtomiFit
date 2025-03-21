@@ -2,13 +2,15 @@ import { DrizzleContext } from "@/contexts/drizzleContext";
 import { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import * as schema from "@/database/schema";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { ListWorkout, ListWorkoutExercise } from "@/types/listView";
 import { FlatList } from "react-native-gesture-handler";
 import ListViewItem from "@/components/listItems/ListViewItem";
 import { getToday } from "@/utils/getToday";
 import { DistanceUnit, WeightUnit } from "@/types/units";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Category } from "@/types/categories";
+import { eventEmitter } from "@/utils/eventEmitter";
 
 interface QueryResult {
   id: number;
@@ -36,9 +38,21 @@ interface QueryResult {
 const ListView = (): JSX.Element => {
   const insets = useSafeAreaInsets();
   const [data, setData] = useState<ListWorkout[]>([]);
+  const [filters, setFilters] = useState<Category["id"][]>([]);
   const { db } = useContext(DrizzleContext);
-
   const today = getToday(); // Get the current date
+
+  useEffect(() => {
+    eventEmitter.on("categoryFilterChange", (filter) => {
+      setFilters(filter);
+    });
+
+    return () => {
+      eventEmitter.off("categoryFilterChange", (filter) => {
+        setFilters(filter);
+      });
+    };
+  }, []);
 
   useEffect(() => {
     /**
@@ -76,7 +90,26 @@ const ListView = (): JSX.Element => {
           schema.categories,
           eq(schema.exercises.category_id, schema.categories.id)
         )
-        .orderBy(desc(schema.setsData.date));
+        .where(
+          filters.length > 0
+            ? inArray(
+                schema.setsData.date,
+                db
+                  .select({ dates: schema.setsData.date })
+                  .from(schema.setsData)
+                  .leftJoin(
+                    schema.exercises,
+                    eq(schema.setsData.exercise_id, schema.exercises.id)
+                  )
+                  .leftJoin(
+                    schema.categories,
+                    eq(schema.exercises.category_id, schema.categories.id)
+                  )
+                  .where(inArray(schema.categories.id, filters as number[]))
+              )
+            : undefined
+        )
+        .orderBy(desc(schema.setsData.date), asc(schema.setsData.id));
 
       // Process the data into the ListWorkout type grouping by date and then sub-group by exercise
       const processedData = data.reduce<ListWorkout[]>((acc, item) => {
@@ -177,7 +210,7 @@ const ListView = (): JSX.Element => {
     };
 
     fetchData();
-  }, []);
+  }, [filters]);
 
   /**
    * Render the list item elements for the listview.
