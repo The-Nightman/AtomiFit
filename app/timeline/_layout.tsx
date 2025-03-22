@@ -27,6 +27,7 @@ import { Category } from "@/types/categories";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import WorkoutPreviewModal from "@/components/modals/WorkoutPreviewModal";
 
 interface CategoryFilterState {
   categories: Category[];
@@ -65,52 +66,57 @@ const CalendarLayout = (): JSX.Element => {
   }, [catFilterState.filters]);
 
   return (
-    <Drawer
-      screenOptions={{
-        header: (props) => <DrawerHeader {...props} />,
-        drawerActiveTintColor: "#60DD49",
-        drawerInactiveTintColor: "white",
-        sceneStyle: { backgroundColor: "#0F0F0F" }, //* This is the equivalent of contentStyle in the Stack navigator
-        drawerStyle: { backgroundColor: hexcodeLuminosity("#0F0F0F", 20) },
-        drawerType: "slide",
-        drawerPosition: "left",
-      }}
-      drawerContent={(props) => (
-        <CustomDrawer
-          {...props}
-          setCatFilterState={setCatFilterState}
-          catFilterState={catFilterState}
+    <>
+      <Drawer
+        screenOptions={{
+          header: (props) => <DrawerHeader {...props} />,
+          drawerActiveTintColor: "#60DD49",
+          drawerInactiveTintColor: "white",
+          sceneStyle: { backgroundColor: "#0F0F0F" }, //* This is the equivalent of contentStyle in the Stack navigator
+          drawerStyle: { backgroundColor: hexcodeLuminosity("#0F0F0F", 20) },
+          drawerType: "slide",
+          drawerPosition: "left",
+        }}
+        drawerContent={(props) => (
+          <CustomDrawer
+            {...props}
+            setCatFilterState={setCatFilterState}
+            catFilterState={catFilterState}
+          />
+        )}
+        initialRouteName="calendar"
+      >
+        <Drawer.Screen
+          name="calendar"
+          options={{
+            title: "Calendar View",
+            drawerIcon: ({ color, focused }) => (
+              <MaterialIcons
+                name="calendar-month"
+                size={24}
+                color={focused ? color : "white"}
+              />
+            ),
+          }}
         />
-      )}
-      initialRouteName="calendar"
-    >
-      <Drawer.Screen
-        name="calendar"
-        options={{
-          title: "Calendar View",
-          drawerIcon: ({ color, focused }) => (
-            <MaterialIcons
-              name="calendar-month"
-              size={24}
-              color={focused ? color : "white"}
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="listView"
-        options={{
-          title: "List View",
-          drawerIcon: ({ color, focused }) => (
-            <MaterialIcons
-              name="format-list-bulleted"
-              size={24}
-              color={focused ? color : "white"}
-            />
-          ),
-        }}
-      />
-    </Drawer>
+        <Drawer.Screen
+          name="listView"
+          options={{
+            title: "List View",
+            drawerIcon: ({ color, focused }) => (
+              <MaterialIcons
+                name="format-list-bulleted"
+                size={24}
+                color={focused ? color : "white"}
+              />
+            ),
+          }}
+        />
+      </Drawer>
+      <View>
+        <WorkoutPreviewModal />
+      </View>
+    </>
   );
 };
 
@@ -227,9 +233,7 @@ const CustomDrawer = ({
       </View>
 
       <View style={styles.drawerFilterContainer}>
-        <Text style={styles.filterItemText}>
-          Filter by Category
-        </Text>
+        <Text style={styles.filterItemText}>Filter by Category</Text>
         {catFilterState.categories.map((category) => (
           <Pressable
             onPress={() => {
