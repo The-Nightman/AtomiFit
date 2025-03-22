@@ -1,10 +1,17 @@
 import { ListWorkout } from "@/types/listView";
 import { Set } from "@/types/sets";
 import { displayDate } from "@/utils/displayDate";
+import { eventEmitter } from "@/utils/eventEmitter";
 import { formatTime } from "@/utils/formatTime";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { memo } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface ListViewItemProps {
   workout: ListWorkout;
@@ -114,7 +121,7 @@ const ListViewItem = memo(
     };
 
     return (
-      <View style={styles.itemContainer}>
+      <TouchableOpacity activeOpacity={0.5} onPress={()=>eventEmitter.emit("openWorkoutPreviewModal", workout.date)} style={styles.itemContainer}>
         <View
           style={[
             workout.date === today
@@ -199,7 +206,7 @@ const ListViewItem = memo(
               ))}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   },
   (prevProps, nextProps) => propsAreEqual(prevProps, nextProps)

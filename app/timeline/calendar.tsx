@@ -234,6 +234,17 @@ const Calendar = (): JSX.Element => {
         dots: workouts[day.dateString]?.dots,
       },
     });
+
+    // We need to convert the date to a localised ISO string to ensure the correct date is passed
+    // to the workout preview modal so we can query the correct data. Unfortunately, the calendar
+    // only handles YYYY-MM-DD strings so we have to add the timezone offset back to it. 
+    // Thanks Wix...
+    const localisedIsoString = new Date(
+      new Date(day.dateString).getTime() +
+        new Date(day.dateString).getTimezoneOffset() * 60000
+    ).toISOString();
+
+    eventEmitter.emit("openWorkoutPreviewModal", localisedIsoString);
   };
 
   // Custom theme for the calendar, styles used in CustomDay component are set in the stylesheet
