@@ -28,10 +28,16 @@ import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WorkoutPreviewModal from "@/components/modals/WorkoutPreviewModal";
+import { Storage } from "expo-sqlite/kv-store";
+import TimelineSettingsModal from "@/components/modals/TimelineSettingsModal";
 
 interface CategoryFilterState {
   categories: Category[];
   filters: Category["id"][];
+}
+
+interface TimelinePreferences {
+  timelineCategoryMarkers: boolean;
 }
 
 /**
@@ -47,18 +53,46 @@ const CalendarLayout = (): JSX.Element => {
     categories: [],
     filters: [],
   });
+  const [timelinePreferences, setTimelinePreferences] =
+    useState<TimelinePreferences>({ timelineCategoryMarkers: true });
+  const [timelineSettingsModal, setTimelineSettingsModal] =
+    useState<boolean>(false);
   const { db } = useContext(DrizzleContext);
 
   useEffect(() => {
-    const getCategories = async () => {
+    const initFilters = async () => {
       const categories: Category[] = await db.select().from(schema.categories);
 
       setCatFilterState({
-        categories: categories,
+        categories,
         filters: [],
       });
     };
-    getCategories();
+    initFilters();
+  }, []);
+
+  useEffect(() => {
+    const initPrefs = async () => {
+      const savedTimelinePrefs: [string, string | null][] =
+        await Storage.multiGet(["timelineCategoryMarkers"]);
+
+      for (const [key, value] of savedTimelinePrefs) {
+        // We do this here instead of the settings context because this is a specific preference
+        // rather than app-wide setting and we want some separation of concerns
+        if (!value) {
+          await Storage.setItem(
+            key,
+            timelinePreferences[key as keyof TimelinePreferences].toString()
+          );
+        } else {
+          setTimelinePreferences({
+            ...timelinePreferences,
+            [key]: value === "true",
+          });
+        }
+      }
+    };
+    initPrefs();
   }, []);
 
   useEffect(() => {
@@ -69,7 +103,13 @@ const CalendarLayout = (): JSX.Element => {
     <>
       <Drawer
         screenOptions={{
-          header: (props) => <DrawerHeader {...props} />,
+          header: (props) => (
+            <DrawerHeader
+              {...props}
+              timelineSettingsModal={timelineSettingsModal}
+              setTimelineSettingsModal={setTimelineSettingsModal}
+            />
+          ),
           drawerActiveTintColor: "#60DD49",
           drawerInactiveTintColor: "white",
           sceneStyle: { backgroundColor: "#0F0F0F" }, //* This is the equivalent of contentStyle in the Stack navigator
@@ -115,6 +155,12 @@ const CalendarLayout = (): JSX.Element => {
       </Drawer>
       <View>
         <WorkoutPreviewModal />
+        <TimelineSettingsModal
+          visible={timelineSettingsModal}
+          setVisible={setTimelineSettingsModal}
+          timelinePreferencesState={timelinePreferences}
+          setTimelinePreferencesState={setTimelinePreferences}
+        />
       </View>
     </>
   );
@@ -137,7 +183,12 @@ const CalendarLayout = (): JSX.Element => {
  *   <Drawer.Screen name="screen" />
  * </Drawer>
  */
-const DrawerHeader = (props: DrawerHeaderProps): JSX.Element => {
+const DrawerHeader = (
+  props: DrawerHeaderProps & {
+    timelineSettingsModal: boolean;
+    setTimelineSettingsModal: React.Dispatch<React.SetStateAction<boolean>>;
+  }
+): JSX.Element => {
   return (
     <View style={styles.headerContainer}>
       <View>
@@ -161,6 +212,20 @@ const DrawerHeader = (props: DrawerHeaderProps): JSX.Element => {
           {({ pressed }) => (
             <MaterialIcons
               name="today"
+              size={32}
+              color={pressed ? "#2D6823" : "#60DD49"}
+            />
+          )}
+        </Pressable>
+        <Pressable
+          onPress={() =>
+            props.setTimelineSettingsModal(!props.timelineSettingsModal)
+          }
+          style={styles.headerSettingsButton}
+        >
+          {({ pressed }) => (
+            <Entypo
+              name="dots-three-vertical"
               size={32}
               color={pressed ? "#2D6823" : "#60DD49"}
             />
@@ -311,6 +376,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 4,
+  },
+  headerSettingsButton: {
+    height: 42,
+    width: 42,
+    backgroundColor: "#292929",
+    borderRadius: 22,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    alignItems: "center",
+    justifyContent: "center",
   },
   drawerCustomContainer: { flex: 1 },
   drawerBackButton: {
