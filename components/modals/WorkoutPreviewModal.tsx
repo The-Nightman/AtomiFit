@@ -28,9 +28,9 @@ interface WorkoutExercise {
  * and displays the sets grouped by exercise. If no workout data is found for the
  * provided date, a message is displayed indicating that there is no data.
  * The modal can be opened by emitting the "openWorkoutPreviewModal" event with a workout date.
- * 
+ *
  * @returns {JSX.Element} The WorkoutPreviewModal component.
- * 
+ *
  * @component
  * @example
  * return (
@@ -286,9 +286,13 @@ const WorkoutPreviewModal = (): JSX.Element => {
           </Pressable>
           <Pressable
             style={[styles.buttonBase, styles.nextButton]}
-            onPress={() =>
-              router.replace({ pathname: "/", params: { date: workout.date } })
-            }
+            onPress={() => {
+              router.dismissAll();
+              router.replace({
+                pathname: "/",
+                params: { paramDate: workout.date },
+              });
+            }}
           >
             <Text style={styles.buttonText}>GO TO</Text>
           </Pressable>
