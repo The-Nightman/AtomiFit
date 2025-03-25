@@ -16,6 +16,9 @@ import {
 interface ListViewItemProps {
   workout: ListWorkout;
   today: string;
+  preferences: {
+    timelineCategoryMarkers: boolean;
+  };
 }
 
 /**
@@ -31,6 +34,8 @@ const propsAreEqual = (
 ): boolean => {
   return (
     JSON.stringify(prevProps.workout) === JSON.stringify(nextProps.workout) &&
+    JSON.stringify(prevProps.preferences) ===
+      JSON.stringify(nextProps.preferences) &&
     prevProps.today === nextProps.today
   );
 };
@@ -51,7 +56,7 @@ const propsAreEqual = (
  * ```
  */
 const ListViewItem = memo(
-  ({ workout, today }: ListViewItemProps): JSX.Element => {
+  ({ workout, today, preferences }: ListViewItemProps): JSX.Element => {
     const { width } = Dimensions.get("screen"); // Get the screen width for styling reasons
 
     // Dictionary of display variants based on the keys of the set object
@@ -121,7 +126,13 @@ const ListViewItem = memo(
     };
 
     return (
-      <TouchableOpacity activeOpacity={0.5} onPress={()=>eventEmitter.emit("openWorkoutPreviewModal", workout.date)} style={styles.itemContainer}>
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={() =>
+          eventEmitter.emit("openWorkoutPreviewModal", workout.date)
+        }
+        style={styles.itemContainer}
+      >
         <View
           style={[
             workout.date === today
@@ -140,14 +151,16 @@ const ListViewItem = memo(
                 key={`${workout.date}-${exercise.exercise_name}`}
                 style={styles.exerciseContainer}
               >
-                <View
-                  style={[
-                    styles.exerciseCategoryMarker,
-                    {
-                      backgroundColor: exercise.category_colour,
-                    },
-                  ]}
-                />
+                {preferences.timelineCategoryMarkers && (
+                  <View
+                    style={[
+                      styles.exerciseCategoryMarker,
+                      {
+                        backgroundColor: exercise.category_colour,
+                      },
+                    ]}
+                  />
+                )}
                 <View>
                   <Text style={styles.exerciseName}>
                     {exercise.exercise_name.toUpperCase()}
@@ -165,46 +178,48 @@ const ListViewItem = memo(
               </View>
             ))}
           </View>
-          <View style={styles.categoryContainer}>
-            {workout.data
-              // Remove duplicate categories
-              .reduce(
-                (
-                  acc: { category_colour: string; category_name: string }[],
-                  cat
-                ) => {
-                  if (
-                    !acc.some(
-                      (item) => item.category_name === cat.category_name
-                    )
-                  ) {
-                    acc.push({
-                      category_colour: cat.category_colour,
-                      category_name: cat.category_name,
-                    });
-                  }
-                  return acc;
-                },
-                []
-              )
-              // Map over the reduced categories and display the category name and colour with a marker
-              .map(({ category_colour, category_name }) => (
-                <View
-                  key={`${workout.date}-${category_name}`}
-                  style={styles.categoryItem}
-                >
+          {preferences.timelineCategoryMarkers && (
+            <View style={styles.categoryContainer}>
+              {workout.data
+                // Remove duplicate categories
+                .reduce(
+                  (
+                    acc: { category_colour: string; category_name: string }[],
+                    cat
+                  ) => {
+                    if (
+                      !acc.some(
+                        (item) => item.category_name === cat.category_name
+                      )
+                    ) {
+                      acc.push({
+                        category_colour: cat.category_colour,
+                        category_name: cat.category_name,
+                      });
+                    }
+                    return acc;
+                  },
+                  []
+                )
+                // Map over the reduced categories and display the category name and colour with a marker
+                .map(({ category_colour, category_name }) => (
                   <View
-                    style={[
-                      styles.categoryMarker,
-                      { backgroundColor: category_colour },
-                    ]}
-                  />
-                  <Text style={{ color: category_colour }}>
-                    {category_name}
-                  </Text>
-                </View>
-              ))}
-          </View>
+                    key={`${workout.date}-${category_name}`}
+                    style={styles.categoryItem}
+                  >
+                    <View
+                      style={[
+                        styles.categoryMarker,
+                        { backgroundColor: category_colour },
+                      ]}
+                    />
+                    <Text style={{ color: category_colour }}>
+                      {category_name}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );

@@ -11,6 +11,7 @@ import { DistanceUnit, WeightUnit } from "@/types/units";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Category } from "@/types/categories";
 import { eventEmitter } from "@/utils/eventEmitter";
+import { Storage } from "expo-sqlite/kv-store";
 
 interface QueryResult {
   id: number;
@@ -39,6 +40,11 @@ const ListView = (): JSX.Element => {
   const { bottom } = useSafeAreaInsets();
   const [data, setData] = useState<ListWorkout[]>([]);
   const [filters, setFilters] = useState<Category["id"][]>([]);
+  const [preferences, setPreferences] = useState<{
+    timelineCategoryMarkers: boolean;
+  }>({
+    timelineCategoryMarkers: true,
+  });
   const { db } = useContext(DrizzleContext);
   const listViewRef = useRef<FlatList<ListWorkout>>(null);
   const today = getToday(); // Get the current date
@@ -52,6 +58,24 @@ const ListView = (): JSX.Element => {
       eventEmitter.off("categoryFilterChange", (filter) => {
         setFilters(filter);
       });
+    };
+  }, []);
+
+  useEffect(() => {
+    const getPrefs = async () => {
+      const savedTimelinePrefs: string | null = await Storage.getItem(
+        "timelineCategoryMarkers"
+      );
+
+      setPreferences({
+        timelineCategoryMarkers: savedTimelinePrefs === "true",
+      });
+    };
+
+    eventEmitter.on("timelinePreferenceChange", () => getPrefs());
+
+    return () => {
+      eventEmitter.off("timelinePreferenceChange", () => getPrefs());
     };
   }, []);
 
@@ -73,6 +97,27 @@ const ListView = (): JSX.Element => {
       eventEmitter.off("calendarReturnToToday", () => scrollToToday());
     };
   }, [data]);
+
+  useEffect(() => {
+    const initPrefs = async () => {
+      const savedTimelinePrefs: string | null = await Storage.getItem(
+        "timelineCategoryMarkers"
+      );
+
+      // We dont need to directly save preferences to kv store here as we are doing that in the layout
+      if (savedTimelinePrefs === null) {
+        setPreferences({
+          timelineCategoryMarkers: true,
+        });
+      } else {
+        setPreferences({
+          timelineCategoryMarkers: savedTimelinePrefs === "true",
+        });
+      }
+    };
+
+    initPrefs();
+  }, []);
 
   useEffect(() => {
     /**
@@ -260,7 +305,7 @@ const ListView = (): JSX.Element => {
         </View>
       );
     } else {
-      return <ListViewItem workout={item} today={today} />;
+      return <ListViewItem workout={item} today={today} preferences={preferences} />;
     }
   };
 
