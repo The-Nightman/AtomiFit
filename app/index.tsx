@@ -7,7 +7,7 @@ import {
 import UtilityStyles from "@/constants/UtilityStyles";
 import AtomiFitShortSVG from "@/components/Svg/AtomiFitShortSVG";
 import DumbbellIconSVG from "@/components/Svg/DumbbellSVG";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { getToday } from "@/utils/getToday";
 import { useContext, useEffect, useRef, useState } from "react";
 import { DrizzleContext } from "@/contexts/drizzleContext";
@@ -35,6 +35,7 @@ interface SetsToDelete {
 }
 
 const index = () => {
+  const { paramDate } = useLocalSearchParams<{ paramDate: string }>();
   const [date, setDate] = useState<string>(getToday());
   const [editMode, setEditMode] = useState<{
     edit: boolean;
@@ -43,6 +44,35 @@ const index = () => {
   const pagerViewRef = useRef<InfinitePagerImperativeApi>(null);
 
   const { db } = useContext(DrizzleContext);
+
+  useEffect(() => {
+    if (paramDate) {
+      // We need to normalize the dates to respect DST so we can compare them correctly or else
+      // when a user selects a date in the calendar or list view it may not show the correct day
+      const todayObj = new Date(getToday());
+      const paramObj = new Date(paramDate);
+
+      const normalizedToday = Date.UTC(
+        todayObj.getFullYear(),
+        todayObj.getMonth(),
+        todayObj.getDate()
+      );
+      const normalizedParam = Date.UTC(
+        paramObj.getFullYear(),
+        paramObj.getMonth(),
+        paramObj.getDate()
+      );
+
+      const dif = Math.floor(
+        (normalizedParam - normalizedToday) / (1000 * 60 * 60 * 24)
+      );
+
+      // Due to the way the pager works, we need to set the page rather than the state
+      // If we set the state, the pager will trigger the onPageChange event and since
+      // the pager index is 0 on render the comparison will set the date to today
+      pagerViewRef.current?.setPage(dif, { animated: false });
+    }
+  }, [paramDate]);
 
   // Create an event listener for the back button to exit edit mode without navigation
   useEffect(() => {
@@ -279,7 +309,7 @@ const index = () => {
   const handleDateReset = (): void => {
     setDate(getToday());
     if (pagerViewRef.current) {
-      pagerViewRef.current.setPage(0, { animated: false });
+      pagerViewRef.current.setPage(0, { animated: true });
     }
   };
 
