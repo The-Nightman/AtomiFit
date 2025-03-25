@@ -8,6 +8,7 @@ import { Storage } from "expo-sqlite/kv-store";
 
 interface TimelinePreferences {
   timelineCategoryMarkers: boolean;
+  displaySets: boolean;
 }
 
 interface TimelineSettingsModalProps {
@@ -103,6 +104,27 @@ const TimelineSettingsModal = ({
       }}
     >
       <View style={styles.menuBody}>
+        {path === "listView" && (
+          <Pressable
+            style={styles.menuPressableCheckbox}
+            onPress={() => handlePreferenceToggle("displaySets")}
+          >
+            <Text style={styles.menuText}>Display Sets</Text>
+            {timelinePreferencesState.displaySets ? (
+              <MaterialCommunityIcons
+                name="checkbox-outline"
+                size={24}
+                color={"#60DD49"}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="checkbox-blank-outline"
+                size={24}
+                color={hexcodeLuminosity("#9F9F9F", 30)}
+              />
+            )}
+          </Pressable>
+        )}
         <Pressable
           style={[styles.menuPressableCheckbox, { borderBottomWidth: 0 }]}
           onPress={() => handlePreferenceToggle("timelineCategoryMarkers")}
@@ -137,12 +159,6 @@ const styles = StyleSheet.create({
     minWidth: "40%",
     borderRadius: 10,
     backgroundColor: hexcodeLuminosity("#3F3C3C", 20),
-  },
-  menuPressable: {
-    padding: 8,
-    paddingRight: 32,
-    borderBottomWidth: 1,
-    borderBottomColor: "#9F9F9F",
   },
   menuPressableCheckbox: {
     flexDirection: "row",

@@ -29,6 +29,11 @@ interface QueryResult {
   exercise_id: number;
 }
 
+interface TimelinePreferences {
+  timelineCategoryMarkers: boolean;
+  displaySets: boolean;
+}
+
 /**
  * ListView component displays a list of workouts grouped by date.
  * It queries the database for workout data and formats it into an array of ListWorkout type.
@@ -40,10 +45,9 @@ const ListView = (): JSX.Element => {
   const { bottom } = useSafeAreaInsets();
   const [data, setData] = useState<ListWorkout[]>([]);
   const [filters, setFilters] = useState<Category["id"][]>([]);
-  const [preferences, setPreferences] = useState<{
-    timelineCategoryMarkers: boolean;
-  }>({
+  const [preferences, setPreferences] = useState<TimelinePreferences>({
     timelineCategoryMarkers: true,
+    displaySets: true,
   });
   const { db } = useContext(DrizzleContext);
   const listViewRef = useRef<FlatList<ListWorkout>>(null);
@@ -63,13 +67,19 @@ const ListView = (): JSX.Element => {
 
   useEffect(() => {
     const getPrefs = async () => {
-      const savedTimelinePrefs: string | null = await Storage.getItem(
-        "timelineCategoryMarkers"
-      );
+      const savedTimelinePrefs: [string, string | null][] =
+        await Storage.multiGet(["timelineCategoryMarkers", "displaySets"]);
 
-      setPreferences({
-        timelineCategoryMarkers: savedTimelinePrefs === "true",
-      });
+      const prefsObj = {
+        timelineCategoryMarkers: preferences.timelineCategoryMarkers,
+        displaySets: preferences.displaySets,
+      };
+
+      for (const [key, value] of savedTimelinePrefs) {
+        prefsObj[key as keyof TimelinePreferences] = value === "true";
+      }
+
+      setPreferences({ ...prefsObj });
     };
 
     eventEmitter.on("timelinePreferenceChange", () => getPrefs());
@@ -78,7 +88,7 @@ const ListView = (): JSX.Element => {
       eventEmitter.off("timelinePreferenceChange", () => getPrefs());
     };
   }, []);
-
+  // console.log("ListView rendered", preferences.displaySets);
   useEffect(() => {
     const scrollToToday = () => {
       const index = data.findIndex((item) => item.date === today);
@@ -100,20 +110,20 @@ const ListView = (): JSX.Element => {
 
   useEffect(() => {
     const initPrefs = async () => {
-      const savedTimelinePrefs: string | null = await Storage.getItem(
-        "timelineCategoryMarkers"
-      );
+      const savedTimelinePrefs: [string, string | null][] =
+        await Storage.multiGet(["timelineCategoryMarkers", "displaySets"]);
 
       // We dont need to directly save preferences to kv store here as we are doing that in the layout
-      if (savedTimelinePrefs === null) {
-        setPreferences({
-          timelineCategoryMarkers: true,
-        });
-      } else {
-        setPreferences({
-          timelineCategoryMarkers: savedTimelinePrefs === "true",
-        });
+      const prefsObj = {
+        timelineCategoryMarkers: preferences.timelineCategoryMarkers,
+        displaySets: preferences.displaySets,
+      };
+
+      for (const [key, value] of savedTimelinePrefs) {
+        prefsObj[key as keyof TimelinePreferences] = value === "true";
       }
+
+      setPreferences({ ...prefsObj });
     };
 
     initPrefs();
@@ -189,38 +199,42 @@ const ListView = (): JSX.Element => {
             );
           // If date group exists, check if the exercise group exists in the date group
           if (exerciseGroup) {
-            exerciseGroup.sets.push({
-              id: item.id,
-              weight: item.weight,
-              reps: item.reps,
-              distance: item.distance,
-              time: item.time,
-              notes: item.notes,
-              weight_unit: item.weight_unit,
-              distance_unit: item.distance_unit,
-              date: item.date,
-              exercise_id: item.exercise_id,
-            });
+            if (preferences.displaySets) {
+              exerciseGroup.sets.push({
+                id: item.id,
+                weight: item.weight,
+                reps: item.reps,
+                distance: item.distance,
+                time: item.time,
+                notes: item.notes,
+                weight_unit: item.weight_unit,
+                distance_unit: item.distance_unit,
+                date: item.date,
+                exercise_id: item.exercise_id,
+              });
+            }
             // If exercise group does not exist, create a new exercise group and add the set
           } else {
             dateGroup.data.push({
               exercise_name: item.exercise_name!,
               category_name: item.category_name!,
               category_colour: item.category_colour!,
-              sets: [
-                {
-                  id: item.id,
-                  weight: item.weight,
-                  reps: item.reps,
-                  distance: item.distance,
-                  time: item.time,
-                  notes: item.notes,
-                  weight_unit: item.weight_unit,
-                  distance_unit: item.distance_unit,
-                  date: item.date,
-                  exercise_id: item.exercise_id,
-                },
-              ],
+              sets: preferences.displaySets
+                ? [
+                    {
+                      id: item.id,
+                      weight: item.weight,
+                      reps: item.reps,
+                      distance: item.distance,
+                      time: item.time,
+                      notes: item.notes,
+                      weight_unit: item.weight_unit,
+                      distance_unit: item.distance_unit,
+                      date: item.date,
+                      exercise_id: item.exercise_id,
+                    },
+                  ]
+                : [],
             });
           }
           // If date group does not exist, create a new date group and exercise group and add the set
@@ -233,21 +247,23 @@ const ListView = (): JSX.Element => {
                 exercise_name: item.exercise_name!,
                 category_name: item.category_name!,
                 category_colour: item.category_colour!,
-                sets: [
-                  // Set object
-                  {
-                    id: item.id,
-                    weight: item.weight,
-                    reps: item.reps,
-                    distance: item.distance,
-                    time: item.time,
-                    notes: item.notes,
-                    weight_unit: item.weight_unit,
-                    distance_unit: item.distance_unit,
-                    date: item.date,
-                    exercise_id: item.exercise_id,
-                  },
-                ],
+                sets: preferences.displaySets
+                  ? [
+                      // Set object
+                      {
+                        id: item.id,
+                        weight: item.weight,
+                        reps: item.reps,
+                        distance: item.distance,
+                        time: item.time,
+                        notes: item.notes,
+                        weight_unit: item.weight_unit,
+                        distance_unit: item.distance_unit,
+                        date: item.date,
+                        exercise_id: item.exercise_id,
+                      },
+                    ]
+                  : [],
               },
             ],
           });
@@ -275,7 +291,7 @@ const ListView = (): JSX.Element => {
     };
 
     fetchData();
-  }, [filters]);
+  }, [filters, preferences.displaySets]);
 
   /**
    * Render the list item elements for the listview.
@@ -305,7 +321,13 @@ const ListView = (): JSX.Element => {
         </View>
       );
     } else {
-      return <ListViewItem workout={item} today={today} preferences={preferences} />;
+      return (
+        <ListViewItem
+          workout={item}
+          today={today}
+          showCategoryMarkers={preferences.timelineCategoryMarkers}
+        />
+      );
     }
   };
 

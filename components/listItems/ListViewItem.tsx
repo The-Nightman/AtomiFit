@@ -16,9 +16,7 @@ import {
 interface ListViewItemProps {
   workout: ListWorkout;
   today: string;
-  preferences: {
-    timelineCategoryMarkers: boolean;
-  };
+  showCategoryMarkers: boolean;
 }
 
 /**
@@ -34,8 +32,7 @@ const propsAreEqual = (
 ): boolean => {
   return (
     JSON.stringify(prevProps.workout) === JSON.stringify(nextProps.workout) &&
-    JSON.stringify(prevProps.preferences) ===
-      JSON.stringify(nextProps.preferences) &&
+    prevProps.showCategoryMarkers === nextProps.showCategoryMarkers &&
     prevProps.today === nextProps.today
   );
 };
@@ -47,16 +44,17 @@ const propsAreEqual = (
  * @param {Object} props - The props for the ListViewItem component.
  * @param {ListWorkout} props.workout - The workout data to be displayed.
  * @param {string} props.today - The current date in ISO 8601 format.
+ * @param {boolean} props.showCategoryMarkers - A boolean value to show or hide category markers.
  *
  * @returns {JSX.Element} The rendered ListViewItem.
  *
  * @example
  * ```tsx
- * <ListViewItem workout={workout} today={"2024-07-13T00:00:00.000+01:00"} />
+ * <ListViewItem workout={workout} today={"2024-07-13T00:00:00.000+01:00"} showCategoryMarkers={true} />
  * ```
  */
 const ListViewItem = memo(
-  ({ workout, today, preferences }: ListViewItemProps): JSX.Element => {
+  ({ workout, today, showCategoryMarkers }: ListViewItemProps): JSX.Element => {
     const { width } = Dimensions.get("screen"); // Get the screen width for styling reasons
 
     // Dictionary of display variants based on the keys of the set object
@@ -151,7 +149,7 @@ const ListViewItem = memo(
                 key={`${workout.date}-${exercise.exercise_name}`}
                 style={styles.exerciseContainer}
               >
-                {preferences.timelineCategoryMarkers && (
+                {showCategoryMarkers && (
                   <View
                     style={[
                       styles.exerciseCategoryMarker,
@@ -178,7 +176,7 @@ const ListViewItem = memo(
               </View>
             ))}
           </View>
-          {preferences.timelineCategoryMarkers && (
+          {showCategoryMarkers && (
             <View style={styles.categoryContainer}>
               {workout.data
                 // Remove duplicate categories

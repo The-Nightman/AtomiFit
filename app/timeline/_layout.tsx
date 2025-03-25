@@ -38,6 +38,7 @@ interface CategoryFilterState {
 
 interface TimelinePreferences {
   timelineCategoryMarkers: boolean;
+  displaySets: boolean;
 }
 
 /**
@@ -54,7 +55,10 @@ const CalendarLayout = (): JSX.Element => {
     filters: [],
   });
   const [timelinePreferences, setTimelinePreferences] =
-    useState<TimelinePreferences>({ timelineCategoryMarkers: true });
+    useState<TimelinePreferences>({
+      timelineCategoryMarkers: true,
+      displaySets: true,
+    });
   const [timelineSettingsModal, setTimelineSettingsModal] =
     useState<boolean>(false);
   const { db } = useContext(DrizzleContext);
@@ -74,7 +78,12 @@ const CalendarLayout = (): JSX.Element => {
   useEffect(() => {
     const initPrefs = async () => {
       const savedTimelinePrefs: [string, string | null][] =
-        await Storage.multiGet(["timelineCategoryMarkers"]);
+        await Storage.multiGet(["timelineCategoryMarkers", "displaySets"]);
+
+      const prefsObj: TimelinePreferences = {
+        timelineCategoryMarkers: timelinePreferences.timelineCategoryMarkers,
+        displaySets: timelinePreferences.displaySets,
+      };
 
       for (const [key, value] of savedTimelinePrefs) {
         // We do this here instead of the settings context because this is a specific preference
@@ -85,12 +94,11 @@ const CalendarLayout = (): JSX.Element => {
             timelinePreferences[key as keyof TimelinePreferences].toString()
           );
         } else {
-          setTimelinePreferences({
-            ...timelinePreferences,
-            [key]: value === "true",
-          });
+          prefsObj[key as keyof TimelinePreferences] = value === "true";
         }
       }
+
+      setTimelinePreferences({ ...prefsObj });
     };
     initPrefs();
   }, []);
