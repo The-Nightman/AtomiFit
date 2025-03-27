@@ -1,15 +1,41 @@
 import { ListWorkout } from "@/types/listView";
 import { Set } from "@/types/sets";
 import { displayDate } from "@/utils/displayDate";
+import { eventEmitter } from "@/utils/eventEmitter";
 import { formatTime } from "@/utils/formatTime";
 import { setDisplayVariant } from "@/utils/setDisplayVariant";
 import { memo } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface ListViewItemProps {
   workout: ListWorkout;
   today: string;
+  showCategoryMarkers: boolean;
 }
+
+/**
+ * Compares the previous props and next props to determine if they are equal for memoization.
+ *
+ * @param {ListViewItemProps} prevProps - The previous props of the ListViewItem component.
+ * @param {ListViewItemProps} nextProps - The next props of the ListViewItem component.
+ * @returns {boolean} A boolean value indicating whether the props are equal.
+ */
+const propsAreEqual = (
+  prevProps: ListViewItemProps,
+  nextProps: ListViewItemProps
+): boolean => {
+  return (
+    JSON.stringify(prevProps.workout) === JSON.stringify(nextProps.workout) &&
+    prevProps.showCategoryMarkers === nextProps.showCategoryMarkers &&
+    prevProps.today === nextProps.today
+  );
+};
 
 /**
  * Renders a single item in the ListView screen.
@@ -18,16 +44,17 @@ interface ListViewItemProps {
  * @param {Object} props - The props for the ListViewItem component.
  * @param {ListWorkout} props.workout - The workout data to be displayed.
  * @param {string} props.today - The current date in ISO 8601 format.
+ * @param {boolean} props.showCategoryMarkers - A boolean value to show or hide category markers.
  *
  * @returns {JSX.Element} The rendered ListViewItem.
  *
  * @example
  * ```tsx
- * <ListViewItem workout={workout} today={"2024-07-13T00:00:00.000+01:00"} />
+ * <ListViewItem workout={workout} today={"2024-07-13T00:00:00.000+01:00"} showCategoryMarkers={true} />
  * ```
  */
 const ListViewItem = memo(
-  ({ workout, today }: ListViewItemProps): JSX.Element => {
+  ({ workout, today, showCategoryMarkers }: ListViewItemProps): JSX.Element => {
     const { width } = Dimensions.get("screen"); // Get the screen width for styling reasons
 
     // Dictionary of display variants based on the keys of the set object
@@ -97,7 +124,13 @@ const ListViewItem = memo(
     };
 
     return (
-      <View style={styles.itemContainer}>
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={() =>
+          eventEmitter.emit("openWorkoutPreviewModal", workout.date)
+        }
+        style={styles.itemContainer}
+      >
         <View
           style={[
             workout.date === today
@@ -116,14 +149,16 @@ const ListViewItem = memo(
                 key={`${workout.date}-${exercise.exercise_name}`}
                 style={styles.exerciseContainer}
               >
-                <View
-                  style={[
-                    styles.exerciseCategoryMarker,
-                    {
-                      backgroundColor: exercise.category_colour,
-                    },
-                  ]}
-                />
+                {showCategoryMarkers && (
+                  <View
+                    style={[
+                      styles.exerciseCategoryMarker,
+                      {
+                        backgroundColor: exercise.category_colour,
+                      },
+                    ]}
+                  />
+                )}
                 <View>
                   <Text style={styles.exerciseName}>
                     {exercise.exercise_name.toUpperCase()}
@@ -141,50 +176,53 @@ const ListViewItem = memo(
               </View>
             ))}
           </View>
-          <View style={styles.categoryContainer}>
-            {workout.data
-              // Remove duplicate categories
-              .reduce(
-                (
-                  acc: { category_colour: string; category_name: string }[],
-                  cat
-                ) => {
-                  if (
-                    !acc.some(
-                      (item) => item.category_name === cat.category_name
-                    )
-                  ) {
-                    acc.push({
-                      category_colour: cat.category_colour,
-                      category_name: cat.category_name,
-                    });
-                  }
-                  return acc;
-                },
-                []
-              )
-              // Map over the reduced categories and display the category name and colour with a marker
-              .map(({ category_colour, category_name }) => (
-                <View
-                  key={`${workout.date}-${category_name}`}
-                  style={styles.categoryItem}
-                >
+          {showCategoryMarkers && (
+            <View style={styles.categoryContainer}>
+              {workout.data
+                // Remove duplicate categories
+                .reduce(
+                  (
+                    acc: { category_colour: string; category_name: string }[],
+                    cat
+                  ) => {
+                    if (
+                      !acc.some(
+                        (item) => item.category_name === cat.category_name
+                      )
+                    ) {
+                      acc.push({
+                        category_colour: cat.category_colour,
+                        category_name: cat.category_name,
+                      });
+                    }
+                    return acc;
+                  },
+                  []
+                )
+                // Map over the reduced categories and display the category name and colour with a marker
+                .map(({ category_colour, category_name }) => (
                   <View
-                    style={[
-                      styles.categoryMarker,
-                      { backgroundColor: category_colour },
-                    ]}
-                  />
-                  <Text style={{ color: category_colour }}>
-                    {category_name}
-                  </Text>
-                </View>
-              ))}
-          </View>
+                    key={`${workout.date}-${category_name}`}
+                    style={styles.categoryItem}
+                  >
+                    <View
+                      style={[
+                        styles.categoryMarker,
+                        { backgroundColor: category_colour },
+                      ]}
+                    />
+                    <Text style={{ color: category_colour }}>
+                      {category_name}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          )}
         </View>
-      </View>
+      </TouchableOpacity>
     );
-  }
+  },
+  (prevProps, nextProps) => propsAreEqual(prevProps, nextProps)
 );
 
 export default ListViewItem;

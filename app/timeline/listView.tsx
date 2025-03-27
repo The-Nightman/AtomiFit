@@ -1,14 +1,17 @@
 import { DrizzleContext } from "@/contexts/drizzleContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import * as schema from "@/database/schema";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { ListWorkout, ListWorkoutExercise } from "@/types/listView";
 import { FlatList } from "react-native-gesture-handler";
 import ListViewItem from "@/components/listItems/ListViewItem";
 import { getToday } from "@/utils/getToday";
 import { DistanceUnit, WeightUnit } from "@/types/units";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Category } from "@/types/categories";
+import { eventEmitter } from "@/utils/eventEmitter";
+import { Storage } from "expo-sqlite/kv-store";
 
 interface QueryResult {
   id: number;
@@ -26,6 +29,11 @@ interface QueryResult {
   exercise_id: number;
 }
 
+interface TimelinePreferences {
+  timelineCategoryMarkers: boolean;
+  displaySets: boolean;
+}
+
 /**
  * ListView component displays a list of workouts grouped by date.
  * It queries the database for workout data and formats it into an array of ListWorkout type.
@@ -34,11 +42,92 @@ interface QueryResult {
  * @returns {JSX.Element} The ListView component.
  */
 const ListView = (): JSX.Element => {
-  const insets = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
   const [data, setData] = useState<ListWorkout[]>([]);
+  const [filters, setFilters] = useState<Category["id"][]>([]);
+  const [preferences, setPreferences] = useState<TimelinePreferences>({
+    timelineCategoryMarkers: true,
+    displaySets: true,
+  });
   const { db } = useContext(DrizzleContext);
-
+  const listViewRef = useRef<FlatList<ListWorkout>>(null);
   const today = getToday(); // Get the current date
+
+  useEffect(() => {
+    eventEmitter.on("categoryFilterChange", (filter) => {
+      setFilters(filter);
+    });
+
+    return () => {
+      eventEmitter.off("categoryFilterChange", (filter) => {
+        setFilters(filter);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const getPrefs = async () => {
+      const savedTimelinePrefs: [string, string | null][] =
+        await Storage.multiGet(["timelineCategoryMarkers", "displaySets"]);
+
+      const prefsObj = {
+        timelineCategoryMarkers: preferences.timelineCategoryMarkers,
+        displaySets: preferences.displaySets,
+      };
+
+      for (const [key, value] of savedTimelinePrefs) {
+        prefsObj[key as keyof TimelinePreferences] = value === "true";
+      }
+
+      setPreferences({ ...prefsObj });
+    };
+
+    eventEmitter.on("timelinePreferenceChange", () => getPrefs());
+
+    return () => {
+      eventEmitter.off("timelinePreferenceChange", () => getPrefs());
+    };
+  }, []);
+  // console.log("ListView rendered", preferences.displaySets);
+  useEffect(() => {
+    const scrollToToday = () => {
+      const index = data.findIndex((item) => item.date === today);
+      if (index !== -1 && listViewRef.current) {
+        listViewRef.current.scrollToIndex({
+          index,
+          viewOffset: 8,
+          animated: true,
+        });
+      }
+    };
+
+    eventEmitter.on("calendarReturnToToday", () => scrollToToday());
+
+    return () => {
+      eventEmitter.off("calendarReturnToToday", () => scrollToToday());
+    };
+  }, [data]);
+
+  useEffect(() => {
+    const initPrefs = async () => {
+      const savedTimelinePrefs: [string, string | null][] =
+        await Storage.multiGet(["timelineCategoryMarkers", "displaySets"]);
+
+      // We dont need to directly save preferences to kv store here as we are doing that in the layout
+      const prefsObj = {
+        timelineCategoryMarkers: preferences.timelineCategoryMarkers,
+        displaySets: preferences.displaySets,
+      };
+
+      for (const [key, value] of savedTimelinePrefs) {
+        prefsObj[key as keyof TimelinePreferences] = value === "true";
+      }
+
+      setPreferences({ ...prefsObj });
+    };
+
+    initPrefs();
+  }, []);
 
   useEffect(() => {
     /**
@@ -76,7 +165,26 @@ const ListView = (): JSX.Element => {
           schema.categories,
           eq(schema.exercises.category_id, schema.categories.id)
         )
-        .orderBy(desc(schema.setsData.date));
+        .where(
+          filters.length > 0
+            ? inArray(
+                schema.setsData.date,
+                db
+                  .select({ dates: schema.setsData.date })
+                  .from(schema.setsData)
+                  .leftJoin(
+                    schema.exercises,
+                    eq(schema.setsData.exercise_id, schema.exercises.id)
+                  )
+                  .leftJoin(
+                    schema.categories,
+                    eq(schema.exercises.category_id, schema.categories.id)
+                  )
+                  .where(inArray(schema.categories.id, filters as number[]))
+              )
+            : undefined
+        )
+        .orderBy(desc(schema.setsData.date), asc(schema.setsData.id));
 
       // Process the data into the ListWorkout type grouping by date and then sub-group by exercise
       const processedData = data.reduce<ListWorkout[]>((acc, item) => {
@@ -91,38 +199,42 @@ const ListView = (): JSX.Element => {
             );
           // If date group exists, check if the exercise group exists in the date group
           if (exerciseGroup) {
-            exerciseGroup.sets.push({
-              id: item.id,
-              weight: item.weight,
-              reps: item.reps,
-              distance: item.distance,
-              time: item.time,
-              notes: item.notes,
-              weight_unit: item.weight_unit,
-              distance_unit: item.distance_unit,
-              date: item.date,
-              exercise_id: item.exercise_id,
-            });
+            if (preferences.displaySets) {
+              exerciseGroup.sets.push({
+                id: item.id,
+                weight: item.weight,
+                reps: item.reps,
+                distance: item.distance,
+                time: item.time,
+                notes: item.notes,
+                weight_unit: item.weight_unit,
+                distance_unit: item.distance_unit,
+                date: item.date,
+                exercise_id: item.exercise_id,
+              });
+            }
             // If exercise group does not exist, create a new exercise group and add the set
           } else {
             dateGroup.data.push({
               exercise_name: item.exercise_name!,
               category_name: item.category_name!,
               category_colour: item.category_colour!,
-              sets: [
-                {
-                  id: item.id,
-                  weight: item.weight,
-                  reps: item.reps,
-                  distance: item.distance,
-                  time: item.time,
-                  notes: item.notes,
-                  weight_unit: item.weight_unit,
-                  distance_unit: item.distance_unit,
-                  date: item.date,
-                  exercise_id: item.exercise_id,
-                },
-              ],
+              sets: preferences.displaySets
+                ? [
+                    {
+                      id: item.id,
+                      weight: item.weight,
+                      reps: item.reps,
+                      distance: item.distance,
+                      time: item.time,
+                      notes: item.notes,
+                      weight_unit: item.weight_unit,
+                      distance_unit: item.distance_unit,
+                      date: item.date,
+                      exercise_id: item.exercise_id,
+                    },
+                  ]
+                : [],
             });
           }
           // If date group does not exist, create a new date group and exercise group and add the set
@@ -135,21 +247,23 @@ const ListView = (): JSX.Element => {
                 exercise_name: item.exercise_name!,
                 category_name: item.category_name!,
                 category_colour: item.category_colour!,
-                sets: [
-                  // Set object
-                  {
-                    id: item.id,
-                    weight: item.weight,
-                    reps: item.reps,
-                    distance: item.distance,
-                    time: item.time,
-                    notes: item.notes,
-                    weight_unit: item.weight_unit,
-                    distance_unit: item.distance_unit,
-                    date: item.date,
-                    exercise_id: item.exercise_id,
-                  },
-                ],
+                sets: preferences.displaySets
+                  ? [
+                      // Set object
+                      {
+                        id: item.id,
+                        weight: item.weight,
+                        reps: item.reps,
+                        distance: item.distance,
+                        time: item.time,
+                        notes: item.notes,
+                        weight_unit: item.weight_unit,
+                        distance_unit: item.distance_unit,
+                        date: item.date,
+                        exercise_id: item.exercise_id,
+                      },
+                    ]
+                  : [],
               },
             ],
           });
@@ -177,7 +291,7 @@ const ListView = (): JSX.Element => {
     };
 
     fetchData();
-  }, []);
+  }, [filters, preferences.displaySets]);
 
   /**
    * Render the list item elements for the listview.
@@ -207,18 +321,25 @@ const ListView = (): JSX.Element => {
         </View>
       );
     } else {
-      return <ListViewItem workout={item} today={today} />;
+      return (
+        <ListViewItem
+          workout={item}
+          today={today}
+          showCategoryMarkers={preferences.timelineCategoryMarkers}
+        />
+      );
     }
   };
 
   return (
     <FlatList
+      ref={listViewRef}
       data={data}
       keyExtractor={(item) => item.date}
       renderItem={({ item }) => renderItem(item)}
       contentContainerStyle={{
-        paddingTop: 8,
-        paddingBottom: insets.bottom,
+        paddingTop: 16,
+        paddingBottom: bottom ? bottom : 16,
         gap: 16,
       }}
     />

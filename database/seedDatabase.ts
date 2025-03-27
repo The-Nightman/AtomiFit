@@ -676,8 +676,8 @@ export const seedDatabase = async (
       .values(processWorkoutData(workoutsTestData as unknown as Set[][]));
   }
 
-  const categories = db.select().from(schema.categories).all();
-  const exercises = db.select().from(schema.exercises).all();
+  const categories = await db.select().from(schema.categories);
+  const exercises = await db.select().from(schema.exercises);
 
   if (categories.length === 0) {
     await db.insert(schema.categories).values(categoriesData);

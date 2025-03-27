@@ -18,20 +18,28 @@ import { Theme } from "react-native-calendars/src/types";
 import { DayProps } from "react-native-calendars/src/calendar/day";
 import { dateToUTCZero } from "@/utils/dateToUTCZero";
 import { useSettings } from "@/contexts/settingsContext";
+import { Category } from "@/types/categories";
+import { Storage } from "expo-sqlite/kv-store";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+
+interface DOT {
+  key: string;
+  color: string;
+}
 
 interface CategoriesKeys {
-  [key: string]: { key: string; color: string };
+  [key: string]: DOT;
 }
 
 interface MarkedDates {
-  [key: string]: { dots: { key: string; color: string }[]; selected: boolean };
+  [key: string]: { dots: DOT[]; selected: boolean };
 }
 
 interface SelectedDate {
   [key: string]: {
     selected: boolean;
     selectedColor: string;
-    dots: { key: string; color: string }[] | undefined;
+    dots: DOT[];
   };
 }
 
@@ -56,20 +64,64 @@ const Calendar = (): JSX.Element => {
   });
   const [categoriesKeys, setCategoriesKeys] = useState<CategoriesKeys>({});
   const [workouts, setWorkouts] = useState<MarkedDates>({});
+  const [filters, setFilters] = useState<Category["id"][]>([]);
+  // We only intend on implementing this single preference in this screen
+  // but in order to future proof incase that changes we'll use an object
+  const [preferences, setPreferences] = useState<{
+    timelineCategoryMarkers: boolean;
+  }>({
+    timelineCategoryMarkers: true,
+  });
   const calendarRef = useRef<CalendarListImperativeMethods>(null);
   const { db } = useContext(DrizzleContext);
   const { appSettings } = useSettings();
 
   useEffect(() => {
-    eventEmitter.on("calendarReturnToToday", () => {
+    eventEmitter.on("categoryFilterChange", (filter) => {
+      setFilters(filter);
+    });
+
+    return () => {
+      eventEmitter.off("categoryFilterChange", (filter) => {
+        setFilters(filter);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const getPrefs = async () => {
+      // We only intend on implementing this single preference in this screen
+      const savedTimelinePrefs: string | null = await Storage.getItem(
+        "timelineCategoryMarkers"
+      );
+
+      setPreferences({
+        timelineCategoryMarkers: savedTimelinePrefs === "true",
+      });
+    };
+
+    eventEmitter.on("timelinePreferenceChange", () => getPrefs());
+
+    return () => {
+      eventEmitter.off("timelinePreferenceChange", () => getPrefs());
+    };
+  }, []);
+
+  useEffect(() => {
+    // Function to handle returning to the current day when the event is emitted
+    // If there are logged workouts for today, select the day from the marked dates
+    // and copy the dots array to the selected date.
+    const returnToToday = () => {
+      const today = dateToUTCZero(new Date(getToday()))
+        .toISOString()
+        .split("T")[0];
       setSelectedDate(() => {
-        const today = dateToUTCZero(new Date(getToday())).toISOString().split("T")[0]
         if (workouts[today]) {
           return {
             [today]: {
               selected: true,
               selectedColor: "#60DD49",
-              dots: workouts[today].dots,
+              dots: workouts[today].dots || [],
             },
           };
         }
@@ -82,32 +134,35 @@ const Calendar = (): JSX.Element => {
         };
       });
       calendarRef.current?.scrollToMonth(getToday());
-    });
+    };
+
+    eventEmitter.on("calendarReturnToToday", () => returnToToday());
 
     return () => {
-      eventEmitter.off("calendarReturnToToday", () => {
-        setSelectedDate(() => {
-          const today = dateToUTCZero(new Date(getToday())).toISOString().split("T")[0]
-          if (workouts[today]) {
-            return {
-              [today]: {
-                selected: true,
-                selectedColor: "#60DD49",
-                dots: workouts[today].dots,
-              },
-            };
-          }
-          return {
-            [today]: {
-              selected: true,
-              selectedColor: "#60DD49",
-              dots: [],
-            },
-          };
-        });
-        calendarRef.current?.scrollToMonth(getToday());
-      });
+      eventEmitter.off("calendarReturnToToday", () => returnToToday());
     };
+  }, [JSON.stringify(workouts)]);
+
+  useEffect(() => {
+    const initPrefs = async () => {
+      // We only intend on implementing this single preference in this screen
+      const savedTimelinePrefs: string | null = await Storage.getItem(
+        "timelineCategoryMarkers"
+      );
+
+      // We dont need to directly save preferences to kv store here as we are doing that in the layout
+      if (savedTimelinePrefs === null) {
+        setPreferences({
+          timelineCategoryMarkers: true,
+        });
+      } else {
+        setPreferences({
+          timelineCategoryMarkers: savedTimelinePrefs === "true",
+        });
+      }
+    };
+
+    initPrefs();
   }, []);
 
   useEffect(() => {
@@ -115,8 +170,13 @@ const Calendar = (): JSX.Element => {
       const categories: { id: number; name: string; colour: string }[] =
         await db.select().from(schema.categories);
 
-      const categoriesMarkingVariants = categories.reduce<CategoriesKeys>(
-        (acc, category) => {
+      const filteredCategories = categories.filter((category) => {
+        if (filters.length === 0) return true;
+        return filters.includes(category.id);
+      });
+
+      const categoriesMarkingVariants =
+        filteredCategories.reduce<CategoriesKeys>((acc, category) => {
           if (!acc[category.name]) {
             acc[category.name] = {
               key: category.name,
@@ -125,14 +185,12 @@ const Calendar = (): JSX.Element => {
           }
 
           return acc;
-        },
-        {}
-      );
+        }, {});
 
       setCategoriesKeys(categoriesMarkingVariants);
     };
     getCategories();
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const getWorkouts = async () => {
@@ -157,6 +215,10 @@ const Calendar = (): JSX.Element => {
           .toISOString()
           .split("T")[0];
 
+        if (!categoriesKeys[workout.category_name!]) {
+          return acc;
+        }
+
         if (!acc[date]) {
           acc[date] = {
             dots: [categoriesKeys[workout.category_name!]],
@@ -177,25 +239,36 @@ const Calendar = (): JSX.Element => {
         return acc;
       }, {});
 
-      // If there are logged workouts for today, select the day from
-      // the marked dates and copy the dots array to the selected date.
-      const today = dateToUTCZero(new Date(getToday()))
-        .toISOString()
-        .split("T")[0];
-
-      if (markedDates[today] && selectedDate[today]) {
+      const selectedDateKey = Object.keys(selectedDate)[0];
+      // We need to check if the selected date has any saved workouts, if it does
+      // we need to copy them over to guarantee the correct rendering of the dots.
+      if (markedDates[selectedDateKey]) {
         setSelectedDate({
-          [today]: {
+          [selectedDateKey]: {
             selected: true,
             selectedColor: "#60DD49",
-            dots: markedDates[today].dots,
+            dots: markedDates[selectedDateKey].dots,
+          },
+        });
+      }
+      // Else if the selected date has no saved workouts, i.e. the user has set
+      // filter options then we need to remove the stale data
+      else if (
+        !markedDates[selectedDateKey] &&
+        selectedDate[selectedDateKey].dots.length > 0
+      ) {
+        setSelectedDate({
+          [selectedDateKey]: {
+            selected: true,
+            selectedColor: "#60DD49",
+            dots: [],
           },
         });
       }
       setWorkouts(markedDates);
     };
     getWorkouts();
-  }, [categoriesKeys]);
+  }, [JSON.stringify(categoriesKeys)]);
 
   /**
    * Handles the event when a day is pressed in the calendar.
@@ -211,6 +284,17 @@ const Calendar = (): JSX.Element => {
         dots: workouts[day.dateString]?.dots,
       },
     });
+
+    // We need to convert the date to a localised ISO string to ensure the correct date is passed
+    // to the workout preview modal so we can query the correct data. Unfortunately, the calendar
+    // only handles YYYY-MM-DD strings so we have to add the timezone offset back to it.
+    // Thanks Wix...
+    const localisedIsoString = new Date(
+      new Date(day.dateString).getTime() +
+        new Date(day.dateString).getTimezoneOffset() * 60000
+    ).toISOString();
+
+    eventEmitter.emit("openWorkoutPreviewModal", localisedIsoString);
   };
 
   // Custom theme for the calendar, styles used in CustomDay component are set in the stylesheet
@@ -235,7 +319,13 @@ const Calendar = (): JSX.Element => {
       onDayPress={(day) => onDayPress(day)}
       markedDates={{ ...workouts, ...selectedDate }}
       markingType="custom"
-      dayComponent={(props) => <CustomDay {...props} theme={theme} />}
+      dayComponent={(props) =>
+        preferences.timelineCategoryMarkers ? (
+          <CustomDayDotMarks {...props} theme={theme} />
+        ) : (
+          <CustomDayNoDots {...props} theme={theme} />
+        )
+      }
       theme={theme}
       firstDay={appSettings?.calendarWeekStart}
     />
@@ -243,7 +333,7 @@ const Calendar = (): JSX.Element => {
 };
 
 /**
- * CustomDay component renders a calendar day with optional markings and styles.
+ * CustomDayDotMarks component renders a calendar day with multi-dot markings and styles.
  * The component has custom rendering for multi-dot markings with a function for dynamic
  * size handling for the wrapping of long lists of dot indicators.
  *
@@ -253,12 +343,12 @@ const Calendar = (): JSX.Element => {
  * @param {MarkingProps | undefined} props.marking - The marking object containing selected state, color, and dots.
  * @param {boolean} props.marking.selected - Indicates if the day is selected.
  * @param {string} props.marking.selectedColor - The color for the selected day.
- * @param {DOT[]} props.marking.dots - An array of dot objects to display below the day.
+ * @param {DOT[]} props.marking.dots - An array of dot objects to display below the day for the categories selected.
  * @param {((date?: DateData) => void) | undefined} props.onPress - The function to call when the day is pressed.
  *
- * @returns {JSX.Element} The rendered CustomDay component.
+ * @returns {JSX.Element} The rendered CustomDayDotMarks component.
  */
-const CustomDay = ({
+const CustomDayDotMarks = ({
   date,
   state,
   marking,
@@ -329,6 +419,70 @@ const CustomDay = ({
           ))}
         </View>
       )}
+    </TouchableOpacity>
+  );
+};
+
+/**
+ * CustomDayNoDots component renders a calendar day with styles and a plain border marking rather than category dots.
+ *
+ * @param {DayProps & { date?: DateData; }} props - The properties object.
+ * @param {DateData} props.date - The date data object for the day.
+ * @param {DayState} props.state - The day state (e.g., "selected" | "today" | "disabled").
+ * @param {MarkingProps | undefined} props.marking - The marking object containing selected state, color, and dots.
+ * @param {boolean} props.marking.selected - Indicates if the day is selected.
+ * @param {string} props.marking.selectedColor - The color for the selected day.
+ * @param {DOT[]} props.marking.dots - An array of dot objects for the categories selected to display the marking for.
+ * @param {((date?: DateData) => void) | undefined} props.onPress - The function to call when the day is pressed.
+ *
+ * @returns {JSX.Element} The rendered CustomDayNoDots component.
+ */
+const CustomDayNoDots = ({
+  date,
+  state,
+  marking,
+  onPress,
+  theme,
+}: DayProps & {
+  date?: DateData;
+  theme?: Theme;
+}): JSX.Element => {
+  // Even though we do not use the dots, our filter logic allows us to still leverage the
+  // dots prop to determine if a day has a workout saved or not depending on the filters.
+  const { selected, selectedColor, dots } = marking || {};
+  const isToday = state === "today";
+
+  return (
+    <TouchableOpacity
+      // This will match the accessibility label of the default day component
+      accessibilityLabel={`${new Date(date!.dateString).toLocaleDateString(
+        undefined,
+        {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }
+      )} ${dots?.length ? "workout saved" : ""}`}
+      onPress={() => onPress && onPress(date)}
+      style={[
+        styles.dayContainer,
+        selected && { backgroundColor: selectedColor || "#00BBF2" }, // Default value as a fallback option
+        dots && dots.length > 0 && { borderWidth: 1, borderColor: "#60DD49" },
+      ]}
+    >
+      <Text
+        allowFontScaling={false}
+        style={[
+          styles.dayText,
+          isToday && { color: theme?.todayTextColor || "#00BBF2" }, // Default value as a fallback option
+          selected && {
+            color: theme?.selectedDayTextColor || "white", // Default value as a fallback option
+          },
+        ]}
+      >
+        {date?.day}
+      </Text>
     </TouchableOpacity>
   );
 };
