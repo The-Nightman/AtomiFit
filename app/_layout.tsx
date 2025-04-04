@@ -23,6 +23,7 @@ import {
   createNotificationChannel,
   createNotificationCategories,
 } from "@/utils/notifications/setupNotifications";
+import RestTimerButton from "@/components/restTimer/RestTimerButton";
 
 const APP_VERSION = version;
 
@@ -170,6 +171,7 @@ const RootLayoutNav = () => {
           */}
             <View>
               <NotesModal />
+              <RestTimerButton />
             </View>
           </GestureHandlerRootView>
         </TimerProvider>
