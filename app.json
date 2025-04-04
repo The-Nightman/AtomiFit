@@ -34,7 +34,15 @@
       "expo-video",
       "expo-font",
       "expo-sqlite",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notifIcon.png",
+          "defaultChannel": "atomifitTimerChannel",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
