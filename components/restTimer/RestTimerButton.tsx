@@ -3,6 +3,8 @@ import { Entypo } from "@expo/vector-icons";
 import { getContrastTextColour } from "@/utils/getContrastTextColour";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useTimer } from "@/contexts/timerContext";
+import { usePathname } from "expo-router";
+import { useMemo } from "react";
 
 /**
  * RestTimerButton Component
@@ -32,14 +34,25 @@ import { useTimer } from "@/contexts/timerContext";
  * ```
  */
 const RestTimerButton = (): JSX.Element => {
+  const [path] = usePathname().match(/^(\/\w+)/) ?? ["/"];
   const { startTimer, pauseTimer, cancelTimer, timerState } = useTimer();
+
+  const blacklistedPaths = useMemo(
+    () => [
+      "/welcome",
+      "/exercises", //! the exercises screen, not exercise screen, the other way around harms UX
+      "/settings",
+      "/analytics",
+    ],
+    []
+  );
 
   /**
    * Formats the given time in seconds into a string representation of minutes, and seconds.
-   * 
+   *
    * @remarks This function is identical to the formatTime function in utils/formatTime.ts
    * However, this function has been extrapolated use in the RestTimerButton component as
-   * the function of calculating and representing hours is not needed in this case, 
+   * the function of calculating and representing hours is not needed in this case,
    * and to prevent any unexpected behaviour using str.Slice() is not appropriate.
    *
    * @param {number} seconds - The time in seconds to format.
@@ -51,6 +64,10 @@ const RestTimerButton = (): JSX.Element => {
 
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
+
+  if (blacklistedPaths.includes(path)) {
+    return <></>;
+  }
 
   return (
     <View style={styles.container}>
