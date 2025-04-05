@@ -12,10 +12,20 @@ import {
 } from "react-native";
 import Animated, {
   AnimatedProps,
+  EntryAnimationsValues,
+  ExitAnimationsValues,
   FadeIn,
   FadeOutUp,
   LinearTransition,
+  SharedValue,
+  useSharedValue,
+  withDelay,
+  withTiming,
 } from "react-native-reanimated";
+
+const ANIM_DELAY = 0;
+const ANIM_DURATION = 200;
+const ANIM_DISTANCE = 80;
 
 /**
  * A functional component that renders a timer interface screen with play, pause, resume, and cancel functionalities.
@@ -61,6 +71,93 @@ const timer = (): JSX.Element => {
     const secs = seconds % 60;
 
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  /**
+   * A collection of shared value that tracks whether the respective elements are mounted.
+   *
+   * @remarks This is used to determine if the component should animate on mount.
+   * These are intended to be used with custom animations and as such changes should
+   * ideally be tracked via key props.
+   */
+  const isMinutesMounted = useSharedValue(false);
+  const isTenMinutesMounted = useSharedValue(false);
+  const isSecondsMounted = useSharedValue(false);
+  const isTenSecondsMounted = useSharedValue(false);
+
+  /**
+   * Custom entry animation function.
+   * 
+   * @remarks The function takes a shared value indicating whether it is the first render.
+   * The `values` object is passed to the function via the `react-native-reanimated` element `entering` prop.
+   * The function returns an object with `initialValues` and `animations`:
+   * - `initialValues`: The starting values for the animation.
+   * - `animations`: The animation configurations to transition to the target values.
+   * If it is the first render, the function initializes `isFirstRender` to `true` and returns empty
+   * animation configurations. Otherwise, it calculates the animation for the `originY` property
+   * with a delay and a timing function.
+   * 
+   * *sourced from: rgommezz/react-native-reanimated-stopwatch-timer
+   *
+   * @param {SharedValue<boolean>} isFirstRender - A shared value indicating whether it is the first render.
+   * @returns An object containing entry animation values and configurations.
+   */
+  const createEntering =
+    (isFirstRender: SharedValue<boolean>) =>
+    (values: EntryAnimationsValues) => {
+      "worklet";
+
+      if (!isFirstRender.value) {
+        isFirstRender.value = true;
+        return { initialValues: {}, animations: {} };
+      }
+
+      const animations = {
+        originY: withDelay(
+          ANIM_DELAY,
+          withTiming(values.targetOriginY, {
+            duration: ANIM_DURATION,
+          })
+        ),
+      };
+
+      const enterDirection = -1;
+      const initialValues = {
+        originY: values.targetOriginY + ANIM_DISTANCE * enterDirection,
+      };
+
+      return { initialValues, animations };
+    };
+
+  /**
+   * Custom exit animation function.
+   *
+   * @remarks This function recieves the `values` object from the `react-native-reanimated` exiting prop.
+   * The function returns an object with `initialValues` and `animations`:
+   * - `initialValues`: The starting values for the animation.
+   * - `animations`: The animation configurations to transition to the target values.
+   * The function uses these values and configurations to animate elements in the antagonistic direction
+   * to the entry animation function creating a scrolling effect in the specified direction.
+   * 
+   * @param {ExitAnimationsValues} values - An object containing exit animation values from the exiting prop.
+   * @returns An object containing exit animation values and configurations.
+   */
+  const createExiting = (values: ExitAnimationsValues) => {
+    "worklet";
+    const exitDirection = 1;
+    const animations = {
+      originY: withTiming(
+        values.currentOriginY + ANIM_DISTANCE * exitDirection,
+        {
+          duration: ANIM_DURATION,
+        }
+      ),
+    };
+
+    const initialValues = {
+      originY: values.currentOriginY,
+    };
+    return { initialValues, animations };
   };
 
   return (
@@ -109,14 +206,65 @@ const timer = (): JSX.Element => {
                 );
             }}
           </Pressable>
-          <Text
-            maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
-            style={styles.timerTime}
-          >
-            {formatRestTime(
-              timerState.active ? timerState.time : timerState.selectedTime
-            )}
-          </Text>
+          {timerState.time === 0 ? (
+            <Animated.Text
+              key={"timeInactive"}
+              entering={createEntering(isMinutesMounted)}
+              exiting={createExiting}
+              maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
+              style={styles.timerTime}
+            >
+              {formatRestTime(
+                timerState.active ? timerState.time : timerState.selectedTime
+              )}
+            </Animated.Text>
+          ) : (
+            <View style={{ flexDirection: "row" }}>
+              <Animated.Text
+                key={`tenMinutes-${formatRestTime(timerState.time).slice(
+                  0,
+                  1
+                )}`}
+                entering={createEntering(isTenMinutesMounted)}
+                exiting={createExiting}
+                maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
+                style={styles.timerTime}
+              >
+                {formatRestTime(timerState.time).slice(0, 1)}
+              </Animated.Text>
+              <Animated.Text
+                key={`minutes-${formatRestTime(timerState.time).slice(1, 2)}`}
+                entering={createEntering(isMinutesMounted)}
+                exiting={createExiting}
+                maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
+                style={styles.timerTime}
+              >
+                {formatRestTime(timerState.time).slice(1, 2)}
+              </Animated.Text>
+              <Text style={styles.timerTime}>:</Text>
+              <Animated.Text
+                key={`tenSeconds-${formatRestTime(timerState.time).slice(
+                  -2,
+                  -1
+                )}`}
+                entering={createEntering(isTenSecondsMounted)}
+                exiting={createExiting}
+                maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
+                style={styles.timerTime}
+              >
+                {formatRestTime(timerState.time).slice(-2, -1)}
+              </Animated.Text>
+              <Animated.Text
+                key={`seconds-${timerState.time}`}
+                entering={createEntering(isSecondsMounted)}
+                exiting={createExiting}
+                maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
+                style={styles.timerTime}
+              >
+                {formatRestTime(timerState.time).slice(-1)}
+              </Animated.Text>
+            </View>
+          )}
         </View>
         <View style={styles.controlsContainer}>
           {timerState.active !== false && (
@@ -166,10 +314,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timerContainer: {
-    minWidth: "80%",
     flexDirection: "row",
+    minWidth: "80%",
     alignItems: "center",
     justifyContent: "space-evenly",
+    overflow: "hidden",
     gap: 4,
     padding: 10,
     borderRadius: 3000,
