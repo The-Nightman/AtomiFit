@@ -1,10 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { getContrastTextColour } from "@/utils/getContrastTextColour";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useTimer } from "@/contexts/timerContext";
 import { router, usePathname } from "expo-router";
 import { useMemo } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, {
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 /**
  * RestTimerButton Component
@@ -35,7 +40,21 @@ import { useMemo } from "react";
  */
 const RestTimerButton = (): JSX.Element => {
   const [path] = usePathname().match(/^(\/\w+)/) ?? ["/"];
-  const { startTimer, pauseTimer, cancelTimer, timerState } = useTimer();
+  const insets = useSafeAreaInsets();
+  const { timerState } = useTimer();
+  //! DO NOT destructure the value, it will break the animation
+  const keyboardOffset = useAnimatedKeyboard({
+    isStatusBarTranslucentAndroid: true,
+  });
+
+  /**
+   * Animated style that mimics keyboard-aware behavior.
+   *
+   * @remarks This is specifically for use with `position: absolute` elements
+   */
+  const animatedKeyboardAware = useAnimatedStyle(() => ({
+    bottom: insets.bottom + keyboardOffset.height.value,
+  }));
 
   const blacklistedPaths = useMemo(
     () => [
@@ -71,7 +90,7 @@ const RestTimerButton = (): JSX.Element => {
   }
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, animatedKeyboardAware]}>
       <Pressable
         style={({ pressed }) => [
           styles.button,
@@ -88,13 +107,13 @@ const RestTimerButton = (): JSX.Element => {
           size={16}
           color={getContrastTextColour("#60DD49")}
         />
-        <Text>
+        <Text style={styles.buttonText}>
           {formatRestTime(
             timerState.active ? timerState.time : timerState.selectedTime
           )}
         </Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -105,9 +124,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    bottom: 0,
     left: 0,
-    width: "35%",
+    minWidth: "35%",
     height: 60,
   },
   button: {
@@ -120,5 +138,10 @@ const styles = StyleSheet.create({
     borderRadius: 3000,
     borderWidth: 0.5,
     borderColor: hexcodeLuminosity("#60DD49", -50),
+  },
+  buttonText: {
+    color: getContrastTextColour("#60DD49"),
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
