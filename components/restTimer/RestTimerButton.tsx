@@ -3,7 +3,7 @@ import { Entypo } from "@expo/vector-icons";
 import { getContrastTextColour } from "@/utils/getContrastTextColour";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
 import { useTimer } from "@/contexts/timerContext";
-import { usePathname } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { useMemo } from "react";
 
 /**
@@ -43,6 +43,7 @@ const RestTimerButton = (): JSX.Element => {
       "/exercises", //! the exercises screen, not exercise screen, the other way around harms UX
       "/settings",
       "/analytics",
+      "/restTimer", // Ironic i know, bit reduntant to have it here though don't you think?
     ],
     []
   );
@@ -76,11 +77,11 @@ const RestTimerButton = (): JSX.Element => {
           styles.button,
           {
             backgroundColor: pressed
-              ? hexcodeLuminosity("#60DD49", -30)
+              ? hexcodeLuminosity("#60DD49", -60)
               : "#60DD49",
           },
         ]}
-        onPress={() => startTimer()}
+        onPress={() => router.push("/restTimer")}
       >
         <Entypo
           name="stopwatch"
@@ -118,6 +119,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 3000,
     borderWidth: 0.5,
-    borderColor: hexcodeLuminosity("#60DD49", -40),
+    borderColor: hexcodeLuminosity("#60DD49", -50),
   },
 });
