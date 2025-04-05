@@ -56,7 +56,8 @@
     "react-native-web": "~0.19.13",
     "reanimated-color-picker": "^3.0.6",
     "expo-notifications": "~0.29.14",
-    "expo-device": "~7.0.3"
+    "expo-device": "~7.0.3",
+    "expo-blur": "~14.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
