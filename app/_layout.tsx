@@ -163,6 +163,16 @@ const RootLayoutNav = () => {
                 name="exercise/[exerciseId]"
                 options={{ gestureEnabled: true }}
               />
+              <Stack.Screen
+                name="restTimer"
+                options={{
+                  contentStyle: { backgroundColor: "transparent" },
+                  gestureEnabled: true,
+                  presentation: "containedTransparentModal",
+                  animation:
+                    Platform.OS === "android" ? "fade_from_bottom" : "default",
+                }}
+              />
             </Stack>
             {/* 
             This does look misplaced and kind of hacky but the notes modal is used across the app,
