@@ -24,6 +24,8 @@ import {
   createNotificationCategories,
 } from "@/utils/notifications/setupNotifications";
 import RestTimerButton from "@/components/restTimer/RestTimerButton";
+import * as NavigationBar from "expo-navigation-bar";
+import * as SystemUI from "expo-system-ui";
 
 const APP_VERSION = version;
 
@@ -99,6 +101,28 @@ const RootLayoutNav = () => {
 
   // Prevent the splash screen from auto-hiding so we can manually control it while the app is loading
   SplashScreen.preventAutoHideAsync();
+
+  useEffect(() => {
+    
+    /**
+     * Sets the UI theme by configuring the background colors for the system UI and navigation bar.
+     * 
+     * @remarks This function mostly affects android and any difference on iOS is either negligible or
+     * non-existent. The function sets the system UI background color to match the app's theme and
+     * prevent the white flashing that occurs when navigating between screens on android.
+     * The function also sets the background color of the navigation bar to transparent to allow for
+     * a seamless transition between the app and the system UI.
+     * 
+     * @async
+     * @returns {Promise<void>} A promise that resolves once the background colors are set.
+     */
+    const setUITheme = async (): Promise<void> => {
+      await SystemUI.setBackgroundColorAsync("#0F0F0F");
+      await NavigationBar.setBackgroundColorAsync("transparent");
+    };
+
+    setUITheme();
+  }, []);
 
   useEffect(() => {
     // For testing purposes we want to make sure we land on the welcome screen so we clear the stored version
