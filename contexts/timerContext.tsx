@@ -18,6 +18,7 @@ interface TimerContextProps {
   pauseTimer: () => void;
   resumeTimer: () => void;
   cancelTimer: () => void;
+  setTimer: (time: number) => void;
   timerState: TimerState;
 }
 
@@ -45,7 +46,7 @@ export const TimerContext: React.Context<TimerContextProps | null> =
  * Reducer function to manage the dispatch of the timer state.
  *
  * Action Types:
- * - `"SET_SELECTED_TIME"`: Updates the `selectedTime` property in the state with the provided payload.
+ * - `"SET_SELECTED_TIME"`: Updates the `selectedTime` property in the state with the provided payload parsed to a fixed range.
  * - `"SET_ACTIVE"`: Sets the `time` to the `selectedTime` and updates the `active` property with the provided payload.
  * - `"DECREMENT_TIME"`: Decreases the `time` property by 1.
  * - `"SET_PAUSED"`: Sets the `active` property to `"paused"`.
@@ -60,7 +61,9 @@ export const TimerContext: React.Context<TimerContextProps | null> =
 const reducer = (state: TimerState, action: TimerDispatch): TimerState => {
   switch (action.type) {
     case "SET_SELECTED_TIME": {
-      return { ...state, selectedTime: action.payload };
+      // 1 second to 90 minutes, this lets users use the rest timer as an interval timer. Not intended but yay for versatility
+      const fixedRangeTime = Math.min(Math.max(action.payload, 1), 5400);
+      return { ...state, selectedTime: fixedRangeTime };
     }
     case "SET_ACTIVE": {
       return { ...state, time: state.selectedTime, active: action.payload };
@@ -304,6 +307,16 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
   };
 
   /**
+   * Updates the timer state with the specified time.
+   *
+   * @param {number} time - The new time value to set, in seconds.
+   * @returns {void}
+   */
+  const setTimer = (time: number): void => {
+    dispatchTimerState({ type: "SET_SELECTED_TIME", payload: time });
+  };
+
+  /**
    * Initializes or resets the timer interval.
    *
    * @private This function is specific to the TimerContext and should not be used outside of it.
@@ -384,6 +397,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         pauseTimer,
         resumeTimer,
         cancelTimer,
+        setTimer,
         timerState,
       }}
     >
