@@ -1,8 +1,12 @@
 import { useTimer } from "@/contexts/timerContext";
 import { getContrastTextColour } from "@/utils/getContrastTextColour";
 import { hexcodeLuminosity } from "@/utils/hexcodeLuminosity";
-import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useMemo } from "react";
+import {
+  Entypo,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { useMemo, useRef, useState } from "react";
 import {
   Pressable,
   PressableProps,
@@ -10,11 +14,13 @@ import {
   Text,
   View,
 } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
 import Animated, {
   AnimatedProps,
   EntryAnimationsValues,
   ExitAnimationsValues,
   FadeIn,
+  FadeOut,
   FadeOutUp,
   LinearTransition,
   SharedValue,
@@ -28,7 +34,7 @@ const ANIM_DURATION = 200;
 const ANIM_DISTANCE = 80;
 
 /**
- * A functional component that renders a timer interface screen with play, pause, resume, and cancel functionalities.
+ * A functional component that renders a timer interface screen with play, pause, resume, edit, and cancel functionalities.
  *
  * @remarks
  * This component utilizes the `useTimer` hook to manage timer states and actions. It includes
@@ -36,12 +42,24 @@ const ANIM_DISTANCE = 80;
  * formatted display of the remaining time. The component also provides additional buttons
  * for canceling the timer or editing the timer settings, which are conditionally rendered
  * based on the timer's state.
+ * The edit controls allow the user to adjust the timer value in increments of 10 seconds or
+ * directly set a time in seconds with a text input. Upon pressing the edit button, the timer
+ * is canceled if paused, and the edit controls are displayed. If the play/pause button is pressed,
+ * the edit controls are hidden, and the timer starts accordingly.
  *
  * @returns {JSX.Element} The rendered timer screen.
  */
 const timer = (): JSX.Element => {
-  const { timerState, startTimer, pauseTimer, resumeTimer, cancelTimer } =
-    useTimer();
+  const [editState, setEditState] = useState<boolean>(false);
+  const editInputRef = useRef<TextInput>(null);
+  const {
+    timerState,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    cancelTimer,
+    setTimer,
+  } = useTimer();
 
   /**
    * An animated version of the `Pressable` component.
@@ -87,7 +105,7 @@ const timer = (): JSX.Element => {
 
   /**
    * Custom entry animation function.
-   * 
+   *
    * @remarks The function takes a shared value indicating whether it is the first render.
    * The `values` object is passed to the function via the `react-native-reanimated` element `entering` prop.
    * The function returns an object with `initialValues` and `animations`:
@@ -96,7 +114,7 @@ const timer = (): JSX.Element => {
    * If it is the first render, the function initializes `isFirstRender` to `true` and returns empty
    * animation configurations. Otherwise, it calculates the animation for the `originY` property
    * with a delay and a timing function.
-   * 
+   *
    * *sourced from: rgommezz/react-native-reanimated-stopwatch-timer
    *
    * @param {SharedValue<boolean>} isFirstRender - A shared value indicating whether it is the first render.
@@ -138,7 +156,9 @@ const timer = (): JSX.Element => {
    * - `animations`: The animation configurations to transition to the target values.
    * The function uses these values and configurations to animate elements in the antagonistic direction
    * to the entry animation function creating a scrolling effect in the specified direction.
-   * 
+   *
+   * *sourced from: rgommezz/react-native-reanimated-stopwatch-timer
+   *
    * @param {ExitAnimationsValues} values - An object containing exit animation values from the exiting prop.
    * @returns An object containing exit animation values and configurations.
    */
@@ -161,12 +181,23 @@ const timer = (): JSX.Element => {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      onTouchStart={() => {
+        if (editInputRef.current) editInputRef.current.blur();
+      }}
+    >
       <View style={styles.relativeContainer}>
-        <View style={styles.timerContainer}>
-          <Pressable
+        <Animated.View
+          layout={LinearTransition}
+          style={styles.timerContainer}
+          onTouchStart={(e) => e.stopPropagation()} // This will prevent the touch event from the parent firing in children without interfering with child pressables
+        >
+          <AnimatedPressable
+            layout={LinearTransition}
             style={styles.playPauseButton}
             onPress={() => {
+              setEditState(false);
               if (timerState.active === false) {
                 startTimer();
                 return;
@@ -205,14 +236,41 @@ const timer = (): JSX.Element => {
                   />
                 );
             }}
-          </Pressable>
-          {timerState.time === 0 ? (
+          </AnimatedPressable>
+          {editState && timerState.active === false ? (
+            <TextInput
+              style={[styles.timerTime, { padding: 0 }]}
+              keyboardType="numeric"
+              value={String(timerState.selectedTime)}
+              onChangeText={(text) => {
+                if (!text) setTimer(1);
+                const value = parseInt(text);
+                if (isNaN(value)) return;
+                setTimer(value);
+              }}
+              onFocus={() => {
+                if (editInputRef.current) {
+                  editInputRef.current.setSelection(
+                    0,
+                    String(timerState.selectedTime).length
+                  );
+                }
+              }}
+              ref={editInputRef}
+            />
+          ) : timerState.active === false ? (
             <Animated.Text
               key={"timeInactive"}
-              entering={createEntering(isMinutesMounted)}
-              exiting={createExiting}
+              // Consider this as being one step behind, this prevents the animation from firing when switching between edit and non-edit mode
+              {...(editState
+                ? {
+                    entering: createEntering(isMinutesMounted),
+                    exiting: createExiting,
+                  }
+                : {})}
               maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
               style={styles.timerTime}
+              ref={editInputRef}
             >
               {formatRestTime(
                 timerState.active ? timerState.time : timerState.selectedTime
@@ -265,8 +323,64 @@ const timer = (): JSX.Element => {
               </Animated.Text>
             </View>
           )}
-        </View>
-        <View style={styles.controlsContainer}>
+        </Animated.View>
+        {editState && (
+          <Animated.View
+            entering={FadeIn}
+            exiting={FadeOut}
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                minWidth: "60%",
+                gap: 4,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 16,
+                  justifyContent: "space-evenly",
+                  alignItems: "center",
+                }}
+              >
+                <Pressable
+                  style={{
+                    backgroundColor: "#60DD49",
+                    borderRadius: 4,
+                    padding: 6,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                  onPress={() => setTimer(timerState.selectedTime - 10)}
+                >
+                  <MaterialIcons name="remove" size={38} color={"#0F0F0F"} />
+                </Pressable>
+                <MaterialIcons name="timer-10" size={38} color={"#60DD49"} />
+                <Pressable
+                  style={{
+                    backgroundColor: "#60DD49",
+                    borderRadius: 4,
+                    padding: 6,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                  onPress={() => setTimer(timerState.selectedTime + 10)}
+                >
+                  <MaterialIcons name="add" size={38} color={"#0F0F0F"} />
+                </Pressable>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+        <Animated.View
+          layout={LinearTransition}
+          style={styles.controlsContainer}
+        >
           {timerState.active !== false && (
             <AnimatedPressable
               entering={FadeIn}
@@ -285,17 +399,22 @@ const timer = (): JSX.Element => {
               exiting={FadeOutUp}
               layout={LinearTransition}
               style={styles.editButton}
-              onPress={() => {}}
+              onPress={() => {
+                cancelTimer();
+                setEditState(!editState);
+              }}
             >
               <MaterialCommunityIcons
                 name="clock-edit-outline"
                 size={32}
                 color={"deepskyblue"}
               />
-              <Text style={styles.editText}>EDIT</Text>
+              <Text style={styles.editText}>
+                {editState ? "HIDE CONTROLS" : "EDIT"}
+              </Text>
             </AnimatedPressable>
           )}
-        </View>
+        </Animated.View>
       </View>
     </View>
   );
@@ -312,6 +431,7 @@ const styles = StyleSheet.create({
     position: "relative",
     width: "100%",
     alignItems: "center",
+    gap: 8,
   },
   timerContainer: {
     flexDirection: "row",
@@ -353,6 +473,7 @@ const styles = StyleSheet.create({
   },
   cancelText: { color: "red", fontSize: 20, fontWeight: "bold" },
   editButton: {
+    overflow: "hidden",
     flexDirection: "row",
     padding: 6,
     alignItems: "center",
