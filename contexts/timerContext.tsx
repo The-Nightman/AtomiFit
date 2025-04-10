@@ -4,10 +4,13 @@ import {
   useEffect,
   useReducer,
   useRef,
+  useState,
 } from "react";
 import { Storage } from "expo-sqlite/kv-store";
 import { Platform, Vibration } from "react-native";
 import * as Notifications from "expo-notifications";
+import { Sound } from "expo-av/build/Audio";
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 
 interface TimerProviderProps {
   children: React.ReactNode;
@@ -98,6 +101,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
     time: 60,
     active: false,
   });
+  const [sound, setSound] = useState<Sound | null>(null);
   const notificationId = useRef<string | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -122,6 +126,21 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         type: "SET_SELECTED_TIME",
         payload: parsedValue,
       });
+
+      // Load the sound file for the alarm, we will be changing this to allow for options
+      const { sound } = await Audio.Sound.createAsync(
+        require("../assets/audio/alarm1.wav")
+      );
+
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false, // This may need to change when we run the timer in the background
+        interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+        shouldDuckAndroid: false,
+      });
+
+      setSound(sound);
     };
 
     setup();
@@ -164,6 +183,15 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
     };
   }, []);
 
+  // We need to unload the sound when the context unmounts to prevent memory leaks
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
   useEffect(() => {
     Storage.setItemSync(
       "restTimerSelectedTime",
@@ -176,6 +204,61 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
     if (!timerIntervalRef.current) {
       return;
     }
+
+    /**
+     * Handles the audio playback when the timer reaches zero.
+     *
+     * @remarks This function will validate that a sound is currently loaded and exit early if not.
+     * The function handles platform-specific behavior for Android and iOS to navigate around and
+     * fix issues with audio ducking and not being un-ducked after the sound has finished playing.
+     * This is an issue introduced into `expo-av` after version 11.0.1 and is not a bug in the app.
+     * Once `expo-audio` is available for expo go or the means to make full use of development builds
+     * for both platforms rather than just android, `expo-av` will be replaced with `expo-audio`.
+     *
+     * @async
+     * @returns {Promise<void>} A promise that resolves when the sound is played.
+     */
+    const handleAudio = async (): Promise<void> => {
+      if (!sound) return;
+      if (Platform.OS === "android") {
+        // We need to manually stop the sound when it is marked as finished or else audio from other
+        // apps will be ducked and stay ducked, as far as i can find this is a bug introduced after
+        // expo-av 11.0.1 with a fix for interruptions in the ui thread when videos finish playing.
+        // Im not sure if audio would do the same but this is a fix for now
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && !status.isBuffering) {
+            if (status.didJustFinish) {
+              sound.stopAsync();
+            }
+          }
+        });
+        await sound.playAsync();
+      } else {
+        // iOS ducking fix, unfortunately this is not as straight forward as the android fix but this
+        // solution from the packages github issues works well. The `setOnPlaybackStatusUpdate()` method
+        // does not work for this solution so we need to use a timeout based on the `durationMillis`
+        // property of the status object returned by `getStatusAsync()`.
+        // source: https://github.com/expo/expo/issues/29077#issuecomment-2571898903
+        await Audio.setAudioModeAsync({
+          staysActiveInBackground: true,
+          interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+          playsInSilentModeIOS: true,
+        });
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded && !status.isBuffering) {
+          await sound.playAsync();
+          const duration = status?.durationMillis ?? 0;
+          setTimeout(async () => {
+            await Audio.setAudioModeAsync({
+              staysActiveInBackground: true,
+              interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+              playsInSilentModeIOS: true,
+            });
+            await sound.stopAsync(); // The fix functions without this however just incase we call the stop method
+          }, duration);
+        }
+      }
+    };
 
     /**
      * Updates an existing notification with the current timer state.
@@ -223,6 +306,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         notificationId.current = null;
       }
       Vibration.vibrate([0, 500, 0, 500, 400, 500, 0, 500, 400, 500, 0, 500]);
+      handleAudio();
     }
 
     updateNotif();
