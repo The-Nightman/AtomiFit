@@ -113,10 +113,13 @@ const RootLayoutNav = () => {
      * The function also sets the background color of the navigation bar to transparent to allow for
      * a seamless transition between the app and the system UI.
      * 
+     * @platform Android
+     * 
      * @async
      * @returns {Promise<void>} A promise that resolves once the background colors are set.
      */
     const setUITheme = async (): Promise<void> => {
+      if (Platform.OS !== "android") return;
       await SystemUI.setBackgroundColorAsync("#0F0F0F");
       await NavigationBar.setBackgroundColorAsync("transparent");
     };
