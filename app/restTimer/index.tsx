@@ -343,47 +343,19 @@ const timer = (): JSX.Element => {
           <Animated.View
             entering={FadeIn}
             exiting={FadeOut}
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+            style={styles.editControlsCont}
           >
-            <View
-              style={{
-                minWidth: "60%",
-                gap: 4,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 16,
-                  justifyContent: "space-evenly",
-                  alignItems: "center",
-                }}
-              >
+            <View style={styles.editControlsSubCont}>
+              <View style={styles.editControlView}>
                 <Pressable
-                  style={{
-                    backgroundColor: "#60DD49",
-                    borderRadius: 4,
-                    padding: 6,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
+                  style={styles.editControlButton}
                   onPress={() => setTimer(timerState.selectedTime - 10)}
                 >
                   <MaterialIcons name="remove" size={38} color={"#0F0F0F"} />
                 </Pressable>
                 <MaterialIcons name="timer-10" size={38} color={"#60DD49"} />
                 <Pressable
-                  style={{
-                    backgroundColor: "#60DD49",
-                    borderRadius: 4,
-                    padding: 6,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
+                  style={styles.editControlButton}
                   onPress={() => setTimer(timerState.selectedTime + 10)}
                 >
                   <MaterialIcons name="add" size={38} color={"#0F0F0F"} />
@@ -504,5 +476,27 @@ const styles = StyleSheet.create({
     color: "deepskyblue",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  editControlsCont: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  editControlsSubCont: {
+    minWidth: "60%",
+    gap: 4,
+  },
+  editControlView: {
+    flexDirection: "row",
+    gap: 16,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+  },
+  editControlButton: {
+    backgroundColor: "#60DD49",
+    borderRadius: 4,
+    padding: 6,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
