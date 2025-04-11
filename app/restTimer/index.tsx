@@ -111,11 +111,12 @@ const timer = (): JSX.Element => {
    * The function returns an object with `initialValues` and `animations`:
    * - `initialValues`: The starting values for the animation.
    * - `animations`: The animation configurations to transition to the target values.
-   * If it is the first render, the function initializes `isFirstRender` to `true` and returns empty
-   * animation configurations. Otherwise, it calculates the animation for the `originY` property
-   * with a delay and a timing function.
+   * If it is the first render, the function initializes `isFirstRender` to `true` and returns the
+   * originY value of the `values` object as the initial value and the animation configurations, returning
+   * these fixes an issue on iOS where the text would be rendered on first render. Otherwise, it
+   * calculates the animation for the `originY` property with a delay and a timing function.
    *
-   * *sourced from: rgommezz/react-native-reanimated-stopwatch-timer
+   * *refactor and sourced from: rgommezz/react-native-reanimated-stopwatch-timer
    *
    * @param {SharedValue<boolean>} isFirstRender - A shared value indicating whether it is the first render.
    * @returns An object containing entry animation values and configurations.
@@ -124,11 +125,6 @@ const timer = (): JSX.Element => {
     (isFirstRender: SharedValue<boolean>) =>
     (values: EntryAnimationsValues) => {
       "worklet";
-
-      if (!isFirstRender.value) {
-        isFirstRender.value = true;
-        return { initialValues: {}, animations: {} };
-      }
 
       const animations = {
         originY: withDelay(
@@ -143,6 +139,15 @@ const timer = (): JSX.Element => {
       const initialValues = {
         originY: values.targetOriginY + ANIM_DISTANCE * enterDirection,
       };
+
+      // We need to return this here instead of at the start of the function to fix the iOS issue
+      if (!isFirstRender.value) {
+        isFirstRender.value = true;
+        return {
+          initialValues: { originY: values.targetOriginY },
+          animations: animations,
+        };
+      }
 
       return { initialValues, animations };
     };
@@ -179,6 +184,32 @@ const timer = (): JSX.Element => {
     };
     return { initialValues, animations };
   };
+
+  /**
+   * Memoized calculation of timer digits based on the current timer state.
+   *
+   * @remarks This function is intended to reduce the workload by reducing the number of
+   * calculations and string manipulations with the `formatRestTime` function and congregate
+   * the values into one single location for better maintainability. This function formats
+   * the remaining time into a string and extracts individual time components (ten minutes,
+   * minutes, ten seconds, and seconds) for display purposes.
+   *
+   * @returns {{ tenMinutes: string; minutes: string; tenSeconds: string; seconds: string; }}
+   *  An object containing the following properties:
+   * - `tenMinutes`: The tens place of the minutes digit (e.g., "0" in "01:23").
+   * - `minutes`: The single minutes digit (e.g., "1" in "01:23").
+   * - `tenSeconds`: The tens place of the seconds digit (e.g., "2" in "01:23").
+   * - `seconds`: The single seconds digit (e.g., "3" in "01:23").
+   */
+  const timerDigits = useMemo(() => {
+    const formattedTime = formatRestTime(Math.max(timerState.time, 0));
+    return {
+      tenMinutes: formattedTime.slice(0, 1),
+      minutes: formattedTime.slice(1, 2),
+      tenSeconds: formattedTime.slice(-2, -1),
+      seconds: formattedTime.slice(-1),
+    };
+  }, [timerState.time]);
 
   return (
     <View
@@ -258,68 +289,52 @@ const timer = (): JSX.Element => {
               }}
               ref={editInputRef}
             />
-          ) : timerState.active === false ? (
-            <Animated.Text
-              key={"timeInactive"}
-              // Consider this as being one step behind, this prevents the animation from firing when switching between edit and non-edit mode
-              {...(editState
-                ? {
-                    entering: createEntering(isMinutesMounted),
-                    exiting: createExiting,
-                  }
-                : {})}
-              maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
-              style={styles.timerTime}
-              ref={editInputRef}
-            >
-              {formatRestTime(
-                timerState.active ? timerState.time : timerState.selectedTime
-              )}
-            </Animated.Text>
           ) : (
-            <View style={{ flexDirection: "row" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <Animated.Text
-                key={`tenMinutes-${formatRestTime(timerState.time).slice(
-                  0,
-                  1
-                )}`}
+                key={`tenMinutes-${timerDigits.tenMinutes}`}
                 entering={createEntering(isTenMinutesMounted)}
                 exiting={createExiting}
                 maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
                 style={styles.timerTime}
               >
-                {formatRestTime(timerState.time).slice(0, 1)}
+                {timerDigits.tenMinutes}
               </Animated.Text>
               <Animated.Text
-                key={`minutes-${formatRestTime(timerState.time).slice(1, 2)}`}
+                key={`minutes-${timerDigits.minutes}`}
                 entering={createEntering(isMinutesMounted)}
                 exiting={createExiting}
                 maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
                 style={styles.timerTime}
               >
-                {formatRestTime(timerState.time).slice(1, 2)}
+                {timerDigits.minutes}
               </Animated.Text>
-              <Text style={styles.timerTime}>:</Text>
+              <Text maxFontSizeMultiplier={1.6} style={styles.timerTime}>
+                :
+              </Text>
               <Animated.Text
-                key={`tenSeconds-${formatRestTime(timerState.time).slice(
-                  -2,
-                  -1
-                )}`}
+                key={`tenSeconds-${timerDigits.tenSeconds}`}
                 entering={createEntering(isTenSecondsMounted)}
                 exiting={createExiting}
                 maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
                 style={styles.timerTime}
               >
-                {formatRestTime(timerState.time).slice(-2, -1)}
+                {timerDigits.tenSeconds}
               </Animated.Text>
               <Animated.Text
-                key={`seconds-${timerState.time}`}
+                key={`seconds-${timerDigits.seconds}`}
                 entering={createEntering(isSecondsMounted)}
                 exiting={createExiting}
                 maxFontSizeMultiplier={1.6} // Bad for accessibility however font size is already large even at 0.8 scale so this should be offset
                 style={styles.timerTime}
               >
-                {formatRestTime(timerState.time).slice(-1)}
+                {timerDigits.seconds}
               </Animated.Text>
             </View>
           )}
@@ -437,10 +452,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     minWidth: "80%",
     alignItems: "center",
-    justifyContent: "space-evenly",
+    justifyContent: "space-between",
     overflow: "hidden",
     gap: 4,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 32,
     borderRadius: 3000,
     borderWidth: 0.5,
     borderColor: hexcodeLuminosity("#60DD49", -50),
@@ -450,6 +466,7 @@ const styles = StyleSheet.create({
     color: getContrastTextColour("#60DD49"),
     fontSize: 70,
     fontWeight: "bold",
+    fontVariant: ["tabular-nums"],
   },
   playPauseButton: { minHeight: 44, minWidth: 44 },
   controlsContainer: {
