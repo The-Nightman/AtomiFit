@@ -309,7 +309,33 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
       handleAudio();
     }
 
+    /**
+     * Sends a notification on iOS devices when the rest timer has finished.
+     *
+     * Since iOS does not support live updates for notifications, a new notification
+     * is scheduled each time this function is called and checks are passed.
+     *
+     * @async
+     * @returns {Promise<void>} A promise that resolves when the notification is scheduled.
+     */
+    const iOSNotif = async (): Promise<void> => {
+      if (Platform.OS !== "ios") return;
+      if (timerState.time < 0) {
+        // iOS does not support live updates, so we need to create a new notification each time
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "AtomiFit - Rest Timer",
+            body: `Your rest timer has finished!`,
+            data: { shouldPlaySound: false },
+            sound: "default",
+          },
+          trigger: null,
+        });
+      }
+    };
+
     updateNotif();
+    iOSNotif();
   }, [timerState.time]);
 
   /**
@@ -423,7 +449,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
   };
 
   /**
-   * Sends a notification to the user with a platform specific solution.
+   * Sends a notification to the user.
    *
    * @private This function is specific to the TimerContext and should not be used outside of it.
    *
@@ -431,47 +457,29 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
    *   - Schedules an immediate sticky notification.
    *   - Stores the notification ID with ref for future updates.
    *
-   * @platform iOS:
-   *   - Schedules a notification with a delay based on the `timerState.selectedTime` property.
-   *
    * @async
    * @returns {Promise<void>} A promise that resolves when the notification is scheduled.
    */
   const sendNotification = async (): Promise<void> => {
-    if (Platform.OS === "android") {
-      // We want to store id for live updates on Android
-      const notifId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "AtomiFit - Rest Timer",
-          body: `Time remaining: ${timerState.selectedTime} seconds`,
-          data: { shouldPlaySound: false },
-          ...(Platform.OS === "android" && {
-            color: "#60DD49",
-            sticky: true,
-            channelId: "atomifitTimerChannel",
-          }),
-          categoryIdentifier: "timer",
-        },
-        trigger: null,
-      });
-
-      notificationId.current = notifId;
-      return;
-    }
-
-    // iOS does not support live updates, so we need to create a new notification each time
-    await Notifications.scheduleNotificationAsync({
+    if (Platform.OS !== "android") return;
+    // We want to store id for live updates on Android
+    const notifId = await Notifications.scheduleNotificationAsync({
       content: {
         title: "AtomiFit - Rest Timer",
-        body: `Your rest timer has finished!`,
+        body: `Time remaining: ${timerState.selectedTime} seconds`,
         data: { shouldPlaySound: false },
-        sound: "default",
+        ...(Platform.OS === "android" && {
+          color: "#60DD49",
+          sticky: true,
+          channelId: "atomifitTimerChannel",
+        }),
+        categoryIdentifier: "timer",
       },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: timerState.selectedTime,
-      },
+      trigger: null,
     });
+
+    notificationId.current = notifId;
+    return;
   };
 
   return (
