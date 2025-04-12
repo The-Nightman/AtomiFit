@@ -11,6 +11,8 @@ import { Platform, Vibration } from "react-native";
 import * as Notifications from "expo-notifications";
 import { Sound } from "expo-av/build/Audio";
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
+import * as FileSystem from "expo-file-system";
+import { eventEmitter } from "@/utils/eventEmitter";
 
 interface TimerProviderProps {
   children: React.ReactNode;
@@ -182,12 +184,29 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
             payload: value === "true",
           });
         }
-      }
 
-      // Load the sound file for the alarm, we will be changing this to allow for options
-      const { sound } = await Audio.Sound.createAsync(
-        require("../assets/audio/alarm1.wav")
-      );
+        if (key === "restTimerSelectedAlarm") {
+          if (value === null) {
+            await Storage.setItem(
+              "restTimerSelectedAlarm",
+              `${FileSystem.documentDirectory}audio/alarm1.wav`
+            );
+
+            const { sound } = await Audio.Sound.createAsync({
+              uri: `${FileSystem.documentDirectory}audio/alarm1.wav`,
+            });
+
+            setSound(sound);
+            continue;
+          }
+
+          const { sound } = await Audio.Sound.createAsync({
+            uri: value,
+          });
+
+          setSound(sound);
+        }
+      }
 
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
@@ -196,8 +215,6 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
         shouldDuckAndroid: false,
       });
-
-      setSound(sound);
     };
 
     setup();
@@ -239,6 +256,39 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
       subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    /**
+     * Asynchronously changes the sound used for the rest timer alarm.
+     * 
+     * @remarks This function retrieves the URI of the selected alarm sound from storage.
+     * If a sound is already loaded, it unloads the current sound before loading the new 
+     * sound using the retrieved URI. The new sound object is then set to the state.
+     * 
+     * @async
+     * @returns {Promise<void>} A promise that resolves when the sound change process is complete.
+     */
+    const soundChange = async (): Promise<void> => {
+      const soundUri = await Storage.getItem("restTimerSelectedAlarm");
+
+      if (soundUri) {
+        if (sound) {
+          await sound.unloadAsync();
+        }
+
+        const { sound: newSoundObj } = await Audio.Sound.createAsync({
+          uri: soundUri,
+        });
+        setSound(newSoundObj);
+      }
+    };
+
+    eventEmitter.on("alarmChanged", () => soundChange);
+
+    return () => {
+      eventEmitter.off("alarmChanged", () => soundChange);
+    };
+  }, [sound]);
 
   // We need to unload the sound when the context unmounts to prevent memory leaks
   useEffect(() => {
@@ -495,7 +545,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
    * Accepted preferance values are:
    *   - `"restTimerSoundEnabled"`: Toggles the sound setting for the rest timer.
    *   - `"restTimerVibrateEnabled"`: Toggles the vibration setting for the rest timer.
-   * 
+   *
    * @returns {Promise<void>}
    */
   const togglePreference = async (
