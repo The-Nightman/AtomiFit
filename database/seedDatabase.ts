@@ -670,6 +670,7 @@ export const seedDatabase = async (
     await db.delete(schema.exercises);
     await db.delete(schema.setsData);
     await db.delete(schema.personalRecords);
+    await db.delete(schema.audioMetadata);
 
     await db
       .insert(schema.setsData)
@@ -713,5 +714,88 @@ export const seedDatabase = async (
     await db
       .insert(schema.exercises)
       .values(mp4FormattedExercises as Exercise[]);
+  }
+
+  const audioDirInfo = await FileSystem.getInfoAsync(
+    `${FileSystem.documentDirectory}audio/`
+  );
+  if (!audioDirInfo.exists) {
+    await FileSystem.makeDirectoryAsync(
+      `${FileSystem.documentDirectory}audio/`,
+      { intermediates: true }
+    );
+  }
+
+  const audioAssets = {
+    "alarm1.wav": require("../assets/audio/alarm1.wav"),
+    "alarm2.wav": require("../assets/audio/alarm2.wav"),
+    "alarm3.wav": require("../assets/audio/alarm3.wav"),
+  };
+
+  type AudioFileName = keyof typeof audioAssets;
+
+  /**
+   * Retrieves an audio asset by its file name.
+   *
+   * @param {AudioFileName} fileName - The name of the audio file to retrieve.
+   * @returns {Promise<Asset | null>} A promise that resolves to the audio asset, or null if not found.
+   * @throws An error if the audio file is not found.
+   */
+  const getAudioAsset = async (
+    fileName: AudioFileName
+  ): Promise<Asset | null> => {
+    if (!audioAssets[fileName]) {
+      throw new Error(`Audio file not found: ${fileName}`);
+    }
+
+    const asset = Asset.fromModule(audioAssets[fileName]);
+    await asset.downloadAsync();
+    return asset;
+  };
+
+  /**
+   * Saves an audio file to the filesystem if it does not already exist.
+   *
+   * @remarks This function should only need to be ran once throughout the lifecycle of the app
+   * on the users device. However performance is not as much as a concern as the video files.
+   *
+   * @param {AudioFileName} fileName - The name of the audio file to save.
+   * @returns {Promise<string>} A promise that resolves to the URI of the saved audio file.
+   * @throws An error if the audio file cannot be saved to the filesystem.
+   */
+  const saveAudioToFilesystem = async (
+    fileName: AudioFileName
+  ): Promise<string> => {
+    const audioUri = `${FileSystem.documentDirectory}audio/${fileName}`;
+
+    if (!(await FileSystem.getInfoAsync(audioUri)).exists) {
+      try {
+        const asset = await getAudioAsset(fileName);
+        if (asset && asset.localUri) {
+          await FileSystem.copyAsync({
+            from: asset.localUri,
+            to: audioUri,
+          });
+        }
+      } catch (error) {
+        throw new Error(`Failed to save audio to filesystem: ${error}`);
+      }
+    }
+
+    return audioUri;
+  };
+
+  const audio = await db.select().from(schema.audioMetadata);
+
+  if (audio.length === 0) {
+    Object.keys(audioAssets).forEach(async (audioFileName) => {
+      const audioUri = await saveAudioToFilesystem(
+        audioFileName as AudioFileName
+      );
+      await db.insert(schema.audioMetadata).values({
+        name: audioFileName,
+        audioUrl: audioUri,
+      });
+    });
   }
 };
