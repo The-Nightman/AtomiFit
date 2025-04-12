@@ -149,7 +149,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         if (key === "restTimerSelectedTime") {
           if (value === null) {
             await Storage.setItem("restTimerSelectedTime", "60");
-            return;
+            continue;
           }
 
           const parsedValue = parseInt(value, 10);
@@ -162,7 +162,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         if (key === "restTimerSoundEnabled") {
           if (value === null) {
             await Storage.setItem("restTimerSoundEnabled", "false");
-            return;
+            continue;
           }
 
           dispatchTimerState({
@@ -174,7 +174,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         if (key === "restTimerVibrateEnabled") {
           if (value === null) {
             await Storage.setItem("restTimerVibrateEnabled", "true");
-            return;
+            continue;
           }
 
           dispatchTimerState({
