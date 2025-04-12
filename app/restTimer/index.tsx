@@ -51,6 +51,10 @@ const ANIM_DISTANCE = 80;
  */
 const timer = (): JSX.Element => {
   const [editState, setEditState] = useState<boolean>(false);
+  const [inputState, setInputState] = useState({
+    soundEnabled: false,
+    vibrationEnabled: false,
+  });
   const editInputRef = useRef<TextInput>(null);
   const {
     timerState,
@@ -59,6 +63,7 @@ const timer = (): JSX.Element => {
     resumeTimer,
     cancelTimer,
     setTimer,
+    togglePreference,
   } = useTimer();
 
   /**
@@ -361,6 +366,38 @@ const timer = (): JSX.Element => {
                   <MaterialIcons name="add" size={38} color={"#0F0F0F"} />
                 </Pressable>
               </View>
+              <Pressable style={styles.pressableCheckbox} onPress={() => togglePreference("restTimerSoundEnabled")}>
+                <Text style={styles.checkboxText}>Sound Alert</Text>
+                {timerState.soundEnabled ? (
+                  <MaterialCommunityIcons
+                    name="checkbox-outline"
+                    size={24}
+                    color={"#60DD49"}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="checkbox-blank-outline"
+                    size={24}
+                    color={hexcodeLuminosity("#9F9F9F", 30)}
+                  />
+                )}
+              </Pressable>
+              <Pressable style={styles.pressableCheckbox} onPress={() => togglePreference("restTimerVibrateEnabled")}>
+                <Text style={styles.checkboxText}>Vibration</Text>
+                {timerState.vibrateEnabled ? (
+                  <MaterialCommunityIcons
+                    name="checkbox-outline"
+                    size={24}
+                    color={"#60DD49"}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="checkbox-blank-outline"
+                    size={24}
+                    color={hexcodeLuminosity("#9F9F9F", 30)}
+                  />
+                )}
+              </Pressable>
             </View>
           </Animated.View>
         )}
@@ -433,6 +470,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: hexcodeLuminosity("#60DD49", -50),
     backgroundColor: "#60DD49",
+    zIndex: 200, // This will keep the buttons below the timer when animating
   },
   timerTime: {
     color: getContrastTextColour("#60DD49"),
@@ -448,7 +486,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "110%",
     justifyContent: "center",
-    zIndex: -200, // This will keep the buttons below the timer when animating
   },
   cancelButton: {
     flexDirection: "row",
@@ -484,7 +521,7 @@ const styles = StyleSheet.create({
   },
   editControlsSubCont: {
     minWidth: "60%",
-    gap: 4,
+    gap: 8,
   },
   editControlView: {
     flexDirection: "row",
@@ -499,4 +536,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  pressableCheckbox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 3000,
+    backgroundColor: "#3F3C3C",
+  },
+  checkboxText: { color: "white", fontSize: 20 },
 });

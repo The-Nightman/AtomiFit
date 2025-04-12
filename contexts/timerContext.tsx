@@ -22,6 +22,9 @@ interface TimerContextProps {
   resumeTimer: () => void;
   cancelTimer: () => void;
   setTimer: (time: number) => void;
+  togglePreference: (
+    preference: "restTimerSoundEnabled" | "restTimerVibrateEnabled"
+  ) => Promise<void>;
   timerState: TimerState;
 }
 
@@ -29,6 +32,8 @@ interface TimerState {
   selectedTime: number;
   time: number;
   active: boolean | "paused";
+  soundEnabled: boolean;
+  vibrateEnabled: boolean;
 }
 
 type TimerDispatch =
@@ -37,7 +42,9 @@ type TimerDispatch =
   | { type: "DECREMENT_TIME" }
   | { type: "SET_PAUSED" }
   | { type: "RESUME_TIMER" }
-  | { type: "CANCEL_TIMER" };
+  | { type: "CANCEL_TIMER" }
+  | { type: "SET_SOUND_ENABLED"; payload: boolean }
+  | { type: "SET_VIBRATE_ENABLED"; payload: boolean };
 
 /**
  * Context for managing rest timer-related state and functionality within the application.
@@ -55,6 +62,8 @@ export const TimerContext: React.Context<TimerContextProps | null> =
  * - `"SET_PAUSED"`: Sets the `active` property to `"paused"`.
  * - `"RESUME_TIMER"`: Sets the `active` property to `true`.
  * - `"CANCEL_TIMER"`: Resets the `time` to the `selectedTime` and sets `active` to `false`.
+ * - `"SET_SOUND_ENABLED"`: Updates the `soundEnabled` property with the provided payload.
+ * - `"SET_VIBRATE_ENABLED"`: Updates the `vibrateEnabled` property with the provided payload.
  * - `default`: Returns the current state if no action type matches as a fallback.
  *
  * @param {TimerState} state - The current state of the timer.
@@ -83,6 +92,12 @@ const reducer = (state: TimerState, action: TimerDispatch): TimerState => {
     case "CANCEL_TIMER": {
       return { ...state, time: state.selectedTime, active: false };
     }
+    case "SET_SOUND_ENABLED": {
+      return { ...state, soundEnabled: action.payload };
+    }
+    case "SET_VIBRATE_ENABLED": {
+      return { ...state, vibrateEnabled: action.payload };
+    }
     default:
       return state;
   }
@@ -100,6 +115,8 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
     selectedTime: 60, // These are just stand-in default values until the value is set from the KV store
     time: 60,
     active: false,
+    soundEnabled: false,
+    vibrateEnabled: true,
   });
   const [sound, setSound] = useState<Sound | null>(null);
   const notificationId = useRef<string | null>(null);
@@ -107,25 +124,65 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
 
   useEffect(() => {
     /**
-     * Asynchronously sets up the timer context by retrieving the saved timer value from storage.
-     * If no value is found, it initializes the storage with a default value of "60".
+     * Asynchronously sets up the timer context by retrieving the saved preference values from storage.
+     *
+     * @remarks This function retrieves the following values from storage:
+     * - `restTimerSelectedTime`: The selected time for the timer.
+     * - `restTimerSoundEnabled`: Indicates if sound is enabled for the timer.
+     * - `restTimerVibrateEnabled`: Indicates if vibration is enabled for the timer.
+     * - `restTimerSelectedAlarm`: The selected alarm sound for the timer.
+     *
+     * If no value is found, it initializes the storage with a default value matching the default state.
      * Otherwise, it parses the saved value and dispatches an action to update the timer state.
      *
      * @returns {Promise<void>} A promise that resolves when the setup process is complete.
      */
     const setup = async (): Promise<void> => {
-      const savedValue = await Storage.getItem("restTimerSelectedTime");
+      const preferences = await Storage.multiGet([
+        "restTimerSelectedTime",
+        "restTimerSoundEnabled",
+        "restTimerVibrateEnabled",
+        "restTimerSelectedAlarm",
+      ]);
 
-      if (savedValue === null) {
-        await Storage.setItem("restTimerSelectedTime", "60");
-        return; // We can return early as the default value is already set in state
+      for (const [key, value] of preferences) {
+        if (key === "restTimerSelectedTime") {
+          if (value === null) {
+            await Storage.setItem("restTimerSelectedTime", "60");
+            return;
+          }
+
+          const parsedValue = parseInt(value, 10);
+          dispatchTimerState({
+            type: "SET_SELECTED_TIME",
+            payload: parsedValue,
+          });
+        }
+
+        if (key === "restTimerSoundEnabled") {
+          if (value === null) {
+            await Storage.setItem("restTimerSoundEnabled", "false");
+            return;
+          }
+
+          dispatchTimerState({
+            type: "SET_SOUND_ENABLED",
+            payload: value === "true",
+          });
+        }
+
+        if (key === "restTimerVibrateEnabled") {
+          if (value === null) {
+            await Storage.setItem("restTimerVibrateEnabled", "true");
+            return;
+          }
+
+          dispatchTimerState({
+            type: "SET_VIBRATE_ENABLED",
+            payload: value === "true",
+          });
+        }
       }
-
-      const parsedValue = parseInt(savedValue, 10);
-      dispatchTimerState({
-        type: "SET_SELECTED_TIME",
-        payload: parsedValue,
-      });
 
       // Load the sound file for the alarm, we will be changing this to allow for options
       const { sound } = await Audio.Sound.createAsync(
@@ -305,8 +362,12 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         Notifications.dismissNotificationAsync(notificationId.current);
         notificationId.current = null;
       }
-      Vibration.vibrate([0, 500, 0, 500, 400, 500, 0, 500, 400, 500, 0, 500]);
-      handleAudio();
+      if (timerState.vibrateEnabled) {
+        Vibration.vibrate([0, 500, 0, 500, 400, 500, 0, 500, 400, 500, 0, 500]);
+      }
+      if (timerState.soundEnabled) {
+        handleAudio();
+      }
     }
 
     /**
@@ -427,6 +488,35 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
   };
 
   /**
+   * Toggles the specified timer preference between enabled and disabled states.
+   * Updates the application state and persists the new value in storage.
+   *
+   * @param { "restTimerSoundEnabled" | "restTimerVibrateEnabled" } preference - The preference to toggle.
+   * Accepted preferance values are:
+   *   - `"restTimerSoundEnabled"`: Toggles the sound setting for the rest timer.
+   *   - `"restTimerVibrateEnabled"`: Toggles the vibration setting for the rest timer.
+   * 
+   * @returns {Promise<void>}
+   */
+  const togglePreference = async (
+    preference: "restTimerSoundEnabled" | "restTimerVibrateEnabled"
+  ): Promise<void> => {
+    if (preference === "restTimerSoundEnabled") {
+      const newValue = !timerState.soundEnabled;
+      dispatchTimerState({ type: "SET_SOUND_ENABLED", payload: newValue });
+      await Storage.setItem("restTimerSoundEnabled", newValue.toString());
+      return;
+    }
+
+    if (preference === "restTimerVibrateEnabled") {
+      const newValue = !timerState.vibrateEnabled;
+      dispatchTimerState({ type: "SET_VIBRATE_ENABLED", payload: newValue });
+      await Storage.setItem("restTimerVibrateEnabled", newValue.toString());
+      return;
+    }
+  };
+
+  /**
    * Initializes or resets the timer interval.
    *
    * @private This function is specific to the TimerContext and should not be used outside of it.
@@ -435,6 +525,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
    * and sets up a new interval that dispatches a "DECREMENT_TIME" action to
    * decrement the timer state every second.
    *
+   * @returns {void}
    */
   const initInterval = (): void => {
     // Edge case, by design this case should never happen but lets handle it incase it does
@@ -490,6 +581,7 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
         resumeTimer,
         cancelTimer,
         setTimer,
+        togglePreference,
         timerState,
       }}
     >
