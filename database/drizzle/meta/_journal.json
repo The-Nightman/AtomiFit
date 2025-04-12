@@ -43,6 +43,13 @@
       "when": 1740954660594,
       "tag": "0005_early_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1744471839615,
+      "tag": "0006_lucky_hellcat",
+      "breakpoints": true
     }
   ]
 }

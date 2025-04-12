@@ -90,3 +90,16 @@ export const personalRecords = sqliteTable(
     prExerciseIdx: index("prExerciseIdx").on(personalRecords.exercise_id),
   })
 );
+
+// Audio metadata table to store the audio files and their filesystem location
+export const audioMetadata = sqliteTable(
+  "audio_metadata",
+  {
+    id: integer("id").primaryKey(),
+    name: text("name").notNull(),
+    audioUrl: text("audioUrl").notNull(),
+  },
+  (audioMetadata) => ({
+    audioNameIdx: uniqueIndex("audioNameIdx").on(audioMetadata.name),
+  })
+);
