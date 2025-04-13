@@ -283,10 +283,10 @@ export const TimerProvider = ({ children }: TimerProviderProps) => {
       }
     };
 
-    eventEmitter.on("alarmChanged", () => soundChange());
+    eventEmitter.on("alarmChanged", soundChange);
 
     return () => {
-      eventEmitter.off("alarmChanged", () => soundChange());
+      eventEmitter.off("alarmChanged", soundChange);
     };
   }, [sound]);
 
