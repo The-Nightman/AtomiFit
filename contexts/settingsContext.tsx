@@ -59,6 +59,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       const defaultSettings = {
         unitSystem: "metric",
         calendarWeekStart: "1",
+        keepAwake: "false",
       };
 
       for (const [key, value] of Object.entries(defaultSettings)) {
@@ -80,6 +81,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       setAppSettings({
         unitSystem: parsedSettings.unitSystem as "metric" | "imperial",
         calendarWeekStart: parseInt(parsedSettings.calendarWeekStart as string), // We need to parse to int as it is stored as a string
+        keepAwake: parsedSettings.keepAwake === "true", // We need to parse to boolean as it is stored as a string
       });
     };
 

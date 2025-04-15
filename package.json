@@ -59,7 +59,8 @@
     "expo-device": "~7.0.3",
     "expo-blur": "~14.0.3",
     "expo-navigation-bar": "~4.0.9",
-    "expo-av": "~15.0.2"
+    "expo-av": "~15.0.2",
+    "expo-keep-awake": "~14.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

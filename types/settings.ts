@@ -1,6 +1,7 @@
 export interface AppSettings {
   unitSystem: "metric" | "imperial";
   calendarWeekStart: number;
+  keepAwake: boolean;
 }
 
 export type AppSettingsKey = keyof AppSettings;
