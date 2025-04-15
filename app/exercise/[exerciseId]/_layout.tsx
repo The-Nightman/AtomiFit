@@ -9,6 +9,8 @@ import { eq } from "drizzle-orm";
 import UtilityStyles from "@/constants/UtilityStyles";
 import { WeightUnit } from "@/types/units";
 import { ExerciseTypes } from "@/types/exercise";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import { useSettings } from "@/contexts/settingsContext";
 
 /**
  * ExerciseLayout component.
@@ -35,6 +37,19 @@ const ExerciseLayout = (): JSX.Element => {
     date: string;
   }>();
   const { db } = useContext(DrizzleContext);
+  const { appSettings } = useSettings();
+
+  useEffect(() => {
+    if (appSettings?.keepAwake) {
+      activateKeepAwakeAsync();
+    } else {
+      deactivateKeepAwake();
+    }
+
+    return () => {
+      deactivateKeepAwake();
+    };
+  }, [appSettings?.keepAwake]);
 
   // Fetch the exercise name from the database using the provided exerciseId.
   useEffect(() => {
