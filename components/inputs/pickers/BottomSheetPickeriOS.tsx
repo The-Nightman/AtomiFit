@@ -57,7 +57,7 @@ const BottomSheetPickeriOS = ({
 
     if (closeEvents) {
       closeEvents.forEach((closeEvent) => {
-        eventEmitter.off(closeEvent, handleClose);
+        eventEmitter.on(closeEvent, handleClose);
       });
     }
 
